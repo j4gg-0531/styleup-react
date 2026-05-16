@@ -1,21 +1,45 @@
-import { useState } from 'react';
+// src/pages/cliente/DashboardCliente.jsx
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Sidebar from '../../components/layout/Sidebar';
-import { useAuth } from '../../context/useAuth.js'
-
-//const SECCIONES = ['dashboard', 'historial', 'perfil', 'telegram'];
+import { useAuth } from '../../context/useAuth.js';
+import { useCitas } from '../../context/useCitas.js'; // ← NUEVO
 
 export default function DashboardCliente() {
   const { user } = useAuth();
+  const { citas, cargarCitas, cancelarCita } = useCitas(); // ← NUEVO
   const [sec, setSec] = useState('dashboard');
   const [saveOk, setSaveOk] = useState(false);
   const [tgOk, setTgOk] = useState(false);
 
+  // Carga las citas del usuario al entrar al dashboard
+  useEffect(() => {
+    if (user?.nombre) cargarCitas(user.nombre);
+  }, [user, cargarCitas]);
+
+  // Separa citas según estado para mostrarlas en distintas secciones
+  const citasPendientes  = citas.filter((c) => c.estado === 'pendiente');
+  const citasHistorial   = citas.filter((c) => c.estado !== 'pendiente');
+
+  // Función para cancelar con confirmación simple
+  const handleCancelar = (id) => {
+    if (window.confirm('¿Estás seguro de que quieres cancelar esta cita?')) {
+      cancelarCita(id);
+    }
+  };
+
+  // Badge según estado
+  const badgePorEstado = {
+    pendiente:  <span className="badge badge-gold">Pendiente</span>,
+    completada: <span className="badge badge-green">Completada</span>,
+    cancelada:  <span className="badge badge-muted">Cancelada</span>,
+  };
+
   const navItems = [
-    { icon: '🏠', label: 'Dashboard',       href: '/cliente' },
-    { icon: '📅', label: 'Agendar cita',    href: '/cliente/agendar' },
-    { icon: '📖', label: 'Mi historial',    onClick: () => setSec('historial') },
-    { icon: '✏️', label: 'Mi perfil',       onClick: () => setSec('perfil') },
+    { icon: '🏠', label: 'Dashboard', href: '/cliente', onClick: () => setSec('dashboard') },
+    { icon: '📅', label: 'Agendar cita',     href: '/cliente/agendar' },
+    { icon: '📖', label: 'Mi historial',     onClick: () => setSec('historial') },
+    { icon: '✏️', label: 'Mi perfil',        onClick: () => setSec('perfil') },
     { icon: '📱', label: 'Vincular Telegram', onClick: () => setSec('telegram') },
   ];
 
@@ -24,63 +48,113 @@ export default function DashboardCliente() {
       <Sidebar avatar="👤" badge="Cliente" badgeClass="badge-gold" navItems={navItems} />
 
       <main className="main-content">
-        {/* DASHBOARD */}
+
+        {/* ── DASHBOARD ── */}
         {sec === 'dashboard' && (
           <div>
             <div className="welcome-banner">
               <div>
                 <h2 style={{ fontSize: '1.4rem' }}>¡Hola, {user?.nombre}! 👋</h2>
-                <p style={{ color: 'var(--muted)', fontSize: '0.88rem', marginTop: 4 }}>Aquí tienes un resumen de tu actividad en StyleUp.</p>
+                <p style={{ color: 'var(--muted)', fontSize: '0.88rem', marginTop: 4 }}>
+                  Aquí tienes un resumen de tu actividad en StyleUp.
+                </p>
               </div>
               <Link to="/cliente/agendar" className="btn btn-primary">📅 Nueva cita</Link>
             </div>
 
+            {/* Estadísticas reales basadas en las citas del usuario */}
             <div className="stats-grid">
-              {[['3','Citas agendadas','var(--gold)'],['1','Próxima cita','var(--red-light)'],['8','Completadas','#2ecc71'],['2','Canceladas','var(--muted)']].map(([v,l,c]) => (
-                <div key={l} className="stat-card">
-                  <div className="stat-value" style={{ color: c }}>{v}</div>
-                  <div className="stat-label">{l}</div>
+              <div className="stat-card">
+                <div className="stat-value" style={{ color: 'var(--gold)' }}>{citas.length}</div>
+                <div className="stat-label">Citas agendadas</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-value" style={{ color: 'var(--red-light)' }}>{citasPendientes.length}</div>
+                <div className="stat-label">Próximas citas</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-value" style={{ color: '#2ecc71' }}>
+                  {citas.filter((c) => c.estado === 'completada').length}
                 </div>
-              ))}
+                <div className="stat-label">Completadas</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-value" style={{ color: 'var(--muted)' }}>
+                  {citas.filter((c) => c.estado === 'cancelada').length}
+                </div>
+                <div className="stat-label">Canceladas</div>
+              </div>
             </div>
 
+            {/* Próximas citas */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <h3 className="card-title" style={{ marginBottom: 0 }}>Próximas citas</h3>
               <Link to="/cliente/agendar" className="btn btn-primary btn-sm">+ Nueva cita</Link>
             </div>
 
-            {[{ day:'15', month:'Jun', service:'✂ Corte a tijera', meta:'⏰ 10:00 AM · 💈 Juan Pérez · 30 min' },
-              { day:'22', month:'Jun', service:'🪒 Afeitado con navaja', meta:'⏰ 02:00 PM · 💈 Carlos López · 20 min' }].map((c) => (
-              <div key={c.day} className="cita-card">
-                <div className="cita-date-block">
-                  <div className="cita-day">{c.day}</div>
-                  <div className="cita-month">{c.month}</div>
+            {citasPendientes.length === 0 ? (
+              <div className="alert alert-info">No tienes citas próximas. ¡Agenda una ahora!</div>
+            ) : (
+              citasPendientes.map((c) => (
+                <div key={c.id} className="cita-card">
+                  <div className="cita-date-block">
+                    <div className="cita-day">{c.fechaDia}</div>
+                    <div className="cita-month">{c.fechaMes}</div>
+                  </div>
+                  <div className="cita-info">
+                    <div className="cita-service">{c.servicio?.icon} {c.servicio?.name}</div>
+                    <div className="cita-meta">
+                      ⏰ {c.hora} · 💈 {c.barbero?.name} · {c.servicio?.dur}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {badgePorEstado[c.estado]}
+                    <button
+                      className="btn btn-outline btn-sm"
+                      style={{ color: 'var(--red-light)', borderColor: 'var(--red-light)' }}
+                      onClick={() => handleCancelar(c.id)}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
                 </div>
-                <div className="cita-info">
-                  <div className="cita-service">{c.service}</div>
-                  <div className="cita-meta">{c.meta}</div>
-                </div>
-                <span className="badge badge-gold">Pendiente</span>
-              </div>
-            ))}
+              ))
+            )}
 
-            <h3 className="card-title" style={{ marginTop: 24 }}>Historial reciente</h3>
-            <div className="card">
-              <div className="table-wrap">
-                <table>
-                  <thead><tr><th>Fecha</th><th>Servicio</th><th>Barbero</th><th>Duración</th><th>Estado</th></tr></thead>
-                  <tbody>
-                    <tr><td>2025-05-28</td><td>Degradado / Fade</td><td>Juan Pérez</td><td>25 min</td><td><span className="badge badge-green">Completada</span></td></tr>
-                    <tr><td>2025-05-10</td><td>Corte a tijera</td><td>Carlos López</td><td>30 min</td><td><span className="badge badge-green">Completada</span></td></tr>
-                    <tr><td>2025-04-30</td><td>Diseño en cabello</td><td>Juan Pérez</td><td>40 min</td><td><span className="badge badge-muted">Cancelada</span></td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            {/* Historial reciente (últimas 3) */}
+            {citasHistorial.length > 0 && (
+              <>
+                <h3 className="card-title" style={{ marginTop: 24 }}>Historial reciente</h3>
+                <div className="card">
+                  <div className="table-wrap">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Fecha</th><th>Hora</th><th>Servicio</th>
+                          <th>Barbero</th><th>Duración</th><th>Estado</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {citasHistorial.slice(-3).reverse().map((c) => (
+                          <tr key={c.id}>
+                            <td>{c.fechaDia} {c.fechaMes} {c.fechaAnio}</td>
+                            <td>{c.hora}</td>
+                            <td>{c.servicio?.name}</td>
+                            <td>{c.barbero?.name}</td>
+                            <td>{c.servicio?.dur}</td>
+                            <td>{badgePorEstado[c.estado]}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         )}
 
-        {/* HISTORIAL */}
+        {/* ── HISTORIAL COMPLETO ── */}
         {sec === 'historial' && (
           <div>
             <div className="page-header">
@@ -88,28 +162,48 @@ export default function DashboardCliente() {
               <p className="page-subtitle">Todas tus citas registradas en StyleUp</p>
             </div>
             <div className="card">
-              <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
-                <select className="form-control" style={{ maxWidth: 180 }}>
-                  <option>Todos los estados</option><option>Completada</option><option>Cancelada</option><option>Pendiente</option>
-                </select>
-                <input type="date" className="form-control" style={{ maxWidth: 180 }} />
-                <button className="btn btn-outline btn-sm">Filtrar</button>
-              </div>
-              <div className="table-wrap">
-                <table>
-                  <thead><tr><th>Fecha</th><th>Hora</th><th>Servicio</th><th>Barbero</th><th>Duración</th><th>Estado</th></tr></thead>
-                  <tbody>
-                    <tr><td>2025-06-15</td><td>10:00</td><td>Corte a tijera</td><td>Juan Pérez</td><td>30 min</td><td><span className="badge badge-gold">Pendiente</span></td></tr>
-                    <tr><td>2025-05-28</td><td>14:00</td><td>Degradado</td><td>Juan Pérez</td><td>25 min</td><td><span className="badge badge-green">Completada</span></td></tr>
-                    <tr><td>2025-04-30</td><td>11:00</td><td>Diseño en cabello</td><td>Juan Pérez</td><td>40 min</td><td><span className="badge badge-muted">Cancelada</span></td></tr>
-                  </tbody>
-                </table>
-              </div>
+              {citas.length === 0 ? (
+                <div className="alert alert-info">Aún no tienes citas registradas.</div>
+              ) : (
+                <div className="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Fecha</th><th>Hora</th><th>Servicio</th>
+                        <th>Barbero</th><th>Duración</th><th>Estado</th><th>Acción</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[...citas].reverse().map((c) => (
+                        <tr key={c.id}>
+                          <td>{c.fechaDia} {c.fechaMes} {c.fechaAnio}</td>
+                          <td>{c.hora}</td>
+                          <td>{c.servicio?.icon} {c.servicio?.name}</td>
+                          <td>{c.barbero?.name}</td>
+                          <td>{c.servicio?.dur}</td>
+                          <td>{badgePorEstado[c.estado]}</td>
+                          <td>
+                            {c.estado === 'pendiente' && (
+                              <button
+                                className="btn btn-outline btn-sm"
+                                style={{ color: 'var(--red-light)', borderColor: 'var(--red-light)' }}
+                                onClick={() => handleCancelar(c.id)}
+                              >
+                                Cancelar
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* PERFIL */}
+        {/* ── PERFIL (sin cambios) ── */}
         {sec === 'perfil' && (
           <div>
             <div className="page-header">
@@ -122,7 +216,7 @@ export default function DashboardCliente() {
                 <input className="form-control" defaultValue="1001234567" readOnly style={{ opacity: 0.5 }} />
               </div>
               <div className="grid-2">
-                <div className="form-group"><label className="form-label">Nombres</label><input className="form-control" defaultValue="Juan" /></div>
+                <div className="form-group"><label className="form-label">Nombres</label><input className="form-control" defaultValue={user?.nombre} /></div>
                 <div className="form-group"><label className="form-label">Apellidos</label><input className="form-control" defaultValue="García" /></div>
               </div>
               <div className="form-group"><label className="form-label">Correo</label><input className="form-control" defaultValue="juan@correo.com" /></div>
@@ -140,7 +234,7 @@ export default function DashboardCliente() {
           </div>
         )}
 
-        {/* TELEGRAM */}
+        {/* ── TELEGRAM (sin cambios) ── */}
         {sec === 'telegram' && (
           <div>
             <div className="page-header">
@@ -162,10 +256,11 @@ export default function DashboardCliente() {
               <button className="btn btn-primary" onClick={() => { setTgOk(true); setTimeout(() => setTgOk(false), 3000); }}>
                 Vincular cuenta
               </button>
-              {tgOk && <div className="alert alert-success" style={{ marginTop: 8 }}>✅ Cuenta vinculada. Recibirás recordatorios por Telegram.</div>}
+              {tgOk && <div className="alert alert-success" style={{ marginTop: 8 }}>✅ Cuenta vinculada.</div>}
             </div>
           </div>
         )}
+
       </main>
     </div>
   );

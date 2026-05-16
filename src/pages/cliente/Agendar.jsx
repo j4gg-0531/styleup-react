@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/useAuth.js';     // ← NUEVO
+import { useCitas } from '../../context/useCitas.js';   // ← NUEVO
 
 const SERVICIOS = [
   { id: 'E001', icon: '✂', name: 'Corte a tijera', dur: '30 min' },
@@ -32,12 +34,24 @@ export default function Agendar() {
   const [confirmado, setConfirmado] = useState(false);
   const navigate = useNavigate();
 
+  const { user } = useAuth();       // ← NUEVO: para saber quién agenda
+  const { agregarCita } = useCitas(); // ← NUEVO: para guardar la cita
+
   const ir = (n) => setPaso(n);
 
   const validar1 = () => { if (!sel.servicio) { setMsgs({ 1: true }); return; } setMsgs({}); ir(2); };
   const validar2 = () => { if (!sel.barbero)  { setMsgs({ 2: true }); return; } setMsgs({}); ir(3); };
   const validar3 = () => { if (!sel.fecha || !sel.hora) { setMsgs({ 3: true }); return; } setMsgs({}); ir(4); };
   const confirmar = () => {
+    agregarCita({
+      clienteNombre: user.nombre, // quién agenda
+      servicio: sel.servicio,     // { id, name, dur, icon }
+      barbero:  sel.barbero,      // { id, name }
+      fechaDia: sel.fecha,        // número del día: "15"
+      fechaMes: 'Jun',            // FUTURO: vendrá del calendario dinámico
+      fechaAnio: '2025',
+      hora: sel.hora,
+    });
     setConfirmado(true);
     setTimeout(() => navigate('/cliente'), 2200);
   };

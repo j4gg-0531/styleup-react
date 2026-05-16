@@ -22,7 +22,10 @@ export default function Sidebar({ avatar, badge, badgeClass = 'badge-red', navIt
           <span
             key={i}
             className={`nav-item ${location.pathname === item.href ? 'active' : ''}`}
-            onClick={() => item.href ? navigate(item.href) : item.onClick?.()}
+            onClick={() => {
+            item.onClick?.();            
+            if (item.href) navigate(item.href);
+      }}
           >
             <span className="nav-icon">{item.icon}</span>
             {item.label}
