@@ -1,6 +1,7 @@
+
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import { useAuth } from './context/useAuth';
+import { AuthProvider } from './context/AuthContext.jsx';
+import { useAuth } from './context/useAuth.js';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Registro from './pages/Registro';

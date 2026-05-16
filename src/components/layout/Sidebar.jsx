@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/useAuth.js';
 
 export default function Sidebar({ avatar, badge, badgeClass = 'badge-red', navItems, extra }) {
   const { user, logout } = useAuth();

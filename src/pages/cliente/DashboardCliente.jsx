@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Sidebar from '../../components/layout/Sidebar';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/useAuth.js'
 
 //const SECCIONES = ['dashboard', 'historial', 'perfil', 'telegram'];
 
