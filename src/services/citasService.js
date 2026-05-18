@@ -62,4 +62,11 @@ export const citasService = {
     guardarCitas(actualizadas);
     return actualizadas;
   },
+
+  // Obtener citas asignadas a un barbero específico
+  // FUTURO: return await fetch(`/api/citas?barbero=${nombre}`)
+  getCitasByBarbero: (barberoNombre) => {
+    const citas = leerCitas();
+    return citas.filter((c) => c.barbero?.name === barberoNombre);
+  },
 };
