@@ -9,8 +9,13 @@ import Login from './pages/Login';
 import Registro from './pages/Registro';
 import DashboardCliente from './pages/cliente/DashboardCliente';
 import Agendar from './pages/cliente/Agendar';
+import Barberos from './pages/cliente/Barberos';
+import PerfilBarbero from './pages/cliente/PerfilBarbero';
 import DashboardBarbero from './pages/barbero/DashboardBarbero';
 import Horarios from './pages/barbero/Horarios';
+import Historial from './pages/cliente/Historial';
+import Perfil from './pages/cliente/Perfil';
+import Telegram from './pages/cliente/Telegram';
 
 function RutaProtegida({ children, rol }) {
   const { user } = useAuth();
@@ -35,6 +40,21 @@ export default function App() {
               } />
               <Route path="/cliente/agendar" element={
                 <RutaProtegida rol="cliente"><Agendar /></RutaProtegida>
+              } />
+              <Route path="/cliente/barberos" element={
+                <RutaProtegida rol="cliente"><Barberos /></RutaProtegida>
+              } />
+              <Route path="/cliente/barberos/:id" element={
+                <RutaProtegida rol="cliente"><PerfilBarbero /></RutaProtegida>
+              } />
+              <Route path="/cliente/historial" element={
+                <RutaProtegida rol="cliente"><Historial /></RutaProtegida>
+              } />
+              <Route path="/cliente/perfil" element={
+                <RutaProtegida rol="cliente"><Perfil /></RutaProtegida>
+              } />
+              <Route path="/cliente/telegram" element={
+                <RutaProtegida rol="cliente"><Telegram /></RutaProtegida>
               } />
 
               <Route path="/barbero" element={
