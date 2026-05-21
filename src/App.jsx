@@ -16,6 +16,10 @@ import Horarios from './pages/barbero/Horarios';
 import Historial from './pages/cliente/Historial';
 import Perfil from './pages/cliente/Perfil';
 import Telegram from './pages/cliente/Telegram';
+import HistorialBarbero from './pages/barbero/HistorialBarbero';
+import Precios from './pages/barbero/Precios';
+import Reportes from './pages/barbero/Reportes';
+import PerfilBarberoPage from './pages/barbero/PerfilBarberoPage';
 
 function RutaProtegida({ children, rol }) {
   const { user } = useAuth();
@@ -63,6 +67,18 @@ export default function App() {
               <Route path="/barbero/horarios" element={
                 <RutaProtegida rol="barbero"><Horarios /></RutaProtegida>
               } />
+              <Route path="/barbero/historial" element={
+  <RutaProtegida rol="barbero"><HistorialBarbero /></RutaProtegida>
+} />
+<Route path="/barbero/precios" element={
+  <RutaProtegida rol="barbero"><Precios /></RutaProtegida>
+} />
+<Route path="/barbero/reportes" element={
+  <RutaProtegida rol="barbero"><Reportes /></RutaProtegida>
+} />
+<Route path="/barbero/perfil" element={
+  <RutaProtegida rol="barbero"><PerfilBarberoPage /></RutaProtegida>
+} />
 
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

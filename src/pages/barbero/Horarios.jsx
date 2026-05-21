@@ -30,6 +30,10 @@ export default function Horarios() {
   const navItems = [
     { icon: '🏠', label: 'Dashboard',    href: '/barbero' },
     { icon: '⏰', label: 'Mis horarios', href: '/barbero/horarios' },
+    { icon: '📖', label: 'Historial',    href: '/barbero/historial' },
+    { icon: '💰', label: 'Mis precios',  href: '/barbero/precios' },
+    { icon: '📊', label: 'Reportes',     href: '/barbero/reportes' },
+    { icon: '✏️', label: 'Mi perfil',    href: '/barbero/perfil' },
   ];
 
   const toggleDia = (num) =>
@@ -86,9 +90,11 @@ export default function Horarios() {
     return acc;
   }, []);
 
+  const extra = <div className="spec-badge" style={{ marginTop: 8 }}>✂ Corte a tijera</div>;
+
   return (
     <div className="app-layout">
-      <Sidebar avatar="💈" badge="Barbero" navItems={navItems} />
+      <Sidebar avatar="💈" badge="Barbero" navItems={navItems} extra={extra} />
 
       <main className="main-content">
         <div className="page-header">
