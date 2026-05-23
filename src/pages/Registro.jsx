@@ -4,7 +4,7 @@ import { useAuth } from '../context/useAuth.js'
 
 export default function Registro() {
   const [rol, setRol] = useState('cliente');
-  const [form, setForm] = useState({ nombre:'', apellido:'', cedula:'', correo:'', telefono:'', password:'', password2:'', especialidad:'', direccion:'', ciudad:'' });
+  const [form, setForm] = useState({ nombre:'', apellido:'', cedula:'', correo:'', telefono:'', password:'', password2:'', especialidad:'', direccion:'', ciudad:'', nombreBarberia:'', nit:'', descripcion:'', capacidadBarberos: '' });
   const [msg, setMsg] = useState(null);
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -32,10 +32,17 @@ export default function Registro() {
         <div className="reg-card">
           <form onSubmit={handleSubmit}>
             <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', marginBottom: 12 }}>Tipo de cuenta</div>
-            <div className="rol-tabs">
-              {[{ val: 'cliente', icon: '👤', name: 'Cliente', desc: 'Quiero agendar citas' },
-                { val: 'barbero', icon: '💈', name: 'Barbero', desc: 'Quiero gestionar mi agenda' }].map((r) => (
-                <div key={r.val} className={`rol-tab ${rol === r.val ? 'active' : ''}`} onClick={() => setRol(r.val)}>
+            <div className="rol-tabs" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
+              {[
+                { val: 'cliente',  icon: '👤', name: 'Cliente',  desc: 'Quiero agendar citas' },
+                { val: 'barbero',  icon: '💈', name: 'Barbero',  desc: 'Quiero gestionar mi agenda' },
+                { val: 'barberia', icon: '🏪', name: 'Barbería', desc: 'Quiero gestionar mi negocio' },
+              ].map((r) => (
+                <div
+                  key={r.val}
+                  className={`rol-tab ${rol === r.val ? 'active' : ''}`}
+                  onClick={() => setRol(r.val)}
+                >
                   <div className="rol-tab-icon">{r.icon}</div>
                   <div className="rol-tab-name">{r.name}</div>
                   <div className="rol-tab-desc">{r.desc}</div>
@@ -73,6 +80,50 @@ export default function Registro() {
                 <div className="grid-2">
                   <div className="form-group"><label className="form-label">Dirección</label><input className="form-control" placeholder="Calle 10 #5-32" value={form.direccion} onChange={set('direccion')} /></div>
                   <div className="form-group"><label className="form-label">Ciudad</label><input className="form-control" placeholder="Ej: Valledupar" value={form.ciudad} onChange={set('ciudad')} /></div>
+                </div>
+              </>
+            )}
+
+            {rol === 'barberia' && (
+              <>
+                <div className="section-title">Datos del negocio</div>
+                <div className="form-group">
+                  <label className="form-label">Nombre de la barbería *</label>
+                  <input className="form-control" placeholder="Ej: BarberShop Style" value={form.nombreBarberia} onChange={set('nombreBarberia')} required />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">NIT *</label>
+                  <input className="form-control" placeholder="Ej: 900123456-1" value={form.nit} onChange={set('nit')} required />
+                </div>
+                <div className="grid-2">
+                  <div className="form-group">
+                    <label className="form-label">Dirección *</label>
+                    <input className="form-control" placeholder="Calle 10 #5-32" value={form.direccion} onChange={set('direccion')} required />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Ciudad *</label>
+                    <input className="form-control" placeholder="Ej: Valledupar" value={form.ciudad} onChange={set('ciudad')} required />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Descripción</label>
+                  <input className="form-control" placeholder="Breve descripción de tu barbería" value={form.descripcion} onChange={set('descripcion')} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Capacidad máxima de barberos *</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    placeholder="Ej: 5"
+                    min="1"
+                    max="20"
+                    value={form.capacidadBarberos}
+                    onChange={set('capacidadBarberos')}
+                    required
+                  />
+                  <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: 4 }}>
+                    Número máximo de barberos que pueden trabajar en tu barbería
+                  </div>
                 </div>
               </>
             )}

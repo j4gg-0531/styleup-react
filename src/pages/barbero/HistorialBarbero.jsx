@@ -37,6 +37,7 @@ export default function HistorialBarbero() {
   const navItems = [
     { icon: '🏠', label: 'Dashboard',    href: '/barbero' },
     { icon: '⏰', label: 'Mis horarios', href: '/barbero/horarios' },
+    { icon: '📋', label: 'Ofertas',      href: '/barbero/ofertas' },  // ← NUEVO
     { icon: '📖', label: 'Historial',    href: '/barbero/historial' },
     { icon: '💰', label: 'Mis precios',  href: '/barbero/precios' },
     { icon: '📊', label: 'Reportes',     href: '/barbero/reportes' },

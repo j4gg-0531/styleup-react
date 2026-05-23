@@ -19,7 +19,11 @@ export default function Login() {
     const nombre = correo.split('@')[0];
     login(nombre, rol);
     setMsg({ tipo: 'success', texto: '¡Bienvenido! Redirigiendo...' });
-    setTimeout(() => navigate(rol === 'barbero' ? '/barbero' : '/cliente'), 700);
+    setTimeout(() => {
+      if (rol === 'barbero') navigate('/barbero');
+      else if (rol === 'barberia') navigate('/barberia');
+      else navigate('/cliente');
+    }, 700);
   };
 
   return (
@@ -37,7 +41,8 @@ export default function Login() {
               Accede como
             </div>
             {[{ icon: '👤', name: 'Cliente', desc: 'Agenda y gestiona tus citas' },
-              { icon: '💈', name: 'Barbero', desc: 'Administra tu agenda y horarios' }].map((r) => (
+              { icon: '💈', name: 'Barbero', desc: 'Administra tu agenda y horarios' },
+              { icon: '🏪', name: 'Barbería', desc: 'Gestiona tu negocio y equipo' }].map((r) => (
               <div key={r.name} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: 12, marginBottom: 8 }}>
                 <div style={{ fontSize: '1.3rem' }}>{r.icon}</div>
                 <div>
@@ -58,9 +63,12 @@ export default function Login() {
             <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', marginBottom: 10 }}>
               Soy un…
             </div>
-            <div className="role-selector">
-              {[{ val: 'cliente', icon: '👤', label: 'Cliente' },
-                { val: 'barbero', icon: '💈', label: 'Barbero' }].map((r) => (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 22 }}>
+              {[
+                { val: 'cliente',  icon: '👤', label: 'Cliente' },
+                { val: 'barbero',  icon: '💈', label: 'Barbero' },
+                { val: 'barberia', icon: '🏪', label: 'Barbería' },
+              ].map((r) => (
                 <div
                   key={r.val}
                   className={`role-opt ${rol === r.val ? 'selected' : ''}`}

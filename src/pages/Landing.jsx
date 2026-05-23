@@ -87,7 +87,7 @@ export default function Landing() {
 
       <section className="roles">
         <div style={{ textAlign: 'center' }}>
-          <h2 style={{ fontSize: '2rem' }}>Dos roles, una plataforma</h2>
+          <h2 style={{ fontSize: '2rem' }}>Tres roles, una plataforma</h2>
           <div className="gold-line" style={{ margin: '12px auto' }} />
         </div>
         <div className="roles-grid">
@@ -115,6 +115,25 @@ export default function Landing() {
               </Link>
             </div>
           ))}
+        </div>
+
+        {/* Barbería — centrada debajo */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 28 }}>
+          <div className="role-card" style={{ borderTop: '3px solid var(--gold)', maxWidth: 500, width: '100%' }}>
+            <div className="role-icon">🏪</div>
+            <div className="role-title">Barbería</div>
+            <div className="role-desc">
+              Gestiona tu negocio, publica ofertas de trabajo, administra tu equipo y ve los reportes de ganancias.
+            </div>
+            <ul className="role-perks">
+              {['Publicar ofertas de trabajo', 'Gestionar equipo de barberos', 'Control de horarios', 'Reportes de ganancias'].map((p) => (
+                <li key={p}>{p}</li>
+              ))}
+            </ul>
+            <Link to="/registro" className="btn btn-outline btn-sm">
+              Registrar mi barbería
+            </Link>
+          </div>
         </div>
       </section>
 
