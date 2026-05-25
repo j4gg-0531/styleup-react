@@ -27,6 +27,7 @@ import HorariosBarberia from './pages/barberia/HorariosBarberia';
 import ReportesBarberia from './pages/barberia/ReportesBarberia';
 import PerfilBarberia from './pages/barberia/PerfilBarberia';
 import OfertasBarbero from './pages/barbero/OfertasBarbero';
+import ChatFlotante from './components/chat/ChatFlotante.jsx';
 
 function RutaProtegida({ children, rol }) {
   const { user } = useAuth();
@@ -111,6 +112,7 @@ export default function App() {
 
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+            <ChatFlotante />
           </BrowserRouter>
         </HorariosProvider>
       </CitasProvider>

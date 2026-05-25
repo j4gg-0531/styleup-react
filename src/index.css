@@ -817,3 +817,9 @@ footer {
   .login-wrap { flex-direction: column; margin: 16px; max-width: 100%; }
   .login-panel-left { width: 100%; padding: 32px 24px; }
 }
+
+/* ── CHAT FLOTANTE ── */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
