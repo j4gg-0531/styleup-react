@@ -3,10 +3,24 @@ import { useState, useEffect, useRef } from 'react';
 import { chatService } from '../../services/chatService.js';
 import { barberosService } from '../../services/barberosService.js';
 
-export default function ChatWindow({ usuarioActual, rolActual, onClose }) {
-  const [conversacionActiva, setConversacionActiva] = useState(null);
+export default function ChatWindow({ usuarioActual, rolActual, onClose, conversacionInicial, onConversacionAbierta }) {
+
+  // Estados con inicialización directa si viene conversacionInicial
+  const [conversacionActiva, setConversacionActiva] = useState(
+    conversacionInicial || null
+  );
+  const [vista, setVista] = useState(
+    conversacionInicial ? 'chat' : 'lista'
+  );
+  const [mensajes, setMensajes] = useState(() => {
+    if (conversacionInicial) {
+      onConversacionAbierta?.();
+      return chatService.getMensajes(usuarioActual, conversacionInicial);
+    }
+    return [];
+  });
+
   const [texto, setTexto] = useState('');
-  const [vista, setVista] = useState('lista'); // 'lista' | 'chat'
   const mensajesEndRef = useRef(null);
 
   // Lista de barberos disponibles para chatear
@@ -15,9 +29,7 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose }) {
 
   const [conversaciones, setConversaciones] = useState(
     () => chatService.getConversaciones(usuarioActual)
-);
-
-  const [mensajes, setMensajes] = useState([]);
+  );
 
   // Auto scroll al último mensaje
   useEffect(() => {
@@ -102,7 +114,10 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose }) {
           {/* Conversaciones existentes */}
           {conversaciones.length > 0 && (
             <div>
-              <div style={{ padding: '10px 16px 4px', fontSize: '0.72rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              <div style={{
+                padding: '10px 16px 4px', fontSize: '0.72rem',
+                color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em',
+              }}>
                 Recientes
               </div>
               {conversaciones.map((conv) => (
@@ -128,7 +143,10 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose }) {
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>{conv.otroUsuario}</div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <div style={{
+                      fontSize: '0.78rem', color: 'var(--muted)',
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}>
                       {conv.ultimoMensaje.de === usuarioActual ? 'Tú: ' : ''}{conv.ultimoMensaje.texto}
                     </div>
                   </div>
@@ -143,7 +161,10 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose }) {
           {/* Lista de barberos para iniciar chat */}
           {rolActual === 'cliente' && (
             <div>
-              <div style={{ padding: '10px 16px 4px', fontSize: '0.72rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              <div style={{
+                padding: '10px 16px 4px', fontSize: '0.72rem',
+                color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em',
+              }}>
                 Barberos disponibles
               </div>
               {barberos.map((b) => {
@@ -197,7 +218,10 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose }) {
       {vista === 'chat' && (
         <>
           {/* Mensajes */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{
+            flex: 1, overflowY: 'auto', padding: '12px 16px',
+            display: 'flex', flexDirection: 'column', gap: 8,
+          }}>
             {mensajes.length === 0 ? (
               <div style={{ textAlign: 'center', color: 'var(--muted)', fontSize: '0.85rem', marginTop: 20 }}>
                 Inicia la conversación 👋
@@ -208,14 +232,10 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose }) {
                 return (
                   <div
                     key={m.id}
-                    style={{
-                      display: 'flex',
-                      justifyContent: esMio ? 'flex-end' : 'flex-start',
-                    }}
+                    style={{ display: 'flex', justifyContent: esMio ? 'flex-end' : 'flex-start' }}
                   >
                     <div style={{
-                      maxWidth: '75%',
-                      padding: '8px 12px',
+                      maxWidth: '75%', padding: '8px 12px',
                       borderRadius: esMio ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
                       background: esMio
                         ? 'linear-gradient(135deg, var(--red), var(--red-light))'

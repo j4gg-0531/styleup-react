@@ -174,16 +174,7 @@ export default function Barberos() {
                         <span>📞 {b.telefono}</span>
                       </div>
                     </div>
-                    <button
-                      className="btn btn-primary btn-sm"
-                      style={{ flexShrink: 0 }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/cliente/barberos/${b.id}`);
-                      }}
-                    >
-                      Ver perfil y agendar →
-                    </button>
+
                   </div>
                 </div>
               ))

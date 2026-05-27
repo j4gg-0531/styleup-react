@@ -1,20 +1,23 @@
 // src/components/Chat/ChatFlotante.jsx
 import { useState } from 'react';
 import { useAuth } from '../../context/useAuth.js';
+import { useChatFlotante } from '../../context/useChatFlotante.js';
 import { chatService } from '../../services/chatService.js';
 import ChatWindow from './ChatWindow.jsx';
 import { useLocation } from 'react-router-dom'; // ← AGREGAR
 
 export default function ChatFlotante() {
   const { user } = useAuth();
+  const { chatPendiente, limpiarChat } = useChatFlotante();
   const [abierto, setAbierto] = useState(false);
   const location = useLocation(); // ← AGREGAR
 
   // ✅ Sin useEffect — se calcula directo en el render
   // FUTURO: vendrá de un WebSocket que notifica en tiempo real
-  const noLeidos = user
-    ? chatService.getMensajesNoLeidos(user.nombre)
-    : 0;
+  const noLeidos = user ? chatService.getMensajesNoLeidos(user.nombre) : 0;
+
+  const debeAbrirse = chatPendiente && user && !abierto;
+  if (debeAbrirse) setAbierto(true);
 
   const rutasPublicas = ['/', '/login', '/registro'];
 
@@ -30,6 +33,8 @@ export default function ChatFlotante() {
         <ChatWindow
           usuarioActual={user.nombre}
           rolActual={user.rol}
+          conversacionInicial={chatPendiente}
+          onConversacionAbierta={limpiarChat}
           onClose={() => setAbierto(false)}
         />
       )}

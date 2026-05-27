@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { CitasProvider } from './context/CitasContext.jsx';
 import { HorariosProvider } from './context/HorariosContext.jsx';
+import { ChatFlotanteProvider } from './context/ChatFlotanteContext.jsx';
 import { useAuth } from './context/useAuth.js';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
@@ -41,79 +42,81 @@ export default function App() {
     <AuthProvider>
       <CitasProvider>
         <HorariosProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/"          element={<Landing />} />
-              <Route path="/login"     element={<Login />} />
-              <Route path="/registro"  element={<Registro />} />
+          <ChatFlotanteProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/"          element={<Landing />} />
+                <Route path="/login"     element={<Login />} />
+                <Route path="/registro"  element={<Registro />} />
 
-              <Route path="/cliente" element={
-                <RutaProtegida rol="cliente"><DashboardCliente /></RutaProtegida>
-              } />
-              <Route path="/cliente/agendar" element={
-                <RutaProtegida rol="cliente"><Agendar /></RutaProtegida>
-              } />
-              <Route path="/cliente/barberos" element={
-                <RutaProtegida rol="cliente"><Barberos /></RutaProtegida>
-              } />
-              <Route path="/cliente/barberos/:id" element={
-                <RutaProtegida rol="cliente"><PerfilBarbero /></RutaProtegida>
-              } />
-              <Route path="/cliente/historial" element={
-                <RutaProtegida rol="cliente"><Historial /></RutaProtegida>
-              } />
-              <Route path="/cliente/perfil" element={
-                <RutaProtegida rol="cliente"><Perfil /></RutaProtegida>
-              } />
-              <Route path="/cliente/telegram" element={
-                <RutaProtegida rol="cliente"><Telegram /></RutaProtegida>
-              } />
+                <Route path="/cliente" element={
+                  <RutaProtegida rol="cliente"><DashboardCliente /></RutaProtegida>
+                } />
+                <Route path="/cliente/agendar" element={
+                  <RutaProtegida rol="cliente"><Agendar /></RutaProtegida>
+                } />
+                <Route path="/cliente/barberos" element={
+                  <RutaProtegida rol="cliente"><Barberos /></RutaProtegida>
+                } />
+                <Route path="/cliente/barberos/:id" element={
+                  <RutaProtegida rol="cliente"><PerfilBarbero /></RutaProtegida>
+                } />
+                <Route path="/cliente/historial" element={
+                  <RutaProtegida rol="cliente"><Historial /></RutaProtegida>
+                } />
+                <Route path="/cliente/perfil" element={
+                  <RutaProtegida rol="cliente"><Perfil /></RutaProtegida>
+                } />
+                <Route path="/cliente/telegram" element={
+                  <RutaProtegida rol="cliente"><Telegram /></RutaProtegida>
+                } />
 
-              <Route path="/barbero" element={
-                <RutaProtegida rol="barbero"><DashboardBarbero /></RutaProtegida>
-              } />
-              <Route path="/barbero/horarios" element={
-                <RutaProtegida rol="barbero"><Horarios /></RutaProtegida>
-              } />
-              <Route path="/barbero/historial" element={
-                <RutaProtegida rol="barbero"><HistorialBarbero /></RutaProtegida>
-              } />
-              <Route path="/barbero/precios" element={
-                <RutaProtegida rol="barbero"><Precios /></RutaProtegida>
-              } />
-              <Route path="/barbero/reportes" element={
-                <RutaProtegida rol="barbero"><Reportes /></RutaProtegida>
-              } />
-              <Route path="/barbero/perfil" element={
-                <RutaProtegida rol="barbero"><PerfilBarberoPage /></RutaProtegida>
-              } />
-              <Route path="/barbero/ofertas" element={
-                <RutaProtegida rol="barbero"><OfertasBarbero /></RutaProtegida>
-              } />
+                <Route path="/barbero" element={
+                  <RutaProtegida rol="barbero"><DashboardBarbero /></RutaProtegida>
+                } />
+                <Route path="/barbero/horarios" element={
+                  <RutaProtegida rol="barbero"><Horarios /></RutaProtegida>
+                } />
+                <Route path="/barbero/historial" element={
+                  <RutaProtegida rol="barbero"><HistorialBarbero /></RutaProtegida>
+                } />
+                <Route path="/barbero/precios" element={
+                  <RutaProtegida rol="barbero"><Precios /></RutaProtegida>
+                } />
+                <Route path="/barbero/reportes" element={
+                  <RutaProtegida rol="barbero"><Reportes /></RutaProtegida>
+                } />
+                <Route path="/barbero/perfil" element={
+                  <RutaProtegida rol="barbero"><PerfilBarberoPage /></RutaProtegida>
+                } />
+                <Route path="/barbero/ofertas" element={
+                  <RutaProtegida rol="barbero"><OfertasBarbero /></RutaProtegida>
+                } />
 
-              <Route path="/barberia" element={
-                <RutaProtegida rol="barberia"><DashboardBarberia /></RutaProtegida>
-              } />
-              <Route path="/barberia/barberos" element={
-                <RutaProtegida rol="barberia"><BarberosBarberia /></RutaProtegida>
-              } />
-              <Route path="/barberia/ofertas" element={
-                <RutaProtegida rol="barberia"><Ofertas /></RutaProtegida>
-              } />
-              <Route path="/barberia/horarios" element={
-                <RutaProtegida rol="barberia"><HorariosBarberia /></RutaProtegida>
-              } />
-              <Route path="/barberia/reportes" element={
-                <RutaProtegida rol="barberia"><ReportesBarberia /></RutaProtegida>
-              } />
-              <Route path="/barberia/perfil" element={
-                <RutaProtegida rol="barberia"><PerfilBarberia /></RutaProtegida>
-              } />
+                <Route path="/barberia" element={
+                  <RutaProtegida rol="barberia"><DashboardBarberia /></RutaProtegida>
+                } />
+                <Route path="/barberia/barberos" element={
+                  <RutaProtegida rol="barberia"><BarberosBarberia /></RutaProtegida>
+                } />
+                <Route path="/barberia/ofertas" element={
+                  <RutaProtegida rol="barberia"><Ofertas /></RutaProtegida>
+                } />
+                <Route path="/barberia/horarios" element={
+                  <RutaProtegida rol="barberia"><HorariosBarberia /></RutaProtegida>
+                } />
+                <Route path="/barberia/reportes" element={
+                  <RutaProtegida rol="barberia"><ReportesBarberia /></RutaProtegida>
+                } />
+                <Route path="/barberia/perfil" element={
+                  <RutaProtegida rol="barberia"><PerfilBarberia /></RutaProtegida>
+                } />
 
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-            <ChatFlotante />
-          </BrowserRouter>
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+              <ChatFlotante />
+            </BrowserRouter>
+          </ChatFlotanteProvider>
         </HorariosProvider>
       </CitasProvider>
     </AuthProvider>
