@@ -5,6 +5,7 @@ import Sidebar from '../../components/layout/Sidebar';
 import { barberosService } from '../../services/barberosService.js';
 import Estrellas from '../../components/Estrellas.jsx';
 import MapaVista from './MapaVista.jsx';
+import { barberiaService } from '../../services/barberiaService.js';
 
 // Necesario: importar el CSS de Leaflet una sola vez en el componente que usa el mapa
 // Sin esto el mapa aparece sin estilos (tiles superpuestos, controles rotos)
@@ -24,6 +25,7 @@ export default function Barberos() {
   const [especialidadFiltro, setEspecialidadFiltro] = useState('');
   // 'lista' | 'mapa' — controla qué vista se muestra
   const [vista, setVista]                           = useState('lista');
+  const [barberias] = useState(() => barberiaService.getParaMapa());
 
   const barberosFiltrados = barberos.filter((b) => {
     const coincideBusqueda =
@@ -191,7 +193,7 @@ export default function Barberos() {
 
         {/* ── Vista MAPA ── */}
         {vista === 'mapa' && (
-          <MapaVista barberos={barberosFiltrados} />
+          <MapaVista barberos={barberosFiltrados} barberias={barberias} />
         )}
       </main>
     </div>

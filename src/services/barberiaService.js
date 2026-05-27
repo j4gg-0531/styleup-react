@@ -1,9 +1,4 @@
 // src/services/barberiaService.js
-// ─────────────────────────────────────────────────────────────
-// CAPA DE DATOS — Hoy usa sessionStorage.
-// FUTURO: return await fetch('/api/barberias')
-// ─────────────────────────────────────────────────────────────
-
 const STORAGE_KEY = 'styleup_barberias';
 
 const leerBarberias = () => {
@@ -15,8 +10,123 @@ const guardarBarberias = (barberias) => {
   sessionStorage.setItem(STORAGE_KEY, JSON.stringify(barberias));
 };
 
-// Ofertas simuladas
-// FUTURO: vendrán de la tabla ofertas en la BD
+// Barberías mock para desarrollo — simulan datos reales con ubicación
+// FUTURO: vendrán de GET /api/barberias
+const BARBERIAS_MOCK = [
+  {
+    id: 'BAR001',
+    nombre: 'BarberShop Style',
+    nombreDueno: 'styleup',
+    direccion: 'Calle 16 #9-45',
+    ciudad: 'Valledupar',
+    telefono: '3001234567',
+    descripcion: 'Barbería profesional en el centro de Valledupar.',
+    calificacion: 4.5,
+    totalCalificaciones: 38,
+    lat: 10.4635,
+    lng: -73.2518,
+    // Barberos que trabajan aquí — FUTURO: relación BD barberias_barberos
+    barberos: ['Juan Pérez', 'Carlos López'],
+  },
+  {
+    id: 'BAR002',
+    nombre: 'Classic Cuts',
+    nombreDueno: 'classiccuts',
+    direccion: 'Carrera 9 #13-22',
+    ciudad: 'Valledupar',
+    telefono: '3009876543',
+    descripcion: 'Especialistas en cortes clásicos y afeitado tradicional.',
+    calificacion: 4.2,
+    totalCalificaciones: 22,
+    lat: 10.4648,
+    lng: -73.2540,
+    barberos: ['Miguel Torres'],
+  },
+  {
+    id: 'BAR003',
+    nombre: 'Urban Barber',
+    nombreDueno: 'urbanbarber',
+    direccion: 'Avenida Simón Bolívar #8-10',
+    ciudad: 'Valledupar',
+    telefono: '3157654321',
+    descripcion: 'Estilo urbano y moderno para el hombre contemporáneo.',
+    calificacion: 4.8,
+    totalCalificaciones: 55,
+    lat: 10.4620,
+    lng: -73.2505,
+    barberos: [],
+  },
+];
+
+export const barberiaService = {
+
+  // Obtener todas las barberías (mock + registradas en sesión)
+  // FUTURO: GET /api/barberias
+  getTodas: () => {
+    const registradas = leerBarberias();
+    return [...BARBERIAS_MOCK, ...registradas];
+  },
+
+  // Obtener solo las que tienen coordenadas (para el mapa)
+  // FUTURO: GET /api/barberias?conUbicacion=true
+  getParaMapa: () => {
+    return barberiaService.getTodas().filter(
+      (b) => b.lat != null && b.lng != null
+    );
+  },
+
+  // Registrar una nueva barbería
+  // FUTURO: POST /api/barberias
+  registrar: (datos) => {
+    const barberias = leerBarberias();
+    const nueva = {
+      ...datos,
+      id: `BAR${Date.now()}`,
+      barberos: [],
+      calificacion: 0,
+      totalCalificaciones: 0,
+      fechaRegistro: new Date().toISOString(),
+    };
+    guardarBarberias([...barberias, nueva]);
+    return nueva;
+  },
+
+  // Obtener barbería por nombre del dueño
+  // FUTURO: GET /api/barberias?owner=nombre
+  getByNombre: (nombreDueno) => {
+    return barberiaService.getTodas().find(
+      (b) => b.nombreDueno === nombreDueno
+    ) || null;
+  },
+
+  // Obtener barbería por ID
+  // FUTURO: GET /api/barberias/:id
+  getById: (id) => {
+    return barberiaService.getTodas().find((b) => b.id === id) || null;
+  },
+
+  // Ofertas
+  getOfertas: (barberiaId) => {
+    return OFERTAS_MOCK.filter((o) => o.barberia_id === barberiaId);
+  },
+
+  crearOferta: (datos) => {
+    const nueva = {
+      ...datos,
+      id: `OF${Date.now()}`,
+      estado: 'activa',
+      fecha: new Date().toISOString().split('T')[0],
+    };
+    OFERTAS_MOCK.push(nueva);
+    return nueva;
+  },
+
+  cerrarOferta: (ofertaId) => {
+    const oferta = OFERTAS_MOCK.find((o) => o.id === ofertaId);
+    if (oferta) oferta.estado = 'cerrada';
+  },
+};
+
 const OFERTAS_MOCK = [
   {
     id: 'OF001',
@@ -37,52 +147,3 @@ const OFERTAS_MOCK = [
     requisitos: ['Disponibilidad tarde', 'Experiencia en cortes clásicos'],
   },
 ];
-
-export const barberiaService = {
-
-  // Registrar una nueva barbería
-  // FUTURO: POST /api/barberias
-  registrar: (datos) => {
-    const barberias = leerBarberias();
-    const nueva = {
-      ...datos,
-      id: `BAR${Date.now()}`,
-      fechaRegistro: new Date().toISOString(),
-    };
-    guardarBarberias([...barberias, nueva]);
-    return nueva;
-  },
-
-  // Obtener barbería por nombre (dueño)
-  // FUTURO: GET /api/barberias?owner=nombre
-  getByNombre: (nombreDueno) => {
-    const barberias = leerBarberias();
-    return barberias.find((b) => b.nombreDueno === nombreDueno) || null;
-  },
-
-  // Obtener todas las ofertas activas
-  // FUTURO: GET /api/ofertas?estado=activa
-  getOfertas: (barberiaId) => {
-    return OFERTAS_MOCK.filter((o) => o.barberia_id === barberiaId);
-  },
-
-  // Crear una nueva oferta
-  // FUTURO: POST /api/ofertas
-  crearOferta: (datos) => {
-    const nueva = {
-      ...datos,
-      id: `OF${Date.now()}`,
-      estado: 'activa',
-      fecha: new Date().toISOString().split('T')[0],
-    };
-    OFERTAS_MOCK.push(nueva);
-    return nueva;
-  },
-
-  // Cerrar una oferta
-  // FUTURO: PATCH /api/ofertas/:id/cerrar
-  cerrarOferta: (ofertaId) => {
-    const oferta = OFERTAS_MOCK.find((o) => o.id === ofertaId);
-    if (oferta) oferta.estado = 'cerrada';
-  },
-};

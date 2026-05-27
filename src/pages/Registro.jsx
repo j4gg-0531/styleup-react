@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth.js'
+import SelectorUbicacion from '../components/SelectorUbicacion.jsx';
+import 'leaflet/dist/leaflet.css';
 
 export default function Registro() {
   const [rol, setRol] = useState('cliente');
-  const [form, setForm] = useState({ nombre:'', apellido:'', cedula:'', correo:'', telefono:'', password:'', password2:'', especialidad:'', direccion:'', ciudad:'', nombreBarberia:'', nit:'', descripcion:'', capacidadBarberos: '' });
+  const [form, setForm] = useState({ nombre:'', apellido:'', cedula:'', correo:'', telefono:'', password:'', password2:'', especialidad:'', direccion:'', ciudad:'', nombreBarberia:'', nit:'', descripcion:'', capacidadBarberos: '', lat: null, lng: null });
   const [msg, setMsg] = useState(null);
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -124,6 +126,28 @@ export default function Registro() {
                   <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: 4 }}>
                     Número máximo de barberos que pueden trabajar en tu barbería
                   </div>
+                </div>
+                {/* Selector de ubicación — solo para barbería */}
+                <div className="form-group" style={{ marginTop: 8 }}>
+                  <label className="form-label">
+                    Ubicación en el mapa *
+                    <span style={{
+                      color: 'var(--muted)', fontWeight: 400,
+                      marginLeft: 6, textTransform: 'none', fontSize: '0.75rem',
+                    }}>
+                      (los clientes verán tu barbería aquí)
+                    </span>
+                  </label>
+                  <SelectorUbicacion
+                    valor={form.lat ? { lat: form.lat, lng: form.lng } : null}
+                    onChange={(coords) => setForm({
+                      ...form,
+                      lat: coords?.lat ?? null,
+                      lng: coords?.lng ?? null,
+                    })}
+                    colorPin="#e6b86a"
+                    altura={260}
+                  />
                 </div>
               </>
             )}

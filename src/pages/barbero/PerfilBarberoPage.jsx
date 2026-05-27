@@ -2,10 +2,12 @@
 import { useState } from 'react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
+import SelectorUbicacion from '../../components/SelectorUbicacion.jsx';
 
 export default function PerfilBarberoPage() {
   const { user } = useAuth();
   const [saveOk, setSaveOk] = useState(false);
+  const [ubicacion, setUbicacion] = useState(null);
 
   const navItems = [
     { icon: '🏠', label: 'Dashboard',    href: '/barbero' },
@@ -78,6 +80,27 @@ export default function PerfilBarberoPage() {
           >
             Guardar cambios
           </button>
+          {/* ── Ubicación (solo barberos independientes) ── */}
+          <hr className="divider" />
+          <div style={{ marginBottom: 6 }}>
+            <div style={{
+              fontFamily: "'Playfair Display', serif",
+              fontSize: '1rem', fontWeight: 700, marginBottom: 4,
+            }}>
+              📍 Mi ubicación
+            </div>
+            <p style={{ fontSize: '0.82rem', color: 'var(--muted)', marginBottom: 12 }}>
+              Si eres barbero independiente, marca tu ubicación para que los clientes
+              te encuentren en el mapa. Si trabajas en una barbería, tu ubicación
+              será la de ella.
+            </p>
+            <SelectorUbicacion
+              valor={ubicacion}
+              onChange={setUbicacion}
+              colorPin="#e74c3c"
+              altura={260}
+            />
+          </div>
           {saveOk && (
             <div className="alert alert-success" style={{ marginTop: 8 }}>
               ✅ Perfil actualizado.

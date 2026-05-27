@@ -1,16 +1,10 @@
 // src/pages/cliente/MapaVista.jsx
-// Muestra un mapa interactivo con la ubicación de los barberos.
-// Usa Leaflet (OpenStreetMap) — gratis, sin API key.
-// FUTURO: las coordenadas vendrán de la BD; hoy están en barberosService.
-
 import { useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl } from 'react-leaflet';
 import L from 'leaflet';
 import { useNavigate } from 'react-router-dom';
 import Estrellas from '../../components/Estrellas.jsx';
 
-// ── Fix: Leaflet necesita sus iconos explícitamente en Vite/React ──
-// Sin esto, los marcadores aparecen rotos (imagen rota)
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon   from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
@@ -22,67 +16,59 @@ L.Icon.Default.mergeOptions({
   shadowUrl:     markerShadow,
 });
 
-// ── Icono personalizado: verde si disponible, gris si no ──
-// Así el cliente puede distinguir de un vistazo quién puede atenderlo
-const crearIcono = (disponible) =>
-  L.divIcon({
-    className: '',
-    html: `
-      <div style="
-        width: 42px; height: 42px;
-        border-radius: 50% 50% 50% 0;
-        transform: rotate(-45deg);
-        background: ${disponible
-          ? 'linear-gradient(135deg, #c0392b, #e74c3c)'
-          : 'linear-gradient(135deg, #444, #666)'};
-        border: 3px solid ${disponible ? '#e6b86a' : '#555'};
-        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-        display: flex; align-items: center; justify-content: center;
-      ">
-        <span style="
-          transform: rotate(45deg);
-          font-size: 1.1rem;
-          line-height: 1;
-        ">💈</span>
-      </div>
-    `,
-    iconSize:   [42, 42],
-    iconAnchor: [21, 42],   // el pico del pin apunta a la coordenada exacta
-    popupAnchor:[0, -44],
-  });
+// Pin rojo  → barbero independiente 💈
+// Pin dorado → barbería 🏪
+// Misma forma, diferente color e icono
+const crearPin = (color, icono) => L.divIcon({
+  className: '',
+  html: `
+    <div style="
+      width: 42px; height: 42px;
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+      background: ${color};
+      border: 3px solid ${color === '#e6b86a' ? '#c49a4a' : 'rgba(255,255,255,0.3)'};
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      display: flex; align-items: center; justify-content: center;
+    ">
+      <span style="transform: rotate(45deg); font-size: 1.1rem; line-height:1;">
+        ${icono}
+      </span>
+    </div>
+  `,
+  iconSize:   [42, 42],
+  iconAnchor: [21, 42],
+  popupAnchor:[0, -44],
+});
 
-// ── Componente auxiliar: centra el mapa en Valledupar al montar ──
 function CentrarMapa({ center }) {
   const map = useMap();
-  useEffect(() => {
-    map.setView(center, 14);
-  }, [map, center]);
+  useEffect(() => { map.setView(center, 14); }, [map, center]);
   return null;
 }
 
-// ── Componente principal ──
-export default function MapaVista({ barberos }) {
+export default function MapaVista({ barberos, barberias = [] }) {
   const navigate = useNavigate();
-
-  // Centro del mapa: Valledupar
   const centro = [10.4631, -73.2532];
 
-  // Solo mostramos barberos que tengan coordenadas definidas
-  // FUTURO: todos tendrán coordenadas al guardarse en la BD
   const barberosConUbicacion = barberos.filter(
     (b) => b.lat != null && b.lng != null
   );
+  const beberiasConUbicacion = barberias.filter(
+    (b) => b.lat != null && b.lng != null
+  );
+
+  const totalPines = barberosConUbicacion.length + beberiasConUbicacion.length;
 
   return (
     <div style={{
-      borderRadius: 12,
-      overflow: 'hidden',
+      borderRadius: 12, overflow: 'hidden',
       border: '1px solid var(--border)',
       boxShadow: 'var(--shadow-md)',
       position: 'relative',
     }}>
 
-      {/* Leyenda encima del mapa */}
+      {/* Leyenda */}
       <div style={{
         position: 'absolute', top: 12, left: 12, zIndex: 1000,
         background: 'rgba(22,27,34,0.92)',
@@ -93,15 +79,17 @@ export default function MapaVista({ barberos }) {
       }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#e74c3c', display: 'inline-block' }} />
-          Disponible hoy
+          Barbero independiente
         </span>
         <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#555', display: 'inline-block' }} />
-          No disponible
+          <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#e6b86a', display: 'inline-block' }} />
+          Barbería
+        </span>
+        <span style={{ color: 'var(--muted)' }}>
+          {totalPines} en el mapa
         </span>
       </div>
 
-      {/* El mapa en sí */}
       <MapContainer
         center={centro}
         zoom={14}
@@ -109,60 +97,87 @@ export default function MapaVista({ barberos }) {
         zoomControl={false}
       >
         <CentrarMapa center={centro} />
-        {/* Zoom movido abajo-izquierda para no tapar la leyenda */}
         <ZoomControl position="bottomleft" />
-
-        {/* Tiles de OpenStreetMap — gratuito, sin API key */}
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {/* Un marcador por cada barbero */}
+        {/* ── Pines de barberos independientes (rojos) ── */}
         {barberosConUbicacion.map((b) => (
           <Marker
             key={b.id}
             position={[b.lat, b.lng]}
-            icon={crearIcono(b.disponibleHoy)}
+            icon={crearPin('#e74c3c', '💈')}
           >
-            {/* Popup que aparece al hacer clic en el marcador */}
             <Popup minWidth={220}>
               <div style={{
-                fontFamily: 'Inter, sans-serif',
-                color: '#e6edf3',
-                background: '#161b22',
-                borderRadius: 10,
-                padding: '4px 2px',
-                minWidth: 210,
+                fontFamily: 'Inter, sans-serif', color: '#e6edf3',
+                background: '#161b22', borderRadius: 10,
+                padding: '4px 2px', minWidth: 210,
               }}>
-
-                {/* Nombre y badge */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                   <span style={{ fontSize: '1.4rem' }}>{b.avatar}</span>
                   <div>
-                    <div style={{
-                      fontWeight: 700, fontSize: '0.95rem',
-                      color: '#e6edf3',
-                    }}>
+                    <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#e6edf3' }}>
                       {b.nombre} {b.apellido}
                     </div>
-                    <span style={{
-                      fontSize: '0.7rem', fontWeight: 600,
-                      color: b.disponibleHoy ? '#3fb950' : '#8b949e',
-                    }}>
+                    <span style={{ fontSize: '0.7rem', fontWeight: 600, color: b.disponibleHoy ? '#3fb950' : '#8b949e' }}>
                       {b.disponibleHoy ? '● Disponible hoy' : '● No disponible'}
                     </span>
                   </div>
                 </div>
-
-                {/* Especialidad */}
                 <div style={{ color: '#e6b86a', fontSize: '0.82rem', marginBottom: 6 }}>
                   ✂ {b.especialidad}
                 </div>
-
-                {/* Estrellas */}
                 <div style={{ marginBottom: 6 }}>
                   <Estrellas calificacion={b.calificacion} total={b.totalCalificaciones} />
+                </div>
+                <div style={{ color: '#8b949e', fontSize: '0.78rem', marginBottom: 10 }}>
+                  📍 {b.direccion}, {b.ciudad}<br />
+                  📞 {b.telefono}
+                </div>
+                <button
+                  onClick={() => navigate(`/cliente/barberos/${b.id}`)}
+                  style={{
+                    width: '100%', padding: '8px 0',
+                    background: 'linear-gradient(135deg, #c0392b, #e74c3c)',
+                    color: '#fff', border: 'none', borderRadius: 7,
+                    fontWeight: 600, fontSize: '0.82rem',
+                    cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                  }}
+                >
+                  Ver perfil y agendar →
+                </button>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+
+        {/* ── Pines de barberías (dorados) ── */}
+        {beberiasConUbicacion.map((b) => (
+          <Marker
+            key={b.id}
+            position={[b.lat, b.lng]}
+            icon={crearPin('#e6b86a', '🏪')}
+          >
+            <Popup minWidth={240}>
+              <div style={{
+                fontFamily: 'Inter, sans-serif', color: '#e6edf3',
+                background: '#161b22', borderRadius: 10,
+                padding: '4px 2px', minWidth: 230,
+              }}>
+                {/* Nombre barbería */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <span style={{ fontSize: '1.4rem' }}>🏪</span>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#e6edf3' }}>
+                      {b.nombre}
+                    </div>
+                    {b.calificacion > 0 && (
+                      <Estrellas calificacion={b.calificacion} total={b.totalCalificaciones} />
+                    )}
+                  </div>
                 </div>
 
                 {/* Dirección */}
@@ -171,23 +186,41 @@ export default function MapaVista({ barberos }) {
                   📞 {b.telefono}
                 </div>
 
-                {/* Botón ver perfil */}
+                {/* Barberos que trabajan aquí */}
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{
+                    fontSize: '0.72rem', color: '#8b949e',
+                    textTransform: 'uppercase', letterSpacing: '0.05em',
+                    marginBottom: 6,
+                  }}>
+                    💈 {b.barberos.length > 0
+                      ? `${b.barberos.length} barbero${b.barberos.length !== 1 ? 's' : ''}`
+                      : 'Sin barberos aún'}
+                  </div>
+                  {b.barberos.length > 0 && (
+                    <div style={{ fontSize: '0.78rem', color: '#e6edf3' }}>
+                      {/* Muestra máx 3 nombres + "y X más" si hay más */}
+                      {b.barberos.slice(0, 3).join(', ')}
+                      {b.barberos.length > 3 && (
+                        <span style={{ color: '#8b949e' }}>
+                          {' '}y {b.barberos.length - 3} más
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 <button
-                  onClick={() => navigate(`/cliente/barberos/${b.id}`)}
+                  onClick={() => navigate(`/cliente/barberos`)}
                   style={{
-                    width: '100%',
-                    padding: '8px 0',
-                    background: 'linear-gradient(135deg, #c0392b, #e74c3c)',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: 7,
-                    fontWeight: 600,
-                    fontSize: '0.82rem',
-                    cursor: 'pointer',
-                    fontFamily: 'Inter, sans-serif',
+                    width: '100%', padding: '8px 0',
+                    background: 'linear-gradient(135deg, #c49a4a, #e6b86a)',
+                    color: '#000', border: 'none', borderRadius: 7,
+                    fontWeight: 700, fontSize: '0.82rem',
+                    cursor: 'pointer', fontFamily: 'Inter, sans-serif',
                   }}
                 >
-                  Ver perfil y agendar →
+                  Ver barberos →
                 </button>
               </div>
             </Popup>
