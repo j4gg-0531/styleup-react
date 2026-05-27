@@ -15,11 +15,13 @@ const BARBEROS_MOCK = [
     ciudad: 'Valledupar',
     telefono: '3009876543',
     // FUTURO: calificacion y totalCalificaciones vendrán calculados desde la BD
-    // SELECT AVG(puntuacion), COUNT(*) FROM calificaciones WHERE barbero_id = id
     calificacion: 4.5,
     totalCalificaciones: 28,
     avatar: '💈',
     disponibleHoy: true,
+    // FUTURO: las coordenadas vendrán de la BD al guardar la dirección del barbero
+    lat: 10.4631,
+    lng: -73.2532,
   },
   {
     id: 'B002',
@@ -34,6 +36,8 @@ const BARBEROS_MOCK = [
     totalCalificaciones: 15,
     avatar: '✂',
     disponibleHoy: true,
+    lat: 10.4618,
+    lng: -73.2548,
   },
   {
     id: 'B003',
@@ -48,6 +52,8 @@ const BARBEROS_MOCK = [
     totalCalificaciones: 42,
     avatar: '🧔',
     disponibleHoy: false,
+    lat: 10.4652,
+    lng: -73.2510,
   },
 ];
 

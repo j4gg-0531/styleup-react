@@ -823,3 +823,33 @@ footer {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* ── LEAFLET POPUP — elimina el fondo blanco del globo ── */
+.leaflet-popup-content-wrapper {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  border-radius: 10px !important;
+}
+.leaflet-popup-content {
+  margin: 0 !important;
+  line-height: 1.5 !important;
+}
+/* El triángulo/pico del popup — lo ponemos del mismo color que el card */
+.leaflet-popup-tip {
+  background: #161b22 !important;
+  box-shadow: none !important;
+}
+.leaflet-popup-tip-container {
+  margin-top: -1px;
+}
+/* Quita el borde azul al hacer clic en el mapa */
+.leaflet-container:focus {
+  outline: none;
+}
+
+/* Oculta el zoom original (arriba-izquierda) — lo reemplazamos con el de abajo */
+.leaflet-top.leaflet-left .leaflet-control-zoom {
+  display: none !important;
+}
