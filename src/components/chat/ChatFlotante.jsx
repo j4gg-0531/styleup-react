@@ -1,31 +1,25 @@
-// src/components/Chat/ChatFlotante.jsx
+// src/components/chat/ChatFlotante.jsx
 import { useState } from 'react';
 import { useAuth } from '../../context/useAuth.js';
 import { useChatFlotante } from '../../context/useChatFlotante.js';
 import { chatService } from '../../services/chatService.js';
 import ChatWindow from './ChatWindow.jsx';
-import { useLocation } from 'react-router-dom'; // ← AGREGAR
+import { useLocation } from 'react-router-dom';
 
 export default function ChatFlotante() {
   const { user } = useAuth();
   const { chatPendiente, limpiarChat } = useChatFlotante();
   const [abierto, setAbierto] = useState(false);
-  const location = useLocation(); // ← AGREGAR
+  const location = useLocation();
 
-  // ✅ Sin useEffect — se calcula directo en el render
-  // FUTURO: vendrá de un WebSocket que notifica en tiempo real
   const noLeidos = user ? chatService.getMensajesNoLeidos(user.nombre) : 0;
 
   const debeAbrirse = chatPendiente && user && !abierto;
   if (debeAbrirse) setAbierto(true);
 
+  // Rutas donde el chat nunca aparece
   const rutasPublicas = ['/', '/login', '/registro'];
-
-  if (!user || user.rol === 'barberia' || rutasPublicas.includes(location.pathname)) {
-    return null;
-  }
-
-  if (!user || user.rol === 'barberia') return null;
+  if (!user || rutasPublicas.includes(location.pathname)) return null;
 
   return (
     <>

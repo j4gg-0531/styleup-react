@@ -29,6 +29,7 @@ import ReportesBarberia from './pages/barberia/ReportesBarberia';
 import PerfilBarberia from './pages/barberia/PerfilBarberia';
 import OfertasBarbero from './pages/barbero/OfertasBarbero';
 import ChatFlotante from './components/chat/ChatFlotante.jsx';
+import PerfilBarberoAdmin from './pages/barberia/PerfilBarberoAdmin';
 
 function RutaProtegida({ children, rol }) {
   const { user } = useAuth();
@@ -111,6 +112,9 @@ export default function App() {
                 } />
                 <Route path="/barberia/perfil" element={
                   <RutaProtegida rol="barberia"><PerfilBarberia /></RutaProtegida>
+                } />
+                <Route path="/barberia/barberos/:id" element={
+                  <RutaProtegida rol="barberia"><PerfilBarberoAdmin /></RutaProtegida>
                 } />
 
                 <Route path="*" element={<Navigate to="/" replace />} />
