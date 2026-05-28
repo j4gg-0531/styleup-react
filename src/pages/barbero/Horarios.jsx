@@ -67,7 +67,6 @@ export default function Horarios() {
     { icon: '📋', label: 'Ofertas',       href: '/barbero/ofertas' },
     { icon: '📖', label: 'Historial',     href: '/barbero/historial' },
     { icon: '📊', label: 'Reportes',      href: '/barbero/reportes' },
-    { icon: '✏️', label: 'Mi perfil',     href: '/barbero/perfil' },
   ];
 
   const toggleDia = (num) =>

@@ -18,7 +18,6 @@ export default function BarberosBarberia() {
     { icon: '⏰', label: 'Horarios',   href: '/barberia/horarios' },
     { icon: '✂️', label: 'Servicios',  href: '/barberia/servicios' },
     { icon: '📊', label: 'Reportes',   href: '/barberia/reportes' },
-    { icon: '✏️', label: 'Mi perfil',  href: '/barberia/perfil' },
   ];
 
   return (

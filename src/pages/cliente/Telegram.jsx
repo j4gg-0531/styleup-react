@@ -9,7 +9,6 @@ export default function Telegram() {
     { icon: '🏠', label: 'Dashboard',        href: '/cliente' },
     { icon: '💈', label: 'Barberos',          href: '/cliente/barberos' },
     { icon: '📖', label: 'Mi historial',      href: '/cliente/historial' },
-    { icon: '✏️', label: 'Mi perfil',         href: '/cliente/perfil' },
     { icon: '📱', label: 'Vincular Telegram', href: '/cliente/telegram' },
   ];
 

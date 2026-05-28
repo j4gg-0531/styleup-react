@@ -41,7 +41,6 @@ export default function HistorialBarbero() {
     { icon: '📋', label: 'Ofertas',       href: '/barbero/ofertas' },
     { icon: '📖', label: 'Historial',     href: '/barbero/historial' },
     { icon: '📊', label: 'Reportes',      href: '/barbero/reportes' },
-    { icon: '✏️', label: 'Mi perfil',     href: '/barbero/perfil' },
   ];
 
   const extra = <div className="spec-badge" style={{ marginTop: 8 }}>✂ Corte a tijera</div>;
