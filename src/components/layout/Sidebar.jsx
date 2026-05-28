@@ -10,6 +10,11 @@ export default function Sidebar({ avatar, badge, badgeClass = 'badge-red', navIt
   const location = useLocation();
   const [expandido, setExpandido] = useState(_expandido);
 
+  const perfilHref = user?.rol === 'cliente' ? '/cliente/perfil'
+    : user?.rol === 'barbero' ? '/barbero/perfil'
+    : user?.rol === 'barberia' ? '/barberia/perfil'
+    : null;
+
   const handleMouseEnter = () => {
     _expandido = true;
     setExpandido(true);
@@ -26,7 +31,7 @@ export default function Sidebar({ avatar, badge, badgeClass = 'badge-red', navIt
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <div className="sidebar-header">
+      <div className="sidebar-header" style={{ cursor: 'pointer' }} onClick={() => perfilHref && navigate(perfilHref)}>
         <div className="sidebar-avatar">{avatar}</div>
         <div className="sidebar-name">{user?.nombre}</div>
         <div className="sidebar-role">
