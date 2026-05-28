@@ -18,7 +18,7 @@ import Historial from './pages/cliente/Historial';
 import Perfil from './pages/cliente/Perfil';
 import Telegram from './pages/cliente/Telegram';
 import HistorialBarbero from './pages/barbero/HistorialBarbero';
-import Precios from './pages/barbero/Precios';
+import Servicios from './pages/barbero/Servicios';   // ← antes Precios
 import Reportes from './pages/barbero/Reportes';
 import PerfilBarberoPage from './pages/barbero/PerfilBarberoPage';
 import DashboardBarberia from './pages/barberia/DashboardBarberia';
@@ -80,8 +80,9 @@ export default function App() {
                 <Route path="/barbero/historial" element={
                   <RutaProtegida rol="barbero"><HistorialBarbero /></RutaProtegida>
                 } />
+                {/* Ruta /barbero/precios se mantiene igual — solo cambia el componente */}
                 <Route path="/barbero/precios" element={
-                  <RutaProtegida rol="barbero"><Precios /></RutaProtegida>
+                  <RutaProtegida rol="barbero"><Servicios /></RutaProtegida>
                 } />
                 <Route path="/barbero/reportes" element={
                   <RutaProtegida rol="barbero"><Reportes /></RutaProtegida>
