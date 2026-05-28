@@ -3,40 +3,27 @@ import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/useAuth.js';
 import { useCitas } from '../../context/useCitas.js';
+import { useHorarios } from '../../context/useHorarios.js';
 import { useChatFlotante } from '../../context/useChatFlotante.js';
 import { barberosService } from '../../services/barberosService.js';
-import { horariosService } from '../../services/horariosService.js';
+import { citasService } from '../../services/citasService.js';
 import { preciosService, NOMBRES_SERVICIOS } from '../../services/preciosService.js';
 import { barberiaService } from '../../services/barberiaService.js';
+import {
+  DURACION_SERVICIOS,
+  generarSlots,
+} from '../../services/agendamientoService.js';
 import Estrellas from '../../components/Estrellas.jsx';
 import MapaMini from '../../components/MapaMini.jsx';
 import { getDiasSemana, fmtFecha } from '../../services/semana.js';
 
 const SERVICIOS_INFO = {
-  E001: { icon: '✂',  dur: '30 min' },
-  E002: { icon: '💈', dur: '25 min' },
-  E006: { icon: '🪒', dur: '20 min' },
-  E008: { icon: '🧔', dur: '45 min' },
-  E007: { icon: '🎨', dur: '40 min' },
-  E004: { icon: '⚡', dur: '35 min' },
-};
-
-// Genera slots de 30 min a partir de los bloques de horario
-const generarSlots = (bloques) => {
-  const slots = [];
-  bloques.forEach((bloque) => {
-    const [hIni, mIni] = bloque.horaInicio.split(':').map(Number);
-    const [hFin, mFin] = bloque.horaFin.split(':').map(Number);
-    let minutos = hIni * 60 + mIni;
-    const fin   = hFin * 60 + mFin;
-    while (minutos + 30 <= fin) {
-      const h = String(Math.floor(minutos / 60)).padStart(2, '0');
-      const m = String(minutos % 60).padStart(2, '0');
-      slots.push(`${h}:${m}`);
-      minutos += 30;
-    }
-  });
-  return slots;
+  E001: { icon: '✂',  dur: DURACION_SERVICIOS.E001 },
+  E002: { icon: '💈', dur: DURACION_SERVICIOS.E002 },
+  E006: { icon: '🪒', dur: DURACION_SERVICIOS.E006 },
+  E008: { icon: '🧔', dur: DURACION_SERVICIOS.E008 },
+  E007: { icon: '🎨', dur: DURACION_SERVICIOS.E007 },
+  E004: { icon: '⚡', dur: DURACION_SERVICIOS.E004 },
 };
 
 export default function PerfilBarbero() {
@@ -44,24 +31,21 @@ export default function PerfilBarbero() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { agregarCita } = useCitas();
+  const { horarios, cargarHorarios } = useHorarios();
   const { abrirChatCon } = useChatFlotante();
 
   const barbero = barberosService.getById(id);
-
-  // Redirige si no existe el barbero
-  if (!barbero) {
-    navigate('/cliente/barberos');
-    return null;
-  }
+  if (!barbero) { navigate('/cliente/barberos'); return null; }
 
   const nombreCompleto = `${barbero.nombre} ${barbero.apellido}`;
 
-  // ── Datos del barbero (síncronos → useMemo, sin useEffect) ──
+  // Carga de horarios una sola vez (patrón lazy sin useEffect)
   // eslint-disable-next-line react-hooks/rules-of-hooks
-  const horarios = useMemo(
-    () => horariosService.getHorariosByBarbero(nombreCompleto),
-    [nombreCompleto]
-  );
+  const [horariosListos, setHorariosListos] = useState(false);
+  if (!horariosListos) {
+    cargarHorarios(nombreCompleto);
+    setHorariosListos(true);
+  }
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const precios = useMemo(
@@ -71,12 +55,11 @@ export default function PerfilBarbero() {
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const barberia = useMemo(
-    () =>
-      barberiaService.getTodas().find((b) => b.barberos?.includes(nombreCompleto)) ?? null,
+    () => barberiaService.getTodas().find((b) => b.barberos?.includes(nombreCompleto)) ?? null,
     [nombreCompleto]
   );
 
-  // ── Navegación de semanas ──
+  // ── Navegación de semanas ──────────────────────────────────────────────
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const [semanaOffset, setSemanaOffset] = useState(0);
   // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -86,19 +69,35 @@ export default function PerfilBarbero() {
     () => String(new Date().getDate())
   );
 
-  // ── Booking ──
+  // ── Booking ────────────────────────────────────────────────────────────
   // eslint-disable-next-line react-hooks/rules-of-hooks
-  const [horaSeleccionada, setHoraSeleccionada] = useState(null);
+  const [slotSel, setSlotSel]         = useState(null);   // { horaInicio, horaFin }
   // eslint-disable-next-line react-hooks/rules-of-hooks
-  const [servicioSel, setServicioSel]           = useState(null);
+  const [servicioSel, setServicioSel] = useState(null);
   // eslint-disable-next-line react-hooks/rules-of-hooks
-  const [confirmado, setConfirmado]             = useState(false);
+  const [confirmado, setConfirmado]   = useState(false);
 
-  // Bloques de horario para el día seleccionado
-  const bloquesDelDia = horarios.filter(
-    (h) => h.dia === diaSeleccionado && h.estado === 'disponible'
-  );
-  const slots = generarSlots(bloquesDelDia);
+  // ── Slots dinámicos según servicio y día seleccionado ─────────────────
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const slots = useMemo(() => {
+    if (!servicioSel || !diaSeleccionado) return [];
+
+    const duracion = SERVICIOS_INFO[servicioSel.id]?.dur ?? 30;
+
+    // Citas existentes del barbero en ese día (para detectar conflictos)
+    const citasExistentes = citasService.getCitasBarberoEnDia(
+      nombreCompleto,
+      diaSeleccionado
+    );
+
+    return generarSlots({
+      barberoNombre:   nombreCompleto,
+      diaNum:          diaSeleccionado,
+      duracionMin:     duracion,
+      horarios,
+      citasExistentes,
+    });
+  }, [servicioSel, diaSeleccionado, horarios, nombreCompleto]);
 
   const formatPrecio = (n) =>
     new Intl.NumberFormat('es-CO', {
@@ -106,21 +105,22 @@ export default function PerfilBarbero() {
     }).format(n);
 
   const handleConfirmar = () => {
-    if (!diaSeleccionado || !servicioSel || !horaSeleccionada) return;
+    if (!diaSeleccionado || !servicioSel || !slotSel) return;
     agregarCita({
       clienteNombre: user.nombre,
       servicio: { ...servicioSel, ...SERVICIOS_INFO[servicioSel.id] },
-      barbero: { id: barbero.id, name: nombreCompleto },
+      barbero:  { id: barbero.id, name: nombreCompleto },
       fechaDia:  diaSeleccionado,
       fechaMes:  diasSemana.find((d) => d.num === diaSeleccionado)?.name || '',
       fechaAnio: String(new Date().getFullYear()),
-      hora: horaSeleccionada,
+      horaInicio: slotSel.horaInicio,
+      horaFin:    slotSel.horaFin,
+      hora:       slotSel.horaInicio, // compatibilidad con otras vistas
     });
     setConfirmado(true);
     setTimeout(() => navigate('/cliente'), 2000);
   };
 
-  // Ubicación: si trabaja en barbería usa la de ella, si no la propia
   const ubicacion = barberia
     ? { lat: barberia.lat, lng: barberia.lng }
     : { lat: barbero?.lat, lng: barbero?.lng };
@@ -138,19 +138,13 @@ export default function PerfilBarbero() {
         padding: '32px',
       }}>
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
-
-          {/* Botón volver */}
-          <button
-            className="btn btn-ghost btn-sm"
+          <button className="btn btn-ghost btn-sm"
             style={{ marginBottom: 24, color: 'var(--muted)' }}
-            onClick={() => navigate('/cliente/barberos')}
-          >
+            onClick={() => navigate('/cliente/barberos')}>
             ← Volver a barberos
           </button>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap' }}>
-
-            {/* Avatar grande */}
             <div style={{
               width: 100, height: 100, borderRadius: '50%',
               background: 'linear-gradient(135deg, var(--red), var(--red-light))',
@@ -161,58 +155,40 @@ export default function PerfilBarbero() {
               {barbero.avatar}
             </div>
 
-            {/* Info principal */}
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 6 }}>
-                <h1 style={{
-                  fontFamily: "'Playfair Display', serif",
-                  fontSize: '2rem', fontWeight: 900, margin: 0,
-                }}>
+                <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2rem', fontWeight: 900, margin: 0 }}>
                   {nombreCompleto}
                 </h1>
                 <span className={`badge ${barbero.disponibleHoy ? 'badge-green' : 'badge-muted'}`}>
                   {barbero.disponibleHoy ? '● Disponible hoy' : '● No disponible'}
                 </span>
               </div>
-
               <div style={{ color: 'var(--gold)', fontSize: '0.95rem', marginBottom: 8 }}>
                 ✂ {barbero.especialidad}
               </div>
-
-              {/* Barbería si aplica */}
               {barberia && (
                 <div style={{
                   display: 'inline-flex', alignItems: 'center', gap: 6,
                   background: 'rgba(230,184,106,0.08)',
                   border: '1px solid rgba(230,184,106,0.2)',
                   borderRadius: 20, padding: '3px 12px',
-                  fontSize: '0.78rem', color: 'var(--gold)',
-                  marginBottom: 8,
+                  fontSize: '0.78rem', color: 'var(--gold)', marginBottom: 8,
                 }}>
                   🏪 Trabaja en {barberia.nombre}
                 </div>
               )}
-
               <div style={{ marginBottom: 12 }}>
-                <Estrellas
-                  calificacion={barbero.calificacion}
-                  total={barbero.totalCalificaciones}
-                  size="lg"
-                />
+                <Estrellas calificacion={barbero.calificacion} total={barbero.totalCalificaciones} size="lg" />
               </div>
-
               <div style={{ fontSize: '0.82rem', color: 'var(--muted)', display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                 <span>📍 {barbero.direccion}, {barbero.ciudad}</span>
                 <span>📞 {barbero.telefono}</span>
               </div>
             </div>
 
-            {/* Botón de chat */}
-            <button
-              className="btn btn-outline"
-              style={{ flexShrink: 0 }}
-              onClick={() => abrirChatCon(nombreCompleto)}
-            >
+            <button className="btn btn-outline" style={{ flexShrink: 0 }}
+              onClick={() => abrirChatCon(nombreCompleto)}>
               💬 Enviar mensaje
             </button>
           </div>
@@ -221,108 +197,81 @@ export default function PerfilBarbero() {
 
       {/* ── CONTENIDO ── */}
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '32px' }}>
-
-        {/* Grid: Servicios + Disponibilidad */}
         <div className="grid-2" style={{ marginBottom: 28 }}>
 
           {/* ── SERVICIOS ── */}
           <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
             <div style={{
-              padding: '16px 20px',
-              borderBottom: '1px solid var(--border)',
+              padding: '16px 20px', borderBottom: '1px solid var(--border)',
               background: 'var(--surface2)',
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             }}>
               <div style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700 }}>
                 💰 Servicios y precios
               </div>
-              {/* Hint: le indica al cliente que debe elegir un servicio */}
-              {!servicioSel && (
-                <span style={{ fontSize: '0.72rem', color: 'var(--gold)', fontWeight: 600 }}>
-                  ← Elige uno para agendar
-                </span>
-              )}
-              {servicioSel && (
-                <span className="badge badge-green">✓ Seleccionado</span>
-              )}
+              {!servicioSel
+                ? <span style={{ fontSize: '0.72rem', color: 'var(--gold)', fontWeight: 600 }}>← Elige uno para agendar</span>
+                : <span className="badge badge-green">✓ Seleccionado</span>
+              }
             </div>
             <div style={{ padding: '8px 16px' }}>
               {Object.entries(NOMBRES_SERVICIOS).map(([sid, nombre]) => {
-                const info     = SERVICIOS_INFO[sid] || { icon: '✂', dur: '' };
-                const precio   = precios[sid] || preciosService.getPrecioServicio(nombreCompleto, sid);
-                const esSel    = servicioSel?.id === sid;
+                const info   = SERVICIOS_INFO[sid] || { icon: '✂', dur: 30 };
+                const precio = precios[sid] || preciosService.getPrecioServicio(nombreCompleto, sid);
+                const esSel  = servicioSel?.id === sid;
                 return (
                   <div
                     key={sid}
                     onClick={() => {
-                      // Al cambiar de servicio reseteamos día y hora para evitar inconsistencias
                       setServicioSel({ id: sid, name: nombre, ...info });
                       setDiaSeleccionado(String(new Date().getDate()));
-                      setHoraSeleccionada(null);
+                      setSlotSel(null);
                     }}
                     style={{
-                      display: 'flex', alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '11px 10px',
-                      marginBottom: 4,
-                      borderRadius: 8,
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '11px 10px', marginBottom: 4, borderRadius: 8,
                       border: '1.5px solid',
-                      // Si está seleccionado: borde dorado y fondo sutil
                       borderColor: esSel ? 'var(--gold)' : 'transparent',
                       background: esSel ? 'rgba(230,184,106,0.08)' : 'transparent',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
+                      cursor: 'pointer', transition: 'all 0.2s',
                     }}
-                    onMouseEnter={(e) => {
-                      if (!esSel) e.currentTarget.style.background = 'var(--surface2)';
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!esSel) e.currentTarget.style.background = 'transparent';
-                    }}
+                    onMouseEnter={(e) => { if (!esSel) e.currentTarget.style.background = 'var(--surface2)'; }}
+                    onMouseLeave={(e) => { if (!esSel) e.currentTarget.style.background = 'transparent'; }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      {/* Icono del servicio — cambia de color si está seleccionado */}
                       <span style={{
                         width: 34, height: 34, borderRadius: 8,
-                        background: esSel
-                          ? 'rgba(230,184,106,0.15)'
-                          : 'var(--surface2)',
+                        background: esSel ? 'rgba(230,184,106,0.15)' : 'var(--surface2)',
                         border: esSel ? '1px solid rgba(230,184,106,0.3)' : '1px solid transparent',
-                        display: 'flex', alignItems: 'center',
-                        justifyContent: 'center', fontSize: '1rem',
-                        flexShrink: 0, transition: 'all 0.2s',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '1rem', flexShrink: 0, transition: 'all 0.2s',
                       }}>
                         {info.icon}
                       </span>
                       <div>
-                        <div style={{
-                          fontSize: '0.88rem', fontWeight: 600,
-                          color: esSel ? 'var(--gold)' : 'var(--text)',
-                        }}>
+                        <div style={{ fontSize: '0.88rem', fontWeight: 600, color: esSel ? 'var(--gold)' : 'var(--text)' }}>
                           {nombre}
                         </div>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>⏱ {info.dur}</div>
+                        {/* Duración real del servicio */}
+                        <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>
+                          ⏱ {info.dur} min
+                        </div>
                       </div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <div style={{
                         fontFamily: "'Playfair Display', serif",
-                        color: esSel ? 'var(--gold)' : 'var(--gold)',
-                        fontWeight: 700, fontSize: '0.95rem',
+                        color: 'var(--gold)', fontWeight: 700, fontSize: '0.95rem',
                       }}>
                         {formatPrecio(precio)}
                       </div>
-                      {/* Checkmark visible solo si está seleccionado */}
                       {esSel && (
                         <span style={{
                           width: 20, height: 20, borderRadius: '50%',
                           background: 'var(--gold)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: '0.7rem', color: '#000', fontWeight: 700,
-                          flexShrink: 0,
-                        }}>
-                          ✓
-                        </span>
+                          fontSize: '0.7rem', color: '#000', fontWeight: 700, flexShrink: 0,
+                        }}>✓</span>
                       )}
                     </div>
                   </div>
@@ -334,63 +283,52 @@ export default function PerfilBarbero() {
           {/* ── DISPONIBILIDAD ── */}
           <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
             <div style={{
-              padding: '16px 20px',
-              borderBottom: '1px solid var(--border)',
+              padding: '16px 20px', borderBottom: '1px solid var(--border)',
               background: 'var(--surface2)',
             }}>
               <div style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700 }}>
                 📅 Disponibilidad
               </div>
+              {/* Sub-título: muestra la duración del servicio elegido */}
+              {servicioSel && (
+                <div style={{ fontSize: '0.72rem', color: 'var(--gold)', marginTop: 3 }}>
+                  Slots de {servicioSel.dur} min · {servicioSel.name}
+                </div>
+              )}
             </div>
             <div style={{ padding: '16px' }}>
 
-              {/* PASO 1 no completado: pide elegir servicio primero */}
               {!servicioSel ? (
-                <div style={{
-                  textAlign: 'center', padding: '32px 16px',
-                  color: 'var(--muted)', fontSize: '0.88rem',
-                }}>
+                <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--muted)', fontSize: '0.88rem' }}>
                   <div style={{ fontSize: '2rem', marginBottom: 10 }}>👈</div>
                   Primero selecciona un servicio para ver los horarios disponibles
                 </div>
               ) : (
                 <>
                   {/* Navegación de semana */}
-                  <div style={{
-                    display: 'flex', alignItems: 'center',
-                    justifyContent: 'space-between', marginBottom: 14,
-                  }}>
-                    <button
-                      className="btn btn-ghost btn-sm"
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                    <button className="btn btn-ghost btn-sm"
                       onClick={() => setSemanaOffset((o) => o - 1)}
                       disabled={semanaOffset <= 0}
-                      style={{ opacity: semanaOffset <= 0 ? 0.3 : 1 }}
-                    >
+                      style={{ opacity: semanaOffset <= 0 ? 0.3 : 1 }}>
                       ‹
                     </button>
                     <div style={{ textAlign: 'center', fontSize: '0.82rem', color: 'var(--muted)' }}>
-                      {primerDia && ultimoDia
-                        ? `${fmtFecha(primerDia)} – ${fmtFecha(ultimoDia)}`
-                        : ''}
+                      {primerDia && ultimoDia ? `${fmtFecha(primerDia)} – ${fmtFecha(ultimoDia)}` : ''}
                       {semanaOffset === 0 && (
                         <span className="badge badge-gold" style={{ marginLeft: 6, fontSize: '0.65rem' }}>
                           Esta semana
                         </span>
                       )}
                     </div>
-                    <button
-                      className="btn btn-ghost btn-sm"
-                      onClick={() => setSemanaOffset((o) => o + 1)}
-                    >
+                    <button className="btn btn-ghost btn-sm"
+                      onClick={() => setSemanaOffset((o) => o + 1)}>
                       ›
                     </button>
                   </div>
 
                   {/* Días de la semana */}
-                  <div style={{
-                    display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)',
-                    gap: 6, marginBottom: 16,
-                  }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 6, marginBottom: 16 }}>
                     {diasSemana.map((d) => {
                       const esSeleccionado = diaSeleccionado === d.num;
                       const esHoyDia = String(new Date().getDate()) === d.num && semanaOffset === 0;
@@ -400,37 +338,24 @@ export default function PerfilBarbero() {
                       return (
                         <div
                           key={d.num}
-                          onClick={() => {
-                            // Al cambiar día solo limpiamos la hora, el servicio ya fue elegido
-                            setDiaSeleccionado(d.num);
-                            setHoraSeleccionada(null);
-                          }}
+                          onClick={() => { setDiaSeleccionado(d.num); setSlotSel(null); }}
                           style={{
-                            padding: '8px 4px', textAlign: 'center',
-                            borderRadius: 8, cursor: 'pointer',
-                            border: '1.5px solid',
-                            borderColor: esSeleccionado
-                              ? 'var(--gold)'
-                              : esHoyDia ? 'var(--red-light)' : 'var(--border)',
-                            background: esSeleccionado
-                              ? 'rgba(230,184,106,0.12)'
-                              : 'var(--surface)',
+                            padding: '8px 4px', textAlign: 'center', borderRadius: 8,
+                            cursor: 'pointer', border: '1.5px solid',
+                            borderColor: esSeleccionado ? 'var(--gold)' : esHoyDia ? 'var(--red-light)' : 'var(--border)',
+                            background: esSeleccionado ? 'rgba(230,184,106,0.12)' : 'var(--surface)',
                             transition: 'all 0.2s',
                           }}
                         >
-                          <div style={{ fontSize: '0.6rem', color: 'var(--muted)', textTransform: 'uppercase' }}>
-                            {d.name}
-                          </div>
+                          <div style={{ fontSize: '0.6rem', color: 'var(--muted)', textTransform: 'uppercase' }}>{d.name}</div>
                           <div style={{
-                            fontFamily: "'Playfair Display', serif",
-                            fontSize: '1rem', fontWeight: 700,
+                            fontFamily: "'Playfair Display', serif", fontSize: '1rem', fontWeight: 700,
                             color: esSeleccionado ? 'var(--gold)' : esHoyDia ? 'var(--red-light)' : 'var(--text)',
                           }}>
                             {d.num}
                           </div>
                           <div style={{
-                            width: 5, height: 5, borderRadius: '50%',
-                            margin: '3px auto 0',
+                            width: 5, height: 5, borderRadius: '50%', margin: '3px auto 0',
                             background: tieneSlots ? '#2ecc71' : 'transparent',
                           }} />
                         </div>
@@ -438,7 +363,7 @@ export default function PerfilBarbero() {
                     })}
                   </div>
 
-                  {/* Slots de hora — solo si hay día seleccionado */}
+                  {/* ── SLOTS dinámicos con rango ── */}
                   {slots.length === 0 ? (
                     <div className="alert alert-info" style={{ fontSize: '0.82rem' }}>
                       Sin horarios disponibles para este día.
@@ -446,19 +371,58 @@ export default function PerfilBarbero() {
                   ) : (
                     <>
                       <div style={{ fontSize: '0.72rem', color: 'var(--muted)', marginBottom: 8 }}>
-                        Horarios disponibles
+                        {slots.filter(s => !s.ocupado).length} horarios libres
+                        · cada bloque = {servicioSel.dur} min
                       </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-                        {slots.map((slot) => (
-                          <div
-                            key={slot}
-                            className={`hora-slot ${horaSeleccionada === slot ? 'selected' : ''}`}
-                            onClick={() => setHoraSeleccionada(slot)}
-                            style={{ fontSize: '0.82rem', padding: '8px' }}
-                          >
-                            {slot}
-                          </div>
-                        ))}
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(2, 1fr)',
+                        gap: 8,
+                      }}>
+                        {slots.map((slot) => {
+                          const esSel = slotSel?.horaInicio === slot.horaInicio;
+                          return (
+                            <div
+                              key={slot.horaInicio}
+                              onClick={() => !slot.ocupado && setSlotSel(esSel ? null : slot)}
+                              style={{
+                                border: '1.5px solid',
+                                borderColor: esSel ? 'var(--gold)'
+                                  : slot.ocupado ? 'var(--border)' : 'var(--border)',
+                                borderRadius: 8, padding: '8px 10px',
+                                cursor: slot.ocupado ? 'not-allowed' : 'pointer',
+                                background: esSel ? 'rgba(230,184,106,0.1)'
+                                  : slot.ocupado ? 'rgba(139,148,158,0.06)' : 'var(--surface)',
+                                opacity: slot.ocupado ? 0.45 : 1,
+                                transition: 'all 0.2s',
+                                boxShadow: esSel ? 'var(--shadow-gold)' : 'none',
+                              }}
+                            >
+                              {/* Hora de inicio */}
+                              <div style={{
+                                fontFamily: "'Playfair Display', serif",
+                                fontSize: '1rem', fontWeight: 700,
+                                color: esSel ? 'var(--gold)'
+                                  : slot.ocupado ? 'var(--muted)' : 'var(--text)',
+                              }}>
+                                {slot.horaInicio}
+                              </div>
+                              {/* Hora de fin */}
+                              <div style={{
+                                fontSize: '0.68rem',
+                                color: esSel ? 'var(--gold-dim)' : 'var(--muted)',
+                                marginTop: 2,
+                              }}>
+                                hasta {slot.horaFin}
+                              </div>
+                              {slot.ocupado && (
+                                <div style={{ fontSize: '0.6rem', color: 'var(--muted)', marginTop: 2 }}>
+                                  Ocupado
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </>
                   )}
@@ -468,13 +432,10 @@ export default function PerfilBarbero() {
           </div>
         </div>
 
-        {/* ── RESUMEN Y CONFIRMACIÓN — aparece solo cuando los 3 pasos están completos ── */}
-        {servicioSel && diaSeleccionado && horaSeleccionada && (
+        {/* ── RESUMEN Y CONFIRMACIÓN ── */}
+        {servicioSel && diaSeleccionado && slotSel && (
           <div className="card" style={{ marginBottom: 28 }}>
-            <div style={{
-              background: 'var(--surface2)', borderRadius: 10,
-              padding: '16px 20px',
-            }}>
+            <div style={{ background: 'var(--surface2)', borderRadius: 10, padding: '16px 20px' }}>
               <div style={{
                 fontFamily: "'Playfair Display', serif",
                 fontWeight: 700, marginBottom: 12, fontSize: '1.1rem',
@@ -482,12 +443,13 @@ export default function PerfilBarbero() {
                 ✅ Resumen de tu cita
               </div>
               {[
-                ['Barbero',  nombreCompleto],
-                ['Servicio', servicioSel.name],
-                ['Duración', servicioSel.dur],
-                ['Fecha',    `${diaSeleccionado} · ${diasSemana.find((d) => d.num === diaSeleccionado)?.name || ''}`],
-                ['Hora',     horaSeleccionada],
-                ['Precio',   formatPrecio(precios[servicioSel.id] || preciosService.getPrecioServicio(nombreCompleto, servicioSel.id))],
+                ['Barbero',   nombreCompleto],
+                ['Servicio',  servicioSel.name],
+                ['Duración',  `${servicioSel.dur} min`],
+                ['Fecha',     `${diaSeleccionado} · ${diasSemana.find((d) => d.num === diaSeleccionado)?.name || ''}`],
+                // Rango completo inicio → fin
+                ['Hora',      `${slotSel.horaInicio} → ${slotSel.horaFin}`],
+                ['Precio',    formatPrecio(precios[servicioSel.id] || preciosService.getPrecioServicio(nombreCompleto, servicioSel.id))],
               ].map(([l, v]) => (
                 <div key={l} className="resumen-row">
                   <span className="resumen-label">{l}</span>
@@ -503,18 +465,10 @@ export default function PerfilBarbero() {
                 </div>
               )}
               <div style={{ display: 'flex', gap: 12 }}>
-                {/* "Modificar hora" solo resetea la hora, conserva servicio y día */}
-                <button
-                  className="btn btn-outline"
-                  onClick={() => setHoraSeleccionada(null)}
-                >
+                <button className="btn btn-outline" onClick={() => setSlotSel(null)}>
                   ← Modificar hora
                 </button>
-                <button
-                  className="btn btn-success btn-lg"
-                  onClick={handleConfirmar}
-                  disabled={confirmado}
-                >
+                <button className="btn btn-success btn-lg" onClick={handleConfirmar} disabled={confirmado}>
                   ✅ Confirmar cita
                 </button>
               </div>
@@ -526,29 +480,22 @@ export default function PerfilBarbero() {
         {(ubicacion.lat && ubicacion.lng) && (
           <div className="card">
             <div className="card-title">📍 Ubicación</div>
-            <div style={{
-              borderRadius: 10, overflow: 'hidden',
-              border: '1px solid var(--border)',
-              marginBottom: 12,
-            }}>
+            <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid var(--border)', marginBottom: 12 }}>
               <MapaMini
-                lat={ubicacion.lat}
-                lng={ubicacion.lng}
+                lat={ubicacion.lat} lng={ubicacion.lng}
                 icono={barberia ? '🏪' : '💈'}
                 color={barberia ? '#e6b86a' : '#e74c3c'}
                 altura={230}
               />
             </div>
             <div style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>
-              {barberia ? (
-                <>🏪 Trabaja en <strong style={{ color: 'var(--text)' }}>{barberia.nombre}</strong> · {barberia.direccion}, {barberia.ciudad}</>
-              ) : (
-                <>📍 {barbero.direccion}, {barbero.ciudad}</>
-              )}
+              {barberia
+                ? <><strong style={{ color: 'var(--text)' }}>🏪 {barberia.nombre}</strong> · {barberia.direccion}, {barberia.ciudad}</>
+                : <>📍 {barbero.direccion}, {barbero.ciudad}</>
+              }
             </div>
           </div>
         )}
-
       </div>
     </div>
   );

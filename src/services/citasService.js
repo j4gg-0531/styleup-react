@@ -3,17 +3,19 @@
 // CAPA DE DATOS — Hoy usa sessionStorage para simular la base
 // de datos. Cuando conectes el backend, solo cambias las
 // funciones de aquí; los componentes no se tocan.
+//
+// CAMBIOS v2:
+// - agregarCita ahora guarda horaFin además de horaInicio
+// - nuevo método: getSlotsBloqueados (para validación de conflictos)
 // ─────────────────────────────────────────────────────────────
 
 const STORAGE_KEY = 'styleup_citas';
 
-// Lee todas las citas del almacenamiento
 const leerCitas = () => {
   const data = sessionStorage.getItem(STORAGE_KEY);
   return data ? JSON.parse(data) : [];
 };
 
-// Guarda el arreglo completo de citas
 const guardarCitas = (citas) => {
   sessionStorage.setItem(STORAGE_KEY, JSON.stringify(citas));
 };
@@ -28,12 +30,18 @@ export const citasService = {
   },
 
   // Agregar una nueva cita
+  // Ahora guarda horaInicio y horaFin para validación de conflictos
   // FUTURO: return await fetch('/api/citas', { method: 'POST', body: ... })
+  //   La BD guarda: fecha (DATE), hora_inicio (TIME), hora_fin (TIME)
   agregarCita: (datosCita) => {
     const citas = leerCitas();
     const nuevaCita = {
       ...datosCita,
-      id: Date.now().toString(), // FUTURO: el id lo genera la base de datos
+      // Compatibilidad: si viene "hora" (formato viejo) lo mapeamos
+      horaInicio: datosCita.horaInicio || datosCita.hora,
+      // horaFin debe venir calculado desde el componente que llama
+      // FUTURO: el backend lo calcula según duración del servicio
+      id: Date.now().toString(),
       estado: 'pendiente',
       fechaCreacion: new Date().toISOString(),
     };
@@ -52,7 +60,7 @@ export const citasService = {
     return actualizadas;
   },
 
-  // Completar una cita (solo el barbero lo hará, preparado para después)
+  // Completar una cita
   // FUTURO: return await fetch(`/api/citas/${id}/completar`, { method: 'PATCH' })
   completarCita: (citaId) => {
     const citas = leerCitas();
@@ -68,5 +76,19 @@ export const citasService = {
   getCitasByBarbero: (barberoNombre) => {
     const citas = leerCitas();
     return citas.filter((c) => c.barbero?.name === barberoNombre);
+  },
+
+  // Obtener citas de un barbero en un día específico
+  // Usado para validar conflictos antes de mostrar los slots
+  // FUTURO: return await fetch(`/api/citas?barbero=${nombre}&dia=${dia}`)
+  getCitasBarberoEnDia: (barberoNombre, diaNum) => {
+    const citas = leerCitas();
+    return citas.filter(
+      (c) =>
+        c.barbero?.name === barberoNombre &&
+        c.fechaDia === diaNum &&
+        c.estado !== 'cancelada' &&
+        c.estado !== 'completada'
+    );
   },
 };
