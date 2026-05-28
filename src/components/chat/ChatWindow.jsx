@@ -25,7 +25,16 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
 
   // Lista de barberos disponibles para chatear
   // FUTURO: vendrá de /api/barberos o de los barberos con citas del cliente
-  const barberos = barberosService.getTodos();
+  const barberos = barberosService.getTodos().filter((b) => {
+    if (rolActual === 'barberia') {
+      // FUTURO: filtrar por barberiaId del usuario actual
+      // Por ahora usamos el mock — BAR001 tiene Juan y Carlos
+      const barberosDeMiBarberia = ['Juan Pérez', 'Carlos López'];
+      return barberosDeMiBarberia.includes(`${b.nombre} ${b.apellido}`);
+    }
+    // El cliente ve todos los barberos
+    return true;
+  });
 
   const [conversaciones, setConversaciones] = useState(
     () => chatService.getConversaciones(usuarioActual)
@@ -139,7 +148,7 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: '1.1rem', flexShrink: 0,
                   }}>
-                    {rolActual === 'cliente' ? '💈' : '👤'}
+                    {rolActual === 'barbero' ? '👤' : '💈'}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>{conv.otroUsuario}</div>
