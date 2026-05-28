@@ -33,6 +33,26 @@ export default function PerfilBarberoAdmin() {
   const [mostrarConfirmDespido, setMostrarConfirmDespido] = useState(false);
   const [despedido, setDespedido]                         = useState(false);
 
+  const STORAGE_KEY_HORARIOS = 'styleup_barberia_horarios_admin';
+  const horarioInicial = () => {
+    const guardado = sessionStorage.getItem(STORAGE_KEY_HORARIOS);
+    if (guardado) {
+      const data = JSON.parse(guardado);
+      if (data[nombreCompleto]) return data[nombreCompleto];
+    }
+    return { ...(HORARIO_MOCK[nombreCompleto] || {}) };
+  };
+  const [editandoHorario, setEditandoHorario] = useState(false);
+  const [horarioEdit, setHorarioEdit] = useState(horarioInicial);
+
+  const OPCIONES_TURNOS = [
+    '—', 'Descanso',
+    '08:00–13:00', '08:00–18:00',
+    '09:00–13:00', '09:00–14:00', '09:00–18:00',
+    '10:00–16:00', '10:00–18:00', '10:00–19:00',
+    '12:00–20:00', '13:00–20:00', '14:00–20:00',
+  ];
+
   const todasLasCitas = useMemo(
     () => barbero ? citasService.getCitasByBarbero(nombreCompleto) : [],
     [nombreCompleto, barbero]
@@ -60,8 +80,6 @@ export default function PerfilBarberoAdmin() {
     .filter((c) => c.estado === 'completada')
     .reduce((total, c) =>
       total + preciosService.getPrecioServicio(nombreCompleto, c.servicio?.id), 0);
-
-  const horario = HORARIO_MOCK[nombreCompleto] || {};
 
   const handleDespedir = () => {
     setDespedido(true);
@@ -223,15 +241,47 @@ export default function PerfilBarberoAdmin() {
                 ⏰ Horario semanal
               </div>
               <div style={{ fontSize: '0.78rem', color: 'var(--muted)' }}>
-                Solo lectura — coordina cambios por chat con el barbero
+                {editandoHorario
+                  ? 'Selecciona el turno para cada día y guarda los cambios.'
+                  : 'Solo lectura — usa "Editar horario" para modificar'}
               </div>
             </div>
-            <button
-              className="btn btn-outline btn-sm"
-              onClick={() => abrirChatCon(nombreCompleto)}
-            >
-              💬 Coordinar cambio
-            </button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {editandoHorario ? (
+                <>
+                  <button className="btn btn-outline btn-sm" onClick={() => {
+                    setHorarioEdit(horarioInicial());
+                    setEditandoHorario(false);
+                  }}>
+                    Cancelar
+                  </button>
+                  <button className="btn btn-success btn-sm" onClick={() => {
+                    const guardado = sessionStorage.getItem(STORAGE_KEY_HORARIOS);
+                    const data = guardado ? JSON.parse(guardado) : {};
+                    data[nombreCompleto] = horarioEdit;
+                    sessionStorage.setItem(STORAGE_KEY_HORARIOS, JSON.stringify(data));
+                    setEditandoHorario(false);
+                  }}>
+                    💾 Guardar horario
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    className="btn btn-outline btn-sm"
+                    onClick={() => abrirChatCon(nombreCompleto)}
+                  >
+                    💬 Coordinar cambio
+                  </button>
+                  <button
+                    className="btn btn-outline btn-sm"
+                    onClick={() => setEditandoHorario(true)}
+                  >
+                    ✏️ Editar horario
+                  </button>
+                </>
+              )}
+            </div>
           </div>
 
           <div style={{
@@ -240,7 +290,7 @@ export default function PerfilBarberoAdmin() {
             gap: 8,
           }}>
             {DIAS.map((dia) => {
-              const turno     = horario[dia] || '—';
+              const turno     = horarioEdit[dia] || '—';
               const esDescanso = turno === 'Descanso' || turno === '—';
               return (
                 <div
@@ -248,12 +298,13 @@ export default function PerfilBarberoAdmin() {
                   style={{
                     textAlign: 'center', padding: '12px 6px', borderRadius: 10,
                     border: '1.5px solid',
-                    borderColor: esDescanso
-                      ? 'var(--border)'
-                      : 'rgba(230,184,106,0.3)',
-                    background: esDescanso
-                      ? 'var(--surface2)'
-                      : 'rgba(230,184,106,0.05)',
+                    borderColor: editandoHorario
+                      ? 'var(--gold)'
+                      : esDescanso ? 'var(--border)' : 'rgba(230,184,106,0.3)',
+                    background: editandoHorario
+                      ? 'rgba(230,184,106,0.06)'
+                      : esDescanso ? 'var(--surface2)' : 'rgba(230,184,106,0.05)',
+                    transition: 'all 0.2s',
                   }}
                 >
                   <div style={{
@@ -263,28 +314,44 @@ export default function PerfilBarberoAdmin() {
                   }}>
                     {dia}
                   </div>
-                  <div style={{
-                    fontSize: '0.68rem', fontWeight: 600,
-                    color: esDescanso ? 'var(--muted)' : 'var(--gold)',
-                    lineHeight: 1.5,
-                  }}>
-                    {turno === '—' ? 'Libre' : turno}
-                  </div>
-                  <div style={{
-                    width: 6, height: 6, borderRadius: '50%',
-                    margin: '6px auto 0',
-                    background: esDescanso ? 'transparent' : '#3fb950',
-                  }} />
+                  {editandoHorario ? (
+                    <select
+                      className="form-control"
+                      style={{ fontSize: '0.65rem', padding: '4px 2px', textAlign: 'center', width: '100%' }}
+                      value={turno}
+                      onChange={(e) => setHorarioEdit((prev) => ({ ...prev, [dia]: e.target.value }))}
+                    >
+                      {OPCIONES_TURNOS.map((opt) => (
+                        <option key={opt} value={opt}>{opt === '—' ? 'Libre' : opt}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <>
+                      <div style={{
+                        fontSize: '0.68rem', fontWeight: 600,
+                        color: esDescanso ? 'var(--muted)' : 'var(--gold)',
+                        lineHeight: 1.5,
+                      }}>
+                        {turno === '—' ? 'Libre' : turno}
+                      </div>
+                      <div style={{
+                        width: 6, height: 6, borderRadius: '50%',
+                        margin: '6px auto 0',
+                        background: esDescanso ? 'transparent' : '#3fb950',
+                      }} />
+                    </>
+                  )}
                 </div>
               );
             })}
           </div>
 
-          <div className="alert alert-info" style={{ marginTop: 16, fontSize: '0.82rem' }}>
-            💡 Para cambiar el horario de <strong>{barbero.nombre}</strong>, primero
-            coordínalo por chat. Cuando el barbero acepte, aplica el cambio en{' '}
-            <strong>Horarios del equipo</strong>.
-          </div>
+          {!editandoHorario && (
+            <div className="alert alert-info" style={{ marginTop: 16, fontSize: '0.82rem' }}>
+              💡 Puedes editar el horario de <strong>{barbero.nombre}</strong> directamente
+              presionando <strong>Editar horario</strong>.
+            </div>
+          )}
         </div>
 
         {/* Citas recientes */}

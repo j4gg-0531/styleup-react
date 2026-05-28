@@ -17,6 +17,7 @@ export default function DashboardBarberia() {
     { icon: '💈', label: 'Barberos',   href: '/barberia/barberos' },
     { icon: '📋', label: 'Ofertas',    href: '/barberia/ofertas' },
     { icon: '⏰', label: 'Horarios',   href: '/barberia/horarios' },
+    { icon: '✂️', label: 'Servicios',  href: '/barberia/servicios' },
     { icon: '📊', label: 'Reportes',   href: '/barberia/reportes' },
     { icon: '✏️', label: 'Mi perfil',  href: '/barberia/perfil' },
   ];

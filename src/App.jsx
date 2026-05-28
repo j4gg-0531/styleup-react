@@ -27,6 +27,7 @@ import Ofertas from './pages/barberia/Ofertas';
 import HorariosBarberia from './pages/barberia/HorariosBarberia';
 import ReportesBarberia from './pages/barberia/ReportesBarberia';
 import PerfilBarberia from './pages/barberia/PerfilBarberia';
+import ServiciosBarberia from './pages/barberia/ServiciosBarberia';
 import OfertasBarbero from './pages/barbero/OfertasBarbero';
 import ChatFlotante from './components/chat/ChatFlotante.jsx';
 import PerfilBarberoAdmin from './pages/barberia/PerfilBarberoAdmin';
@@ -112,6 +113,9 @@ export default function App() {
                 } />
                 <Route path="/barberia/perfil" element={
                   <RutaProtegida rol="barberia"><PerfilBarberia /></RutaProtegida>
+                } />
+                <Route path="/barberia/servicios" element={
+                  <RutaProtegida rol="barberia"><ServiciosBarberia /></RutaProtegida>
                 } />
                 <Route path="/barberia/barberos/:id" element={
                   <RutaProtegida rol="barberia"><PerfilBarberoAdmin /></RutaProtegida>

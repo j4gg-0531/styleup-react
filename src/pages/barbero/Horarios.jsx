@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from 'react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 import { useHorarios } from '../../context/useHorarios.js';
+import { barberiaService } from '../../services/barberiaService.js';
 
 // ── Calcula los 6 días laborales (Lun–Sáb) de la semana indicada ──
 // offset = 0 (semana actual), -1 (semana pasada), 1 (próxima semana)…
@@ -37,6 +38,12 @@ export default function Horarios() {
   const { user } = useAuth();
   const { horarios, cargarHorarios, agregarHorario, eliminarHorario } = useHorarios();
 
+  // ¿El barbero trabaja en una barbería? Si sí, modo solo lectura
+  const barberia = barberiaService.getTodas().find(
+    (b) => b.barberos?.includes(user?.nombre)
+  ) ?? null;
+  const soloLectura = !!barberia;
+
   const [tab, setTab]               = useState('ver');
   const [semanaOffset, setSemanaOffset] = useState(0); // 0 = semana actual
   const [diasSel, setDiasSel]       = useState([]);
@@ -69,12 +76,14 @@ export default function Horarios() {
     );
 
   const handleEliminar = (id) => {
+    if (soloLectura) return;
     eliminarHorario(id);
     setMsgElim(true);
     setTimeout(() => setMsgElim(false), 2000);
   };
 
   const handleGuardar = () => {
+    if (soloLectura) return;
     if (diasSel.length === 0) {
       setMsgNuevo({ tipo: 'error', texto: 'Selecciona al menos un día.' });
       return;
@@ -133,8 +142,19 @@ export default function Horarios() {
       <main className="main-content">
         <div className="page-header">
           <h2 className="page-title">⏰ Mis horarios</h2>
-          <p className="page-subtitle">Configura tu disponibilidad semanal</p>
+          <p className="page-subtitle">
+            {soloLectura
+              ? `Tus horarios los gestiona ${barberia.nombre}. Contacta a tu barbería para cambios.`
+              : 'Configura tu disponibilidad semanal'}
+          </p>
         </div>
+
+        {soloLectura && (
+          <div className="alert alert-info" style={{ marginBottom: 20 }}>
+            🏪 Trabajas en <strong>{barberia.nombre}</strong>. Solo la barbería puede
+            modificar los horarios. Si necesitas un cambio, coordínalo con ellos.
+          </div>
+        )}
 
         {/* ── Navegador de semana ── */}
         <div style={{
@@ -185,7 +205,9 @@ export default function Horarios() {
           <div className={`hor-tab ${tab === 'ver' ? 'active' : ''}`} onClick={() => setTab('ver')}>
             Ver horarios
           </div>
-          <div className={`hor-tab ${tab === 'nuevo' ? 'active' : ''}`} onClick={() => setTab('nuevo')}>
+          <div className={`hor-tab ${tab === 'nuevo' ? 'active' : ''}`} onClick={() => !soloLectura && setTab('nuevo')}
+            style={{ opacity: soloLectura ? 0.4 : 1, cursor: soloLectura ? 'not-allowed' : 'pointer' }}
+            title={soloLectura ? `Bloqueado — tu barbería gestiona los horarios` : ''}>
             + Agregar horario
           </div>
         </div>
@@ -288,7 +310,7 @@ export default function Horarios() {
                       </div>
                       <div className="horario-actions">
                         <span className={`badge ${badgeClase[h.estado]}`}>{badgeTxt[h.estado]}</span>
-                        <button className="btn btn-outline btn-sm" onClick={() => handleEliminar(h.id)}>✕</button>
+                        {!soloLectura && <button className="btn btn-outline btn-sm" onClick={() => handleEliminar(h.id)}>✕</button>}
                       </div>
                     </div>
                   ))}
@@ -375,9 +397,9 @@ export default function Horarios() {
                 {msgNuevo.texto}
               </div>
             )}
-            <button className="btn btn-primary" onClick={handleGuardar}>
+            {!soloLectura && <button className="btn btn-primary" onClick={handleGuardar}>
               💾 Guardar horario
-            </button>
+            </button>}
           </div>
         )}
       </main>
