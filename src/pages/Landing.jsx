@@ -5,7 +5,7 @@ export default function Landing() {
     <>
       <nav className="navbar">
         <div className="navbar-brand">
-          <span>✂</span> Style<span style={{ color: 'var(--red-light)' }}>Up</span>
+          <span>✂</span> Style<span style={{ color: 'var(--cobre-light)' }}>Up</span>
         </div>
         <div className="navbar-links">
           <Link to="/login" className="btn btn-outline btn-sm">Iniciar sesión</Link>
@@ -50,7 +50,7 @@ export default function Landing() {
                 Panel del barbero
               </div>
               <div style={{ display: 'flex', gap: 16, textAlign: 'center' }}>
-                {[['8','citas hoy','var(--gold)'],['3','pendientes','var(--red-light)'],['5','completadas','#2ecc71']].map(([n,l,c]) => (
+                {[['8','citas hoy','var(--gold)'],['3','pendientes','var(--cobre-light)'],['5','completadas','#2ecc71']].map(([n,l,c]) => (
                   <div key={l}>
                     <div style={{ fontFamily: "'Playfair Display',serif", fontSize: '1.6rem', color: c }}>{n}</div>
                     <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>{l}</div>

@@ -105,7 +105,7 @@ export default function Barberos() {
                 transition: 'all 0.2s',
                 // Activo = fondo rojo, inactivo = transparente
                 background: vista === 'lista'
-                  ? 'linear-gradient(135deg, var(--red), var(--red-light))'
+                  ? 'linear-gradient(135deg, var(--cobre), var(--cobre-light))'
                   : 'transparent',
                 color: vista === 'lista' ? '#fff' : 'var(--muted)',
               }}
@@ -123,7 +123,7 @@ export default function Barberos() {
                 fontSize: '0.85rem',
                 transition: 'all 0.2s',
                 background: vista === 'mapa'
-                  ? 'linear-gradient(135deg, var(--red), var(--red-light))'
+                  ? 'linear-gradient(135deg, var(--cobre), var(--cobre-light))'
                   : 'transparent',
                 color: vista === 'mapa' ? '#fff' : 'var(--muted)',
               }}

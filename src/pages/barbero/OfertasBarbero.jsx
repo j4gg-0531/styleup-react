@@ -28,7 +28,7 @@ const colorContratacion = {
   comision:          { bg: 'rgba(230,184,106,0.12)', color: 'var(--gold)',      border: 'rgba(230,184,106,0.3)' },
   salario_fijo:      { bg: 'rgba(46,160,67,0.12)',   color: '#3fb950',          border: 'rgba(46,160,67,0.3)' },
   salario_comision:  { bg: 'rgba(52,152,219,0.12)',  color: '#3498db',          border: 'rgba(52,152,219,0.3)' },
-  alquiler_silla:    { bg: 'rgba(192,57,43,0.12)',   color: 'var(--red-light)', border: 'rgba(192,57,43,0.3)' },
+  alquiler_silla:    { bg: 'rgba(192,57,43,0.12)',   color: 'var(--cobre-light)', border: 'rgba(192,57,43,0.3)' },
 };
 
 function BadgeContratacion({ tipo }) {
@@ -355,7 +355,7 @@ function ModalOferta({ oferta, onCerrar, onAplicar, yaAplic, estadoApp }) {
                   style={{ resize: 'vertical' }}
                 />
                 {errHdv.presentacion && (
-                  <div style={{ color: 'var(--red-light)', fontSize: '0.75rem', marginTop: 4 }}>
+                  <div style={{ color: 'var(--cobre-light)', fontSize: '0.75rem', marginTop: 4 }}>
                     {errHdv.presentacion}
                   </div>
                 )}
@@ -375,7 +375,7 @@ function ModalOferta({ oferta, onCerrar, onAplicar, yaAplic, estadoApp }) {
                     ))}
                   </select>
                   {errHdv.nivel && (
-                    <div style={{ color: 'var(--red-light)', fontSize: '0.75rem', marginTop: 4 }}>
+                    <div style={{ color: 'var(--cobre-light)', fontSize: '0.75rem', marginTop: 4 }}>
                       {errHdv.nivel}
                     </div>
                   )}
@@ -416,7 +416,7 @@ function ModalOferta({ oferta, onCerrar, onAplicar, yaAplic, estadoApp }) {
                   onChange={(v) => setHdvField('especialidades', v)}
                 />
                 {errHdv.especialidades && (
-                  <div style={{ color: 'var(--red-light)', fontSize: '0.75rem', marginTop: 6 }}>
+                  <div style={{ color: 'var(--cobre-light)', fontSize: '0.75rem', marginTop: 6 }}>
                     {errHdv.especialidades}
                   </div>
                 )}
@@ -447,7 +447,7 @@ function ModalOferta({ oferta, onCerrar, onAplicar, yaAplic, estadoApp }) {
                     ))}
                   </select>
                   {errHdv.disponibilidad && (
-                    <div style={{ color: 'var(--red-light)', fontSize: '0.75rem', marginTop: 4 }}>
+                    <div style={{ color: 'var(--cobre-light)', fontSize: '0.75rem', marginTop: 4 }}>
                       {errHdv.disponibilidad}
                     </div>
                   )}
@@ -466,7 +466,7 @@ function ModalOferta({ oferta, onCerrar, onAplicar, yaAplic, estadoApp }) {
                     ))}
                   </select>
                   {errHdv.modalidad && (
-                    <div style={{ color: 'var(--red-light)', fontSize: '0.75rem', marginTop: 4 }}>
+                    <div style={{ color: 'var(--cobre-light)', fontSize: '0.75rem', marginTop: 4 }}>
                       {errHdv.modalidad}
                     </div>
                   )}
@@ -675,7 +675,7 @@ export default function OfertasBarbero() {
             [ofertas.length,      'Ofertas disponibles',  'var(--gold)'],
             [aplicaciones.length, 'Mis aplicaciones',     '#3fb950'],
             [aplicaciones.filter((a) => a.estado === 'aceptada').length,
-              'Aceptadas', 'var(--red-light)'],
+              'Aceptadas', 'var(--cobre-light)'],
           ].map(([v, l, c]) => (
             <div key={l} className="stat-card">
               <div className="stat-value" style={{ color: c, fontSize: '1.6rem' }}>{v}</div>

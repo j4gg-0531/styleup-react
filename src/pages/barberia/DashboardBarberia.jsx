@@ -23,7 +23,7 @@ export default function DashboardBarberia() {
 
   return (
     <div className="app-layout">
-      <Sidebar avatar="🏪" badge="Barbería" badgeClass="badge-red" navItems={navItems} />
+      <Sidebar avatar="🏪" badge="Barbería" badgeClass="badge-cobre" navItems={navItems} />
 
       <main className="main-content">
         <div className="welcome-banner">
@@ -41,7 +41,7 @@ export default function DashboardBarberia() {
         <div className="stats-grid">
           {[
             ['3',  'Barberos activos',  'var(--gold)'],
-            [String(ofertasActivas), 'Ofertas activas', 'var(--red-light)'],
+            [String(ofertasActivas), 'Ofertas activas', 'var(--cobre-light)'],
             ['24', 'Citas este mes',    '#2ecc71'],
             ['0',  'Pendientes hoy',    'var(--muted)'],
           ].map(([v, l, c]) => (

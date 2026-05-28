@@ -74,7 +74,7 @@ export default function ServiciosBarberia() {
 
   return (
     <div className="app-layout">
-      <Sidebar avatar="🏪" badge="Barbería" badgeClass="badge-red" navItems={navItems} />
+      <Sidebar avatar="🏪" badge="Barbería" badgeClass="badge-cobre" navItems={navItems} />
 
       <main className="main-content">
         <div className="page-header" style={{
@@ -115,7 +115,7 @@ export default function ServiciosBarberia() {
             <div className="stat-label">Precio más bajo</div>
           </div>
           <div className="stat-card">
-            <div className="stat-value" style={{ color: 'var(--red-light)', fontSize: '1.4rem' }}>
+            <div className="stat-value" style={{ color: 'var(--cobre-light)', fontSize: '1.4rem' }}>
               {precioMax ? fmtPrecio(precioMax) : '—'}
             </div>
             <div className="stat-label">Precio más alto</div>
@@ -184,7 +184,7 @@ export default function ServiciosBarberia() {
                       <div style={{
                         width: 38, height: 38, borderRadius: 8, flexShrink: 0,
                         background: s.activo
-                          ? 'linear-gradient(135deg, var(--red), var(--red-light))'
+                          ? 'linear-gradient(135deg, var(--cobre), var(--cobre-light))'
                           : 'var(--surface2)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: '1.1rem',
@@ -250,12 +250,12 @@ export default function ServiciosBarberia() {
                           <div style={{
                             fontFamily: "'Playfair Display', serif",
                             fontSize: '1.1rem', fontWeight: 700,
-                            color: bajoDeMini ? 'var(--red-light)' : 'var(--gold)',
+                            color: bajoDeMini ? 'var(--cobre-light)' : 'var(--gold)',
                           }}>
                             {fmtPrecio(s.precio)}
                           </div>
                           {bajoDeMini && (
-                            <div style={{ fontSize: '0.65rem', color: 'var(--red-light)' }}>
+                            <div style={{ fontSize: '0.65rem', color: 'var(--cobre-light)' }}>
                               ⚠ Bajo el mínimo
                             </div>
                           )}
@@ -311,7 +311,7 @@ export default function ServiciosBarberia() {
                           height: '100%', borderRadius: 4,
                           width: `${Math.min(((Number(s.precio) - minimo) / minimo) * 100 + 50, 100)}%`,
                           background: bajoDeMini
-                            ? 'var(--red-light)'
+                            ? 'var(--cobre-light)'
                             : 'linear-gradient(90deg, var(--gold-dim), var(--gold))',
                           transition: 'width 0.4s ease',
                         }} />

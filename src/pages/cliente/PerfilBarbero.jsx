@@ -147,7 +147,7 @@ export default function PerfilBarbero() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap' }}>
             <div style={{
               width: 100, height: 100, borderRadius: '50%',
-              background: 'linear-gradient(135deg, var(--red), var(--red-light))',
+              background: 'linear-gradient(135deg, var(--cobre), var(--cobre-light))',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '2.8rem', flexShrink: 0,
               boxShadow: '0 0 0 4px rgba(192,57,43,0.2), var(--shadow-lg)',
@@ -342,7 +342,7 @@ export default function PerfilBarbero() {
                           style={{
                             padding: '8px 4px', textAlign: 'center', borderRadius: 8,
                             cursor: 'pointer', border: '1.5px solid',
-                            borderColor: esSeleccionado ? 'var(--gold)' : esHoyDia ? 'var(--red-light)' : 'var(--border)',
+                            borderColor: esSeleccionado ? 'var(--gold)' : esHoyDia ? 'var(--cobre-light)' : 'var(--border)',
                             background: esSeleccionado ? 'rgba(230,184,106,0.12)' : 'var(--surface)',
                             transition: 'all 0.2s',
                           }}
@@ -350,7 +350,7 @@ export default function PerfilBarbero() {
                           <div style={{ fontSize: '0.6rem', color: 'var(--muted)', textTransform: 'uppercase' }}>{d.name}</div>
                           <div style={{
                             fontFamily: "'Playfair Display', serif", fontSize: '1rem', fontWeight: 700,
-                            color: esSeleccionado ? 'var(--gold)' : esHoyDia ? 'var(--red-light)' : 'var(--text)',
+                            color: esSeleccionado ? 'var(--gold)' : esHoyDia ? 'var(--cobre-light)' : 'var(--text)',
                           }}>
                             {d.num}
                           </div>

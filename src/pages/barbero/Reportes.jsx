@@ -99,7 +99,7 @@ export default function Reportes() {
                 [formatPrecio(gananciasReportes), 'Ganancias', 'var(--gold)'],
                 [citasReportes.filter((c) => c.estado === 'completada').length, 'Completadas', '#2ecc71'],
                 [citasReportes.filter((c) => c.estado === 'cancelada').length, 'Canceladas', 'var(--muted)'],
-                [citasReportes.length, 'Total agendadas', 'var(--red-light)'],
+                [citasReportes.length, 'Total agendadas', 'var(--cobre-light)'],
               ].map(([v, l, c]) => (
                 <div key={l} className="stat-card" style={{ padding: 14 }}>
                   <div className="stat-value" style={{ fontSize: '1.3rem', color: c }}>{v}</div>
@@ -127,7 +127,7 @@ export default function Reportes() {
                     <div style={{
                       height: '100%',
                       width: total > 0 ? `${Math.min((cantidad / total) * 100, 100)}%` : '0%',
-                      background: 'var(--red)', borderRadius: 3,
+                      background: 'var(--cobre)', borderRadius: 3,
                       minWidth: cantidad > 0 ? '4px' : 0
                     }} />
                   </div>

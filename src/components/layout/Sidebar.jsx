@@ -4,7 +4,7 @@ import { useAuth } from '../../context/useAuth.js';
 
 let _expandido = false;
 
-export default function Sidebar({ avatar, badge, badgeClass = 'badge-red', navItems, extra }) {
+export default function Sidebar({ avatar, badge, badgeClass = 'badge-cobre', navItems, extra }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();

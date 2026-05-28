@@ -22,7 +22,7 @@ export default function BarberosBarberia() {
 
   return (
     <div className="app-layout">
-      <Sidebar avatar="🏪" badge="Barbería" badgeClass="badge-red" navItems={navItems} />
+      <Sidebar avatar="🏪" badge="Barbería" badgeClass="badge-cobre" navItems={navItems} />
       <main className="main-content">
         <div className="page-header">
           <h2 className="page-title">💈 Mis barberos</h2>

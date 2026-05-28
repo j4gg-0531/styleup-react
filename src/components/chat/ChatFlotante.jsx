@@ -40,7 +40,7 @@ export default function ChatFlotante() {
           width: 56, height: 56, borderRadius: '50%', border: 'none',
           background: abierto
             ? 'var(--surface2)'
-            : 'linear-gradient(135deg, var(--red), var(--red-light))',
+            : 'linear-gradient(135deg, var(--cobre), var(--cobre-light))',
           color: '#fff', fontSize: '1.4rem',
           cursor: 'pointer', boxShadow: 'var(--shadow-lg)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',

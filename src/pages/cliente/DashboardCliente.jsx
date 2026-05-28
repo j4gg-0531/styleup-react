@@ -56,7 +56,7 @@ export default function DashboardCliente() {
             <div className="stat-label">Citas agendadas</div>
           </div>
           <div className="stat-card">
-            <div className="stat-value" style={{ color: 'var(--red-light)' }}>{citasPendientes.length}</div>
+            <div className="stat-value" style={{ color: 'var(--cobre-light)' }}>{citasPendientes.length}</div>
             <div className="stat-label">Próximas citas</div>
           </div>
           <div className="stat-card">
@@ -100,7 +100,7 @@ export default function DashboardCliente() {
                 {badgePorEstado[c.estado]}
                 <button
                   className="btn btn-outline btn-sm"
-                  style={{ color: 'var(--red-light)', borderColor: 'var(--red-light)' }}
+                  style={{ color: 'var(--cobre-light)', borderColor: 'var(--cobre-light)' }}
                   onClick={() => handleCancelar(c.id)}
                 >
                   Cancelar

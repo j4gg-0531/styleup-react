@@ -78,7 +78,7 @@ export default function DashboardBarbero() {
             <div className="stat-label">Citas hoy</div>
           </div>
           <div className="stat-card">
-            <div className="stat-value" style={{ color: 'var(--red-light)' }}>{citasPendientesHoy}</div>
+            <div className="stat-value" style={{ color: 'var(--cobre-light)' }}>{citasPendientesHoy}</div>
             <div className="stat-label">Pendientes</div>
           </div>
           <div className="stat-card">

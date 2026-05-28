@@ -67,7 +67,7 @@ export default function Perfil() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap' }}>
               <div style={{
                 width: 100, height: 100, borderRadius: '50%',
-                background: 'linear-gradient(135deg, var(--red), var(--red-light))',
+                background: 'linear-gradient(135deg, var(--cobre), var(--cobre-light))',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: '2.8rem', flexShrink: 0,
                 boxShadow: '0 0 0 4px rgba(192,57,43,0.2), var(--shadow-lg)',
@@ -176,7 +176,7 @@ export default function Perfil() {
           <div className="card" style={{ maxWidth: 540, marginTop: 24, borderColor: 'rgba(192,57,43,0.3)' }}>
             <div style={{
               fontFamily: "'Playfair Display', serif", fontSize: '1.1rem', fontWeight: 700,
-              marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--red-light)',
+              marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--cobre-light)',
             }}>
               🗑️ Eliminar cuenta
             </div>
@@ -185,7 +185,7 @@ export default function Perfil() {
               (citas, historial y preferencias) serán eliminados permanentemente.
             </p>
             <button className="btn btn-outline"
-              style={{ color: 'var(--red-light)', borderColor: 'var(--red-light)' }}
+              style={{ color: 'var(--cobre-light)', borderColor: 'var(--cobre-light)' }}
               onClick={() => setMostrarEliminar(true)}>
               Eliminar mi cuenta
             </button>
@@ -220,7 +220,7 @@ export default function Perfil() {
               color: 'var(--muted)', fontSize: '0.88rem',
               lineHeight: 1.65, marginBottom: 24,
             }}>
-              Esta acción es <strong style={{ color: 'var(--red-light)' }}>irreversible</strong>.
+              Esta acción es <strong style={{ color: 'var(--cobre-light)' }}>irreversible</strong>.
               Perderás acceso a tu historial de citas, barberos favoritos y
               configuraciones guardadas.
             </p>
@@ -230,7 +230,7 @@ export default function Perfil() {
               </button>
               <button className="btn btn-primary"
                 style={{
-                  background: 'linear-gradient(135deg, var(--red), var(--red-light))',
+                  background: 'linear-gradient(135deg, var(--cobre), var(--cobre-light))',
                 }}
                 onClick={handleEliminar}>
                 🗑️ Sí, eliminar

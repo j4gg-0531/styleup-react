@@ -26,7 +26,7 @@ export default function Registro() {
     <div className="registro-page">
       <div className="reg-wrap">
         <div className="reg-header">
-          <div className="reg-logo">✂ Style<span style={{ color: 'var(--red-light)' }}>Up</span></div>
+          <div className="reg-logo">✂ Style<span style={{ color: 'var(--cobre-light)' }}>Up</span></div>
           <h2 style={{ fontSize: '1.7rem', marginTop: 8 }}>Crea tu cuenta</h2>
           <p style={{ color: 'var(--muted)', fontSize: '0.9rem', marginTop: 4 }}>Únete a StyleUp y gestiona tus citas fácilmente</p>
         </div>

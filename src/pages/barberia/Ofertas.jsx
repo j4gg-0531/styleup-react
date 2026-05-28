@@ -196,7 +196,7 @@ function CardOferta({ oferta, aplicaciones, onCerrar }) {
           {oferta.estado === 'activa' && (
             <button
               className="btn btn-outline btn-sm"
-              style={{ color: 'var(--red-light)', borderColor: 'var(--red-light)' }}
+              style={{ color: 'var(--cobre-light)', borderColor: 'var(--cobre-light)' }}
               onClick={(e) => { e.stopPropagation(); onCerrar(oferta.id); }}
             >
               Cerrar oferta
@@ -250,7 +250,7 @@ function TablaAplicaciones({ aplicaciones }) {
               {/* Avatar + nombre */}
               <div style={{
                 width: 40, height: 40, borderRadius: '50%',
-                background: 'linear-gradient(135deg, var(--red), var(--red-light))',
+                background: 'linear-gradient(135deg, var(--cobre), var(--cobre-light))',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: '1.1rem', flexShrink: 0,
               }}>
@@ -298,7 +298,7 @@ function TablaAplicaciones({ aplicaciones }) {
                     </button>
                     <button
                       className="btn btn-outline btn-sm"
-                      style={{ color: 'var(--red-light)', borderColor: 'var(--red-light)' }}
+                      style={{ color: 'var(--cobre-light)', borderColor: 'var(--cobre-light)' }}
                       onClick={() => cambiarEstado(ap.id, 'rechazada')}
                     >
                       ✕ Rechazar
@@ -472,7 +472,7 @@ export default function Ofertas() {
 
   return (
     <div className="app-layout">
-      <Sidebar avatar="🏪" badge="Barbería" badgeClass="badge-red" navItems={navItems} />
+      <Sidebar avatar="🏪" badge="Barbería" badgeClass="badge-cobre" navItems={navItems} />
 
       <main className="main-content">
 
@@ -541,7 +541,7 @@ export default function Ofertas() {
                     value={form.titulo}
                     onChange={(e) => set('titulo', e.target.value)}
                   />
-                  {errores.titulo && <div style={{ color: 'var(--red-light)', fontSize: '0.78rem', marginTop: 4 }}>{errores.titulo}</div>}
+                  {errores.titulo && <div style={{ color: 'var(--cobre-light)', fontSize: '0.78rem', marginTop: 4 }}>{errores.titulo}</div>}
                 </div>
 
                 <div className="form-group">
@@ -570,7 +570,7 @@ export default function Ofertas() {
                       ))}
                     </select>
                     {errores.tipoContratacion && (
-                      <div style={{ color: 'var(--red-light)', fontSize: '0.78rem', marginTop: 4 }}>
+                      <div style={{ color: 'var(--cobre-light)', fontSize: '0.78rem', marginTop: 4 }}>
                         {errores.tipoContratacion}
                       </div>
                     )}
@@ -585,7 +585,7 @@ export default function Ofertas() {
                       onChange={(e) => set('condicionEconomica', e.target.value)}
                     />
                     {errores.condicionEconomica && (
-                      <div style={{ color: 'var(--red-light)', fontSize: '0.78rem', marginTop: 4 }}>
+                      <div style={{ color: 'var(--cobre-light)', fontSize: '0.78rem', marginTop: 4 }}>
                         {errores.condicionEconomica}
                       </div>
                     )}
@@ -686,7 +686,7 @@ export default function Ofertas() {
                   })}
 
                   {errores.horario && (
-                    <div style={{ color: 'var(--red-light)', fontSize: '0.78rem', marginTop: 4 }}>
+                    <div style={{ color: 'var(--cobre-light)', fontSize: '0.78rem', marginTop: 4 }}>
                       {errores.horario}
                     </div>
                   )}
@@ -718,7 +718,7 @@ export default function Ofertas() {
                       ))}
                     </select>
                     {errores.experienciaRequerida && (
-                      <div style={{ color: 'var(--red-light)', fontSize: '0.78rem', marginTop: 4 }}>
+                      <div style={{ color: 'var(--cobre-light)', fontSize: '0.78rem', marginTop: 4 }}>
                         {errores.experienciaRequerida}
                       </div>
                     )}
@@ -749,7 +749,7 @@ export default function Ofertas() {
                     onChange={(v) => set('especialidadesBuscadas', v)}
                   />
                   {errores.especialidadesBuscadas && (
-                    <div style={{ color: 'var(--red-light)', fontSize: '0.78rem', marginTop: 6 }}>
+                    <div style={{ color: 'var(--cobre-light)', fontSize: '0.78rem', marginTop: 6 }}>
                       {errores.especialidadesBuscadas}
                     </div>
                   )}

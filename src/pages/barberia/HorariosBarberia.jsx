@@ -22,7 +22,7 @@ export default function HorariosBarberia() {
 
   return (
     <div className="app-layout">
-      <Sidebar avatar="🏪" badge="Barbería" badgeClass="badge-red" navItems={navItems} />
+      <Sidebar avatar="🏪" badge="Barbería" badgeClass="badge-cobre" navItems={navItems} />
       <main className="main-content">
         <div className="page-header">
           <h2 className="page-title">⏰ Horarios del equipo</h2>

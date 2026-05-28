@@ -56,7 +56,7 @@ export default function PerfilBarberia() {
 
   return (
     <div className="app-layout">
-      <Sidebar avatar="🏪" badge="Barbería" badgeClass="badge-red" navItems={navItems} />
+      <Sidebar avatar="🏪" badge="Barbería" badgeClass="badge-cobre" navItems={navItems} />
 
       <main className="main-content" style={{ padding: 0 }}>
 
@@ -69,7 +69,7 @@ export default function PerfilBarberia() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap' }}>
               <div style={{
                 width: 100, height: 100, borderRadius: '50%',
-                background: 'linear-gradient(135deg, var(--red), var(--red-light))',
+                background: 'linear-gradient(135deg, var(--cobre), var(--cobre-light))',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: '2.8rem', flexShrink: 0,
                 boxShadow: '0 0 0 4px rgba(192,57,43,0.2), var(--shadow-lg)',
@@ -81,7 +81,7 @@ export default function PerfilBarberia() {
                   <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2rem', fontWeight: 900, margin: 0 }}>
                     {user?.nombre}
                   </h1>
-                  <span className="badge badge-red">Barbería</span>
+                  <span className="badge badge-cobre">Barbería</span>
                 </div>
                 <div style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>
                   Datos del negocio
@@ -188,7 +188,7 @@ export default function PerfilBarberia() {
           <div className="card" style={{ maxWidth: 540, marginTop: 24, borderColor: 'rgba(192,57,43,0.3)' }}>
             <div style={{
               fontFamily: "'Playfair Display', serif", fontSize: '1.1rem', fontWeight: 700,
-              marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--red-light)',
+              marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--cobre-light)',
             }}>
               🗑️ Eliminar cuenta
             </div>
@@ -198,7 +198,7 @@ export default function PerfilBarberia() {
               permanentemente.
             </p>
             <button className="btn btn-outline"
-              style={{ color: 'var(--red-light)', borderColor: 'var(--red-light)' }}
+              style={{ color: 'var(--cobre-light)', borderColor: 'var(--cobre-light)' }}
               onClick={() => setMostrarEliminar(true)}>
               Eliminar mi cuenta
             </button>
@@ -233,7 +233,7 @@ export default function PerfilBarberia() {
               color: 'var(--muted)', fontSize: '0.88rem',
               lineHeight: 1.65, marginBottom: 24,
             }}>
-              Esta acción es <strong style={{ color: 'var(--red-light)' }}>irreversible</strong>.
+              Esta acción es <strong style={{ color: 'var(--cobre-light)' }}>irreversible</strong>.
               Perderás acceso a tu barbería, barberos registrados, ofertas
               publicadas y configuración del negocio.
             </p>
@@ -243,7 +243,7 @@ export default function PerfilBarberia() {
               </button>
               <button className="btn btn-primary"
                 style={{
-                  background: 'linear-gradient(135deg, var(--red), var(--red-light))',
+                  background: 'linear-gradient(135deg, var(--cobre), var(--cobre-light))',
                 }}
                 onClick={handleEliminar}>
                 🗑️ Sí, eliminar

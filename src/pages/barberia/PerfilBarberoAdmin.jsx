@@ -111,7 +111,7 @@ export default function PerfilBarberoAdmin() {
             {/* Avatar */}
             <div style={{
               width: 100, height: 100, borderRadius: '50%',
-              background: 'linear-gradient(135deg, var(--red), var(--red-light))',
+              background: 'linear-gradient(135deg, var(--cobre), var(--cobre-light))',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '2.8rem', flexShrink: 0,
               boxShadow: '0 0 0 4px rgba(192,57,43,0.2), var(--shadow-lg)',
@@ -191,7 +191,7 @@ export default function PerfilBarberoAdmin() {
               </button>
               <button
                 className="btn btn-outline"
-                style={{ color: 'var(--red-light)', borderColor: 'var(--red-light)' }}
+                style={{ color: 'var(--cobre-light)', borderColor: 'var(--cobre-light)' }}
                 onClick={() => setMostrarConfirmDespido(true)}
               >
                 🚫 Despedir barbero
@@ -220,7 +220,7 @@ export default function PerfilBarberoAdmin() {
           {[
             [formatPrecio(gananciasEsteMes), 'Ganancias generadas', 'var(--gold)'],
             [completadas,                    'Citas completadas',    '#3fb950'],
-            [pendientes,                     'Pendientes',           'var(--red-light)'],
+            [pendientes,                     'Pendientes',           'var(--cobre-light)'],
             [canceladas,                     'Cancelaciones',        'var(--muted)'],
           ].map(([valor, label, color]) => (
             <div key={label} className="stat-card">
@@ -450,7 +450,7 @@ export default function PerfilBarberoAdmin() {
               <button
                 className="btn btn-primary"
                 style={{
-                  background: 'linear-gradient(135deg, var(--red), var(--red-light))',
+                  background: 'linear-gradient(135deg, var(--cobre), var(--cobre-light))',
                 }}
                 onClick={handleDespedir}
               >

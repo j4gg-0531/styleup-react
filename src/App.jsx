@@ -30,6 +30,7 @@ import PerfilBarberia from './pages/barberia/PerfilBarberia';
 import ServiciosBarberia from './pages/barberia/ServiciosBarberia';
 import OfertasBarbero from './pages/barbero/OfertasBarbero';
 import ChatFlotante from './components/chat/ChatFlotante.jsx';
+import ThemeToggle from './components/ui/ThemeToggle.jsx';
 import PerfilBarberoAdmin from './pages/barberia/PerfilBarberoAdmin';
 
 function RutaProtegida({ children, rol }) {
@@ -124,6 +125,7 @@ export default function App() {
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
               <ChatFlotante />
+              <ThemeToggle />
             </BrowserRouter>
           </ChatFlotanteProvider>
         </HorariosProvider>

@@ -35,7 +35,7 @@ export default function ReportesBarberia() {
 
   return (
     <div className="app-layout">
-      <Sidebar avatar="🏪" badge="Barbería" badgeClass="badge-red" navItems={navItems} />
+      <Sidebar avatar="🏪" badge="Barbería" badgeClass="badge-cobre" navItems={navItems} />
       <main className="main-content">
         <div className="page-header">
           <h2 className="page-title">📊 Reportes</h2>
@@ -69,7 +69,7 @@ export default function ReportesBarberia() {
             [formatPrecio(datosSimulados.gananciasTotal), 'Ganancias totales', 'var(--gold)'],
             [String(datosSimulados.citasCompletadas), 'Citas completadas', '#2ecc71'],
             [String(datosSimulados.citasCanceladas), 'Canceladas', 'var(--muted)'],
-            [datosSimulados.barberoTop, 'Barbero top', 'var(--red-light)'],
+            [datosSimulados.barberoTop, 'Barbero top', 'var(--cobre-light)'],
           ].map(([v, l, c]) => (
             <div key={l} className="stat-card">
               <div className="stat-value" style={{ color: c, fontSize: '1.3rem' }}>{v}</div>
@@ -96,7 +96,7 @@ export default function ReportesBarberia() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <div style={{ flex: 1, height: 6, background: 'var(--border)', borderRadius: 3 }}>
                           <div style={{
-                            height: '100%', borderRadius: 3, background: 'var(--red)',
+                            height: '100%', borderRadius: 3, background: 'var(--cobre)',
                             width: `${Math.round((b.ganancias / datosSimulados.gananciasTotal) * 100)}%`
                           }} />
                         </div>

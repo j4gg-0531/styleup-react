@@ -85,7 +85,7 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
       {/* Header */}
       <div style={{
         padding: '14px 16px',
-        background: 'linear-gradient(135deg, var(--red), var(--red-light))',
+        background: 'linear-gradient(135deg, var(--cobre), var(--cobre-light))',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -144,7 +144,7 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
                 >
                   <div style={{
                     width: 40, height: 40, borderRadius: '50%',
-                    background: 'linear-gradient(135deg, var(--red), var(--red-light))',
+                    background: 'linear-gradient(135deg, var(--cobre), var(--cobre-light))',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: '1.1rem', flexShrink: 0,
                   }}>
@@ -195,7 +195,7 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
                   >
                     <div style={{
                       width: 40, height: 40, borderRadius: '50%',
-                      background: 'linear-gradient(135deg, var(--red), var(--red-light))',
+                      background: 'linear-gradient(135deg, var(--cobre), var(--cobre-light))',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: '1.1rem', flexShrink: 0,
                     }}>
@@ -247,7 +247,7 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
                       maxWidth: '75%', padding: '8px 12px',
                       borderRadius: esMio ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
                       background: esMio
-                        ? 'linear-gradient(135deg, var(--red), var(--red-light))'
+                        ? 'linear-gradient(135deg, var(--cobre), var(--cobre-light))'
                         : 'var(--surface2)',
                       color: esMio ? '#fff' : 'var(--text)',
                       fontSize: '0.88rem',
@@ -295,7 +295,7 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
               style={{
                 width: 36, height: 36, borderRadius: 8, border: 'none',
                 background: texto.trim()
-                  ? 'linear-gradient(135deg, var(--red), var(--red-light))'
+                  ? 'linear-gradient(135deg, var(--cobre), var(--cobre-light))'
                   : 'var(--surface2)',
                 color: texto.trim() ? '#fff' : 'var(--muted)',
                 cursor: texto.trim() ? 'pointer' : 'not-allowed',
