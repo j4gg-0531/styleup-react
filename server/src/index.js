@@ -1,3 +1,4 @@
+require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
 const { PrismaClient } = require('@prisma/client')
@@ -12,6 +13,9 @@ app.use(express.json())
 app.get('/', (req, res) => {
   res.json({ message: 'Servidor StyleUp funcionando ✅' })
 })
+
+const authRoutes = require('./routes/auth')
+app.use('/api/auth', authRoutes)
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`)
