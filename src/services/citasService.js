@@ -35,12 +35,13 @@ export const citasService = {
   //   La BD guarda: fecha (DATE), hora_inicio (TIME), hora_fin (TIME)
   agregarCita: (datosCita) => {
     const citas = leerCitas();
+    const { servicio, ...resto } = datosCita;
     const nuevaCita = {
-      ...datosCita,
-      // Compatibilidad: si viene "hora" (formato viejo) lo mapeamos
+      ...resto,
+      servicio: servicio
+        ? { id: servicio.id, name: servicio.name, dur: servicio.dur }
+        : servicio,
       horaInicio: datosCita.horaInicio || datosCita.hora,
-      // horaFin debe venir calculado desde el componente que llama
-      // FUTURO: el backend lo calcula según duración del servicio
       id: Date.now().toString(),
       estado: 'pendiente',
       fechaCreacion: new Date().toISOString(),
