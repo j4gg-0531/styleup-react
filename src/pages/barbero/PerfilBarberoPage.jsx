@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, MapPin, Lock, Save, Trash2, AlertTriangle, Frown, CheckCircle } from 'lucide-react';
+import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, MapPin, Lock, Save, Trash2, AlertTriangle, Frown, CheckCircle, Bell, LogOut } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 import SelectorUbicacion from '../../components/SelectorUbicacion.jsx';
+import { notificacionesService } from '../../services/notificacionesService.js';
+import { barberiaService } from '../../services/barberiaService.js';
+import { barberosService } from '../../services/barberosService.js';
 
 const navItems = [
   { icon: <Home size={18} />, label: 'Dashboard',     href: '/barbero' },
@@ -11,8 +14,9 @@ const navItems = [
   { icon: <Scissors size={18} />, label: 'Mis servicios', href: '/barbero/precios' },
   { icon: <ClipboardList size={18} />, label: 'Ofertas',       href: '/barbero/ofertas' },
   { icon: <BookOpen size={18} />, label: 'Historial',     href: '/barbero/historial' },
-  { icon: <BarChart3 size={18} />, label: 'Reportes',      href: '/barbero/reportes' },
-];
+    { icon: <BarChart3 size={18} />, label: 'Reportes',      href: '/barbero/reportes' },
+    { icon: <Bell size={18} />, label: 'Notificaciones', href: '/barbero/notificaciones', notificacionesBadge: true },
+  ];
 
 const extra = <div className="spec-badge" style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}><Scissors size={14} /> Corte a tijera</div>;
 
@@ -29,6 +33,25 @@ export default function PerfilBarberoPage() {
 
   const [mostrarEliminar, setMostrarEliminar] = useState(false);
   const [eliminado, setEliminado]             = useState(false);
+  const [mostrarConfirmRenuncia, setMostrarConfirmRenuncia] = useState(false);
+  const [renunciaEnviada, setRenunciaEnviada] = useState(false);
+
+  const barberiaDelBarbero = () => {
+    if (!user?.nombre) return null;
+    const todas = barberiaService.getTodas();
+    for (const barberia of todas) {
+      if (!barberia.barberoIds?.length) continue;
+      for (const bid of barberia.barberoIds) {
+        const b = barberosService.getById(bid);
+        if (b && b.nombre.toLowerCase() === user.nombre.toLowerCase()) {
+          return barberia;
+        }
+      }
+    }
+    return null;
+  };
+
+  const barberia = barberiaDelBarbero();
 
   const handleGuardar = () => {
     setPwError('');
@@ -229,6 +252,26 @@ export default function PerfilBarberoPage() {
               Eliminar mi cuenta
             </button>
           </div>
+
+          {barberia && (
+            <div className="card" style={{ maxWidth: 540, marginTop: 24, borderColor: 'rgba(230,184,106,0.3)' }}>
+              <div style={{
+                fontFamily: "'Playfair Display', serif", fontSize: '1.1rem', fontWeight: 700,
+                marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--gold)',
+              }}>
+                <LogOut size={20} /> Renunciar a mi barbería
+              </div>
+              <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginBottom: 16, lineHeight: 1.6 }}>
+                Si ya no deseas trabajar en <strong>{barberia.nombre}</strong>, puedes renunciar.
+                La barbería recibirá una notificación de tu renuncia.
+              </p>
+              <button className="btn btn-outline"
+                style={{ color: 'var(--gold)', borderColor: 'var(--gold)' }}
+                onClick={() => setMostrarConfirmRenuncia(true)}>
+                <LogOut size={16} /> Renunciar
+              </button>
+            </div>
+          )}
         </div>
       </main>
 
@@ -301,6 +344,73 @@ export default function PerfilBarberoPage() {
               Sentimos verte ir. Serás redirigido al inicio...
             </p>
           </div>
+        </div>
+      )}
+
+      {mostrarConfirmRenuncia && !renunciaEnviada && (
+        <div onClick={() => setMostrarConfirmRenuncia(false)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 2000,
+            background: 'rgba(0,0,0,0.75)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
+          }}>
+          <div onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'var(--surface)',
+              border: '1px solid rgba(230,184,106,0.3)',
+              borderRadius: 16, padding: '32px 28px',
+              maxWidth: 420, width: '100%',
+              boxShadow: 'var(--shadow-lg)', textAlign: 'center',
+            }}>
+            <div style={{ fontSize: '3rem', marginBottom: 16 }}><LogOut size={48} /></div>
+            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.3rem', marginBottom: 10 }}>
+              ¿Renunciar a {barberia?.nombre}?
+            </h3>
+            <p style={{ color: 'var(--muted)', fontSize: '0.88rem', lineHeight: 1.65, marginBottom: 24 }}>
+              {barberia?.nombre} recibirá una notificación de tu renuncia.
+              Esta acción no se puede deshacer.
+            </p>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+              <button className="btn btn-outline" onClick={() => { setMostrarConfirmRenuncia(false); }}>
+                Cancelar
+              </button>
+              <button className="btn btn-primary"
+                style={{ background: 'linear-gradient(135deg, var(--cobre), var(--cobre-light))' }}
+                onClick={() => {
+                  if (barberia) {
+                    notificacionesService.crear({
+                      tipo: 'renuncia_barbero',
+                      paraRol: 'barberia',
+                      paraNombre: barberia.nombreDueno,
+                      deRol: 'barbero',
+                      deNombre: user?.nombre || 'Barbero',
+                      mensaje: `${user?.nombre} ha renunciado a tu barbería`,
+                      metadata: { barberiaId: barberia.id },
+                    });
+                  }
+                  setMostrarConfirmRenuncia(false);
+                  setRenunciaEnviada(true);
+                  setTimeout(() => setRenunciaEnviada(false), 4000);
+                }}>
+                <LogOut size={16} /> Confirmar renuncia
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {renunciaEnviada && (
+        <div style={{
+          position: 'fixed', bottom: 24, right: 24, zIndex: 2001,
+          background: 'var(--surface)',
+          border: '1px solid rgba(230,184,106,0.3)',
+          borderRadius: 12, padding: '14px 20px',
+          boxShadow: 'var(--shadow-lg)',
+          display: 'flex', alignItems: 'center', gap: 8,
+          fontSize: '0.88rem', color: 'var(--gold)',
+        }}>
+          <CheckCircle size={18} /> Renuncia enviada correctamente
         </div>
       )}
     </div>

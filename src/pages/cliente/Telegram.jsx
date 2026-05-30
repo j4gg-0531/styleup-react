@@ -1,6 +1,6 @@
 // src/pages/cliente/Telegram.jsx
 import { useState } from 'react';
-import { Home, Scissors, BookOpen, Smartphone, User, Smartphone as SmartphoneIcon, CheckCircle } from 'lucide-react';
+import { Home, Scissors, BookOpen, Smartphone, User, Smartphone as SmartphoneIcon, CheckCircle, Bell } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 
 export default function Telegram() {
@@ -11,6 +11,7 @@ export default function Telegram() {
     { icon: <Scissors size={18} />, label: 'Barberos',          href: '/cliente/barberos' },
     { icon: <BookOpen size={18} />, label: 'Mi historial',      href: '/cliente/historial' },
     { icon: <Smartphone size={18} />, label: 'Vincular Telegram', href: '/cliente/telegram' },
+    { icon: <Bell size={18} />, label: 'Notificaciones', href: '/cliente/notificaciones', notificacionesBadge: true },
   ];
 
   return (

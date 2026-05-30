@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, Scissors, BookOpen, Smartphone, User, ClipboardList, Lock, Save, Trash2, AlertTriangle, Frown, CheckCircle } from 'lucide-react';
+import { Home, Scissors, BookOpen, Smartphone, User, ClipboardList, Lock, Save, Trash2, AlertTriangle, Frown, CheckCircle, Bell } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 
@@ -9,6 +9,7 @@ const navItems = [
   { icon: <Scissors size={18} />, label: 'Barberos',     href: '/cliente/barberos' },
   { icon: <BookOpen size={18} />, label: 'Mi historial', href: '/cliente/historial' },
   { icon: <Smartphone size={18} />, label: 'Telegram',     href: '/cliente/telegram' },
+  { icon: <Bell size={18} />, label: 'Notificaciones', href: '/cliente/notificaciones', notificacionesBadge: true },
 ];
 
 export default function Perfil() {

@@ -1,6 +1,6 @@
 // src/pages/cliente/Historial.jsx
 import { useState, useEffect } from 'react';
-import { Home, Scissors, BookOpen, Smartphone, User, X } from 'lucide-react';
+import { Home, Scissors, BookOpen, Smartphone, User, X, Bell } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 import { useCitas } from '../../context/useCitas.js';
@@ -34,6 +34,7 @@ export default function Historial() {
     { icon: <Scissors size={18} />, label: 'Barberos',          href: '/cliente/barberos' },
     { icon: <BookOpen size={18} />, label: 'Mi historial',      href: '/cliente/historial' },
     { icon: <Smartphone size={18} />, label: 'Vincular Telegram', href: '/cliente/telegram' },
+    { icon: <Bell size={18} />, label: 'Notificaciones', href: '/cliente/notificaciones', notificacionesBadge: true },
   ];
 
   return (

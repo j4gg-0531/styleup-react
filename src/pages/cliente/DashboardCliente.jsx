@@ -2,9 +2,10 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Sidebar from '../../components/layout/Sidebar';
-import { Home, Scissors, BookOpen, Smartphone, User, Zap, Clock } from 'lucide-react';
+import { Home, Scissors, BookOpen, Smartphone, User, Zap, Clock, Bell } from 'lucide-react';
 import { useAuth } from '../../context/useAuth.js';
 import { useCitas } from '../../context/useCitas.js';
+import { useNotificaciones } from '../../context/useNotificaciones.js';
 
 export default function DashboardCliente() {
   const { user } = useAuth();
@@ -34,6 +35,7 @@ export default function DashboardCliente() {
     { icon: <Scissors size={18} />, label: 'Barberos',          href: '/cliente/barberos' },
     { icon: <BookOpen size={18} />, label: 'Mi historial',      href: '/cliente/historial' },
     { icon: <Smartphone size={18} />, label: 'Vincular Telegram', href: '/cliente/telegram' },
+    { icon: <Bell size={18} />, label: 'Notificaciones', href: '/cliente/notificaciones', notificacionesBadge: true },
   ];
 
   return (

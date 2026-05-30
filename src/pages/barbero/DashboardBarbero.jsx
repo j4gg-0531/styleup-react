@@ -1,7 +1,7 @@
 // src/pages/barbero/DashboardBarbero.jsx
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, Calendar, Check } from 'lucide-react';
+import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, Calendar, Check, Bell } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 import { useCitas } from '../../context/useCitas.js';
@@ -52,6 +52,7 @@ export default function DashboardBarbero() {
     { icon: <ClipboardList size={18} />, label: 'Ofertas',       href: '/barbero/ofertas' },
     { icon: <BookOpen size={18} />, label: 'Historial',     href: '/barbero/historial' },
     { icon: <BarChart3 size={18} />, label: 'Reportes',      href: '/barbero/reportes' },
+    { icon: <Bell size={18} />, label: 'Notificaciones', href: '/barbero/notificaciones', notificacionesBadge: true },
   ];
 
   const extra = <div className="spec-badge" style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}><Scissors size={14} /> Corte a tijera</div>;

@@ -1,6 +1,6 @@
 // src/pages/barberia/Barberos.jsx
 import { useNavigate } from 'react-router-dom';  // ← agregar este import
-import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2, Circle, ChevronRight } from 'lucide-react';
+import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2, Circle, ChevronRight, Bell } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 
 const BARBEROS_EMPLEADOS = [
@@ -19,6 +19,7 @@ export default function BarberosBarberia() {
     { icon: <Clock size={18} />, label: 'Horarios',   href: '/barberia/horarios' },
     { icon: <Scissors size={18} />, label: 'Servicios',  href: '/barberia/servicios' },
     { icon: <BarChart3 size={18} />, label: 'Reportes',   href: '/barberia/reportes' },
+    { icon: <Bell size={18} />, label: 'Notificaciones', href: '/barberia/notificaciones', notificacionesBadge: true },
   ];
 
   return (

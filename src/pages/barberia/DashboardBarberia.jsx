@@ -1,7 +1,7 @@
 // src/pages/barberia/DashboardBarberia.jsx
 import {  useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2 } from 'lucide-react';
+import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2, Bell } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 import { barberiaService } from '../../services/barberiaService.js';
@@ -20,6 +20,7 @@ export default function DashboardBarberia() {
     { icon: <Clock size={18} />, label: 'Horarios',   href: '/barberia/horarios' },
     { icon: <Scissors size={18} />, label: 'Servicios',  href: '/barberia/servicios' },
     { icon: <BarChart3 size={18} />, label: 'Reportes',   href: '/barberia/reportes' },
+    { icon: <Bell size={18} />, label: 'Notificaciones', href: '/barberia/notificaciones', notificacionesBadge: true },
   ];
 
   return (

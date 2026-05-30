@@ -187,6 +187,7 @@ select.form-control option { background: var(--surface2); }
 .badge-gold  { background: rgba(230,184,106,0.15); color: var(--gold);      border: 1px solid rgba(230,184,106,0.25); }
 .badge-green { background: rgba(46,160,67,0.15);   color: #3fb950;          border: 1px solid rgba(46,160,67,0.25); }
 .badge-muted { background: rgba(139,148,158,0.15); color: var(--muted);     border: 1px solid rgba(139,148,158,0.2); }
+.badge-notification { background: var(--cobre-light); color: #fff; border: none; min-width: 20px; height: 20px; padding: 0 6px; display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; font-size: 0.7rem; font-weight: 700; line-height: 1; margin-left: auto; }
 
 /* ── DIVIDER / ALERT ── */
 .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }

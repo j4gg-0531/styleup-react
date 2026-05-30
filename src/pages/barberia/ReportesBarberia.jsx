@@ -1,6 +1,6 @@
 // src/pages/barberia/ReportesBarberia.jsx
 import { useState } from 'react';
-import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2 } from 'lucide-react';
+import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2, Bell } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 
 export default function ReportesBarberia() {
@@ -32,6 +32,7 @@ export default function ReportesBarberia() {
     { icon: <Clock size={18} />, label: 'Horarios',   href: '/barberia/horarios' },
     { icon: <Scissors size={18} />, label: 'Servicios',  href: '/barberia/servicios' },
     { icon: <BarChart3 size={18} />, label: 'Reportes',   href: '/barberia/reportes' },
+    { icon: <Bell size={18} />, label: 'Notificaciones', href: '/barberia/notificaciones', notificacionesBadge: true },
   ];
 
   return (

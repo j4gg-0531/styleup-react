@@ -1,6 +1,6 @@
 // src/pages/barbero/Horarios.jsx
 import { useState, useEffect, useMemo } from 'react';
-import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, Building2, X, Save, ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
+import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, Building2, X, Save, ArrowLeft, ArrowRight, CheckCircle, Bell } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 import { useHorarios } from '../../context/useHorarios.js';
@@ -72,6 +72,7 @@ export default function Horarios() {
     { icon: <ClipboardList size={18} />, label: 'Ofertas',       href: '/barbero/ofertas' },
     { icon: <BookOpen size={18} />, label: 'Historial',     href: '/barbero/historial' },
     { icon: <BarChart3 size={18} />, label: 'Reportes',      href: '/barbero/reportes' },
+    { icon: <Bell size={18} />, label: 'Notificaciones', href: '/barbero/notificaciones', notificacionesBadge: true },
   ];
 
   const toggleDia = (num) =>

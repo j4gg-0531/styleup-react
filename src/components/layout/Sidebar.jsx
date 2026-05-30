@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
 import { useAuth } from '../../context/useAuth.js';
+import { useNotificaciones } from '../../context/useNotificaciones.js';
 
 let _expandido = false;
 
@@ -10,6 +11,14 @@ export default function Sidebar({ avatar, badge, badgeClass = 'badge-cobre', nav
   const navigate = useNavigate();
   const location = useLocation();
   const [expandido, setExpandido] = useState(_expandido);
+
+  const { notificaciones, noLeidas, cargarNotificaciones } = useNotificaciones();
+
+  useEffect(() => {
+    if (user?.rol && user?.nombre) {
+      cargarNotificaciones(user.rol, user.nombre);
+    }
+  }, [user, cargarNotificaciones]);
 
   const perfilHref = user?.rol === 'cliente' ? '/cliente/perfil'
     : user?.rol === 'barbero' ? '/barbero/perfil'
@@ -53,6 +62,9 @@ export default function Sidebar({ avatar, badge, badgeClass = 'badge-cobre', nav
           >
             <span className="nav-icon">{item.icon}</span>
             <span>{item.label}</span>
+            {item.notificacionesBadge && noLeidas > 0 && (
+              <span className="badge badge-notification">{noLeidas}</span>
+            )}
           </span>
         ))}
       </nav>

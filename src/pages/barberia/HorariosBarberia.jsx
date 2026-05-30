@@ -1,5 +1,5 @@
 // src/pages/barberia/HorariosBarberia.jsx
-import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2, Lightbulb } from 'lucide-react';
+import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2, Lightbulb, Bell } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 
 const BARBEROS = ['Juan Pérez', 'Carlos López', 'Miguel Torres'];
@@ -19,6 +19,7 @@ export default function HorariosBarberia() {
     { icon: <Clock size={18} />, label: 'Horarios',   href: '/barberia/horarios' },
     { icon: <Scissors size={18} />, label: 'Servicios',  href: '/barberia/servicios' },
     { icon: <BarChart3 size={18} />, label: 'Reportes',   href: '/barberia/reportes' },
+    { icon: <Bell size={18} />, label: 'Notificaciones', href: '/barberia/notificaciones', notificacionesBadge: true },
   ];
 
   return (

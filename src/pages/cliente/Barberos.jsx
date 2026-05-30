@@ -1,7 +1,7 @@
 // src/pages/cliente/Barberos.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, Scissors, BookOpen, Smartphone, User, MapPin, Phone, Building2, X, List, Map, Circle } from 'lucide-react';
+import { Home, Scissors, BookOpen, Smartphone, User, MapPin, Phone, Building2, X, List, Map, Circle, Bell } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { barberosService } from '../../services/barberosService.js';
 import Estrellas from '../../components/Estrellas.jsx';
@@ -54,6 +54,7 @@ export default function Barberos() {
     { icon: <Scissors size={18} />, label: 'Barberos',          href: '/cliente/barberos' },
     { icon: <BookOpen size={18} />, label: 'Mi historial',      href: '/cliente/historial' },
     { icon: <Smartphone size={18} />, label: 'Vincular Telegram', href: '/cliente/telegram' },
+    { icon: <Bell size={18} />, label: 'Notificaciones', href: '/cliente/notificaciones', notificacionesBadge: true },
   ];
 
   return (

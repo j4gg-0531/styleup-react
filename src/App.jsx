@@ -1,6 +1,7 @@
 // src/App.jsx
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext.jsx';
+import { NotificacionesProvider } from './context/NotificacionesContext.jsx';
 import { CitasProvider } from './context/CitasContext.jsx';
 import { HorariosProvider } from './context/HorariosContext.jsx';
 import { ChatFlotanteProvider } from './context/ChatFlotanteContext.jsx';
@@ -32,6 +33,7 @@ import OfertasBarbero from './pages/barbero/OfertasBarbero';
 import ChatFlotante from './components/chat/ChatFlotante.jsx';
 import ThemeToggle from './components/ui/ThemeToggle.jsx';
 import PerfilBarberoAdmin from './pages/barberia/PerfilBarberoAdmin';
+import Notificaciones from './pages/Notificaciones';
 
 function RutaProtegida({ children, rol }) {
   const { user } = useAuth();
@@ -43,9 +45,10 @@ function RutaProtegida({ children, rol }) {
 export default function App() {
   return (
     <AuthProvider>
-      <CitasProvider>
-        <HorariosProvider>
-          <ChatFlotanteProvider>
+      <NotificacionesProvider>
+        <CitasProvider>
+          <HorariosProvider>
+            <ChatFlotanteProvider>
             <BrowserRouter>
               <Routes>
                 <Route path="/"          element={<Landing />} />
@@ -73,6 +76,9 @@ export default function App() {
                 <Route path="/cliente/telegram" element={
                   <RutaProtegida rol="cliente"><Telegram /></RutaProtegida>
                 } />
+                <Route path="/cliente/notificaciones" element={
+                  <RutaProtegida rol="cliente"><Notificaciones /></RutaProtegida>
+                } />
 
                 <Route path="/barbero" element={
                   <RutaProtegida rol="barbero"><DashboardBarbero /></RutaProtegida>
@@ -95,6 +101,9 @@ export default function App() {
                 } />
                 <Route path="/barbero/ofertas" element={
                   <RutaProtegida rol="barbero"><OfertasBarbero /></RutaProtegida>
+                } />
+                <Route path="/barbero/notificaciones" element={
+                  <RutaProtegida rol="barbero"><Notificaciones /></RutaProtegida>
                 } />
 
                 <Route path="/barberia" element={
@@ -121,15 +130,19 @@ export default function App() {
                 <Route path="/barberia/barberos/:id" element={
                   <RutaProtegida rol="barberia"><PerfilBarberoAdmin /></RutaProtegida>
                 } />
+                <Route path="/barberia/notificaciones" element={
+                  <RutaProtegida rol="barberia"><Notificaciones /></RutaProtegida>
+                } />
 
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
               <ChatFlotante />
               <ThemeToggle />
             </BrowserRouter>
-          </ChatFlotanteProvider>
-        </HorariosProvider>
-      </CitasProvider>
+            </ChatFlotanteProvider>
+          </HorariosProvider>
+        </CitasProvider>
+      </NotificacionesProvider>
     </AuthProvider>
   );
 }
