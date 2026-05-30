@@ -1,7 +1,7 @@
 // src/pages/barbero/DashboardBarbero.jsx
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3 } from 'lucide-react';
+import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, Calendar, Check } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 import { useCitas } from '../../context/useCitas.js';
@@ -69,7 +69,7 @@ export default function DashboardBarbero() {
             <div className="today-sub">Tu agenda de hoy</div>
           </div>
           <Link to="/barbero/horarios" className="btn btn-outline btn-sm">
-            ⏰ Gestionar horarios
+            <Clock size={16} /> Gestionar horarios
           </Link>
         </div>
 
@@ -95,7 +95,7 @@ export default function DashboardBarbero() {
         </div>
 
         <div className="card">
-          <div className="card-title">📅 Agenda de hoy</div>
+          <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Calendar size={18} /> Agenda de hoy</div>
           {citasHoy.length === 0 ? (
             <div className="alert alert-info">No tienes citas para hoy.</div>
           ) : (
@@ -114,7 +114,7 @@ export default function DashboardBarbero() {
                       className="btn btn-success btn-sm"
                       onClick={() => handleCompletarCita(c.id)}
                     >
-                      ✓ Completar
+                      <Check size={16} /> Completar
                     </button>
                   )}
                 </div>

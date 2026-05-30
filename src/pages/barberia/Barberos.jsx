@@ -1,6 +1,6 @@
 // src/pages/barberia/Barberos.jsx
 import { useNavigate } from 'react-router-dom';  // ← agregar este import
-import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2 } from 'lucide-react';
+import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2, Scissors as ScissorsIcon } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 
 const BARBEROS_EMPLEADOS = [
@@ -26,7 +26,7 @@ export default function BarberosBarberia() {
       <Sidebar avatar={<Building2 size={20} />} badge="Barbería" badgeClass="badge-cobre" navItems={navItems} />
       <main className="main-content">
         <div className="page-header">
-          <h2 className="page-title">💈 Mis barberos</h2>
+          <h2 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><ScissorsIcon size={22} /> Mis barberos</h2>
           <p className="page-subtitle">Haz clic en un barbero para ver su perfil completo</p>
         </div>
 
@@ -39,15 +39,15 @@ export default function BarberosBarberia() {
               onClick={() => navigate(`/barberia/barberos/${b.id}`)}  // ← navegar al perfil
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                <div className="barbero-avatar" style={{ fontSize: '1.5rem', flexShrink: 0 }}>
-                  💈
+                <div className="barbero-avatar" style={{ fontSize: '1.5rem', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+                  <ScissorsIcon size={24} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: 4 }}>
                     {b.nombre}
                   </div>
                   <div style={{ color: 'var(--gold)', fontSize: '0.82rem' }}>
-                    ✂ {b.especialidad}
+                    <Scissors size={14} /> {b.especialidad}
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

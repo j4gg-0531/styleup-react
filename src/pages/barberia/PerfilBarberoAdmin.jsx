@@ -1,6 +1,7 @@
 // src/pages/barberia/PerfilBarberoAdmin.jsx
 import { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Scissors, MapPin, Phone, MessageCircle, XOctagon, Clock, Save, Pencil, Lightbulb, ClipboardList, AlertTriangle } from 'lucide-react';
 import { barberosService } from '../../services/barberosService.js';
 import { citasService } from '../../services/citasService.js';
 import { preciosService } from '../../services/preciosService.js';
@@ -157,7 +158,7 @@ export default function PerfilBarberoAdmin() {
               </div>
 
               <div style={{ color: 'var(--gold)', fontSize: '0.95rem', marginBottom: 8 }}>
-                ✂ {barbero.especialidad}
+                <Scissors size={16} /> {barbero.especialidad}
               </div>
               <div style={{ marginBottom: 12 }}>
                 <Estrellas
@@ -170,8 +171,8 @@ export default function PerfilBarberoAdmin() {
                 fontSize: '0.82rem', color: 'var(--muted)',
                 display: 'flex', gap: 16, flexWrap: 'wrap',
               }}>
-                <span>📍 {barbero.direccion}, {barbero.ciudad}</span>
-                <span>📞 {barbero.telefono}</span>
+                <span><MapPin size={14} /> {barbero.direccion}, {barbero.ciudad}</span>
+                <span><Phone size={14} /> {barbero.telefono}</span>
                 <span style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>
                   ID: {barbero.id}
                 </span>
@@ -187,14 +188,14 @@ export default function PerfilBarberoAdmin() {
                 className="btn btn-outline"
                 onClick={() => abrirChatCon(nombreCompleto)}
               >
-                💬 Enviar mensaje
+                <MessageCircle size={16} /> Enviar mensaje
               </button>
               <button
                 className="btn btn-outline"
                 style={{ color: 'var(--cobre-light)', borderColor: 'var(--cobre-light)' }}
                 onClick={() => setMostrarConfirmDespido(true)}
               >
-                🚫 Despedir barbero
+                <XOctagon size={16} /> Despedir barbero
               </button>
             </div>
           </div>
@@ -238,7 +239,7 @@ export default function PerfilBarberoAdmin() {
           }}>
             <div>
               <div className="card-title" style={{ marginBottom: 2 }}>
-                ⏰ Horario semanal
+                <Clock size={18} /> Horario semanal
               </div>
               <div style={{ fontSize: '0.78rem', color: 'var(--muted)' }}>
                 {editandoHorario
@@ -262,7 +263,7 @@ export default function PerfilBarberoAdmin() {
                     sessionStorage.setItem(STORAGE_KEY_HORARIOS, JSON.stringify(data));
                     setEditandoHorario(false);
                   }}>
-                    💾 Guardar horario
+                    <Save size={16} /> Guardar horario
                   </button>
                 </>
               ) : (
@@ -271,13 +272,13 @@ export default function PerfilBarberoAdmin() {
                     className="btn btn-outline btn-sm"
                     onClick={() => abrirChatCon(nombreCompleto)}
                   >
-                    💬 Coordinar cambio
+                    <MessageCircle size={16} /> Coordinar cambio
                   </button>
                   <button
                     className="btn btn-outline btn-sm"
                     onClick={() => setEditandoHorario(true)}
                   >
-                    ✏️ Editar horario
+                    <Pencil size={16} /> Editar horario
                   </button>
                 </>
               )}
@@ -348,7 +349,7 @@ export default function PerfilBarberoAdmin() {
 
           {!editandoHorario && (
             <div className="alert alert-info" style={{ marginTop: 16, fontSize: '0.82rem' }}>
-              💡 Puedes editar el horario de <strong>{barbero.nombre}</strong> directamente
+              <Lightbulb size={16} /> Puedes editar el horario de <strong>{barbero.nombre}</strong> directamente
               presionando <strong>Editar horario</strong>.
             </div>
           )}
@@ -357,7 +358,7 @@ export default function PerfilBarberoAdmin() {
         {/* Citas recientes */}
         {todasLasCitas.length > 0 ? (
           <div className="card">
-            <div className="card-title">📋 Citas recientes</div>
+            <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><ClipboardList size={18} /> Citas recientes</div>
             <div className="table-wrap">
               <table>
                 <thead>
@@ -424,7 +425,7 @@ export default function PerfilBarberoAdmin() {
               boxShadow: 'var(--shadow-lg)', textAlign: 'center',
             }}
           >
-            <div style={{ fontSize: '3rem', marginBottom: 16 }}>⚠️</div>
+            <div style={{ fontSize: '3rem', marginBottom: 16 }}><AlertTriangle size={48} /></div>
             <h3 style={{
               fontFamily: "'Playfair Display', serif",
               fontSize: '1.3rem', marginBottom: 10,
@@ -454,7 +455,7 @@ export default function PerfilBarberoAdmin() {
                 }}
                 onClick={handleDespedir}
               >
-                🚫 Sí, despedir
+                <XOctagon size={16} /> Sí, despedir
               </button>
             </div>
           </div>

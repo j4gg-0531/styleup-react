@@ -26,7 +26,7 @@ export default function HorariosBarberia() {
       <Sidebar avatar={<Building2 size={20} />} badge="Barbería" badgeClass="badge-cobre" navItems={navItems} />
       <main className="main-content">
         <div className="page-header">
-          <h2 className="page-title">⏰ Horarios del equipo</h2>
+          <h2 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Clock size={22} /> Horarios del equipo</h2>
           <p className="page-subtitle">Gestiona la disponibilidad semanal de tus barberos</p>
         </div>
 
@@ -64,7 +64,7 @@ export default function HorariosBarberia() {
         </div>
 
         <div className="alert alert-info" style={{ marginTop: 16 }}>
-          💡 Para modificar el horario de un barbero, ve a la sección de Barberos y selecciona el empleado.
+          <Lightbulb size={16} /> Para modificar el horario de un barbero, ve a la sección de Barberos y selecciona el empleado.
           {/* FUTURO: editor inline de horarios por barbero */}
         </div>
       </main>

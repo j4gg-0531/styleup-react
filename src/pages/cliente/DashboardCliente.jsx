@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Sidebar from '../../components/layout/Sidebar';
-import { Home, Scissors, BookOpen, Smartphone, User } from 'lucide-react';
+import { Home, Scissors, BookOpen, Smartphone, User, Zap, Clock } from 'lucide-react';
 import { useAuth } from '../../context/useAuth.js';
 import { useCitas } from '../../context/useCitas.js';
 
@@ -43,7 +43,7 @@ export default function DashboardCliente() {
       <main className="main-content">
         <div className="welcome-banner">
           <div>
-            <h2 style={{ fontSize: '1.4rem' }}>¡Hola, {user?.nombre}! 👋</h2>
+            <h2 style={{ fontSize: '1.4rem' }}>¡Hola, {user?.nombre}!</h2>
             <p style={{ color: 'var(--muted)', fontSize: '0.88rem', marginTop: 4 }}>
               Aquí tienes un resumen de tu actividad en StyleUp.
             </p>
@@ -77,7 +77,7 @@ export default function DashboardCliente() {
         {/* Próximas citas */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <h3 className="card-title" style={{ marginBottom: 0 }}>Próximas citas</h3>
-          <Link to="/cliente/agendar" className="btn btn-primary btn-sm">⚡ Cita rápida</Link>
+          <Link to="/cliente/agendar" className="btn btn-primary btn-sm" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Zap size={16} /> Cita rápida</Link>
         </div>
 
         {citasPendientes.length === 0 ? (
@@ -94,7 +94,7 @@ export default function DashboardCliente() {
               <div className="cita-info">
                 <div className="cita-service">{c.servicio?.icon} {c.servicio?.name}</div>
                 <div className="cita-meta">
-                  ⏰ {c.hora} · 💈 {c.barbero?.name} · {c.servicio?.dur}
+                  <Clock size={14} /> {c.hora} · <Scissors size={14} /> {c.barbero?.name} · {c.servicio?.dur}
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

@@ -1,6 +1,6 @@
 // src/pages/barbero/OfertasBarbero.jsx
 import { useState } from 'react';
-import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3 } from 'lucide-react';
+import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, BriefcaseBusiness, Wallet, Users, Target, Wrench, Calendar, Building2, X, Check, Sparkles, Frown, Hourglass } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 import { ofertasService } from '../../services/ofertasService.js';
@@ -40,7 +40,7 @@ function BadgeContratacion({ tipo }) {
       padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 600,
       background: c.bg, color: c.color, border: `1px solid ${c.border}`,
     }}>
-      💼 {labelContratacion(tipo)}
+      <BriefcaseBusiness size={14} /> {labelContratacion(tipo)}
     </span>
   );
 }
@@ -181,7 +181,7 @@ function ModalOferta({ oferta, onCerrar, onAplicar, yaAplic, estadoApp }) {
               {oferta.titulo}
             </div>
             <div style={{ fontSize: '0.82rem', color: 'var(--gold)' }}>
-              🏪 {oferta.barberiaNombre}
+              <Building2 size={14} /> {oferta.barberiaNombre}
             </div>
           </div>
           <button
@@ -192,7 +192,7 @@ function ModalOferta({ oferta, onCerrar, onAplicar, yaAplic, estadoApp }) {
               padding: '2px 6px', borderRadius: 6,
             }}
           >
-            ✕
+            <X size={18} />
           </button>
         </div>
 
@@ -229,7 +229,7 @@ function ModalOferta({ oferta, onCerrar, onAplicar, yaAplic, estadoApp }) {
           {(yaAplic || enviado) && (
             <div style={{ textAlign: 'center', padding: '32px 16px' }}>
               <div style={{ fontSize: '3rem', marginBottom: 12 }}>
-                {enviado ? '✅' : estadoApp === 'aceptada' ? '🎉' : estadoApp === 'rechazada' ? '😔' : '⏳'}
+                {enviado ? <Check size={48} /> : estadoApp === 'aceptada' ? <Sparkles size={48} /> : estadoApp === 'rechazada' ? <Frown size={48} /> : <Hourglass size={48} />}
               </div>
               <div style={{
                 fontFamily: "'Playfair Display', serif",
@@ -258,14 +258,14 @@ function ModalOferta({ oferta, onCerrar, onAplicar, yaAplic, estadoApp }) {
               {/* Chips de info clave */}
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
                 <BadgeContratacion tipo={oferta.tipoContratacion} />
-                <span className="badge badge-gold">💰 {oferta.condicionEconomica}</span>
-                <span className="badge badge-muted">👥 {oferta.vacantes} vacante{oferta.vacantes !== 1 ? 's' : ''}</span>
-                <span className="badge badge-muted">🎯 {labelExperiencia(oferta.experienciaRequerida)}</span>
+                <span className="badge badge-gold" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Wallet size={14} /> {oferta.condicionEconomica}</span>
+                <span className="badge badge-muted" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Users size={14} /> {oferta.vacantes} vacante{oferta.vacantes !== 1 ? 's' : ''}</span>
+                <span className="badge badge-muted" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Target size={14} /> {labelExperiencia(oferta.experienciaRequerida)}</span>
                 {oferta.herramientasPropias && (
-                  <span className="badge badge-muted">🔧 Herramientas propias</span>
+                  <span className="badge badge-muted" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Wrench size={14} /> Herramientas propias</span>
                 )}
                 {oferta.fechaLimite && (
-                  <span className="badge badge-muted">📅 Límite: {oferta.fechaLimite}</span>
+                  <span className="badge badge-muted" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Calendar size={14} /> Límite: {oferta.fechaLimite}</span>
                 )}
               </div>
 
@@ -497,7 +497,7 @@ function ModalOferta({ oferta, onCerrar, onAplicar, yaAplic, estadoApp }) {
                 </div>
                 <div>
                   <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>
-                    🔧 Tengo mis propias herramientas
+                      <Wrench size={14} /> Tengo mis propias herramientas
                   </div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: 2 }}>
                     Máquina, tijeras, kit completo
@@ -597,7 +597,7 @@ function ModalOferta({ oferta, onCerrar, onAplicar, yaAplic, estadoApp }) {
                   ← Ver oferta
                 </button>
                 <button className="btn btn-success btn-lg" onClick={handleEnviar}>
-                  ✅ Enviar aplicación
+                  <Check size={16} /> Enviar aplicación
                 </button>
               </div>
             </div>
@@ -655,9 +655,9 @@ export default function OfertasBarbero() {
   );
 
   const badgeEstadoApp = {
-    pendiente: <span className="badge badge-gold" style={{ fontSize: '0.7rem' }}>⏳ Pendiente</span>,
-    aceptada:  <span className="badge badge-green" style={{ fontSize: '0.7rem' }}>✓ Aceptada</span>,
-    rechazada: <span className="badge badge-muted" style={{ fontSize: '0.7rem' }}>✕ Rechazada</span>,
+    pendiente: <span className="badge badge-gold" style={{ fontSize: '0.7rem', display: 'inline-flex', alignItems: 'center', gap: 3 }}><Hourglass size={12} /> Pendiente</span>,
+    aceptada:  <span className="badge badge-green" style={{ fontSize: '0.7rem', display: 'inline-flex', alignItems: 'center', gap: 3 }}><Check size={12} /> Aceptada</span>,
+    rechazada: <span className="badge badge-muted" style={{ fontSize: '0.7rem', display: 'inline-flex', alignItems: 'center', gap: 3 }}><X size={12} /> Rechazada</span>,
   };
 
   return (
@@ -666,7 +666,7 @@ export default function OfertasBarbero() {
 
       <main className="main-content">
         <div className="page-header">
-          <h2 className="page-title">📋 Ofertas de trabajo</h2>
+          <h2 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><ClipboardList size={22} /> Ofertas de trabajo</h2>
           <p className="page-subtitle">Encuentra oportunidades en barberías de tu ciudad</p>
         </div>
 
@@ -739,12 +739,12 @@ export default function OfertasBarbero() {
                         display: 'flex', gap: 14, flexWrap: 'wrap',
                         fontSize: '0.78rem', color: 'var(--muted)',
                       }}>
-                        <span>🏪 {o.barberiaNombre}</span>
-                        <span style={{ color: 'var(--gold)', fontWeight: 600 }}>
-                          💰 {o.condicionEconomica}
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Building2 size={14} /> {o.barberiaNombre}</span>
+                        <span style={{ color: 'var(--gold)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          <Wallet size={14} /> {o.condicionEconomica}
                         </span>
-                        <span>🎯 {labelExperiencia(o.experienciaRequerida)}</span>
-                        <span>👥 {o.vacantes} vacante{o.vacantes !== 1 ? 's' : ''}</span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Target size={14} /> {labelExperiencia(o.experienciaRequerida)}</span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Users size={14} /> {o.vacantes} vacante{o.vacantes !== 1 ? 's' : ''}</span>
                       </div>
 
                       {/* Tags de especialidades */}

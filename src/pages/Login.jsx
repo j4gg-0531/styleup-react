@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { User, Scissors, Building2, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../context/useAuth.js'
 
 export default function Login() {
@@ -35,14 +36,14 @@ export default function Login() {
             <div className="login-brand">✂ Style<span style={{ color: 'var(--cobre-light)' }}>Up</span></div>
             <div className="login-tagline">Sistema de Gestión de Barbería</div>
           </div>
-          <div className="login-illo">💈</div>
+          <div className="login-illo"><Scissors size={48} /></div>
           <div>
             <div style={{ fontSize: '0.75rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
               Accede como
             </div>
-            {[{ icon: '👤', name: 'Cliente', desc: 'Agenda y gestiona tus citas' },
-              { icon: '💈', name: 'Barbero', desc: 'Administra tu agenda y horarios' },
-              { icon: '🏪', name: 'Barbería', desc: 'Gestiona tu negocio y equipo' }].map((r) => (
+            {[{ icon: <User size={20} />, name: 'Cliente', desc: 'Agenda y gestiona tus citas' },
+              { icon: <Scissors size={20} />, name: 'Barbero', desc: 'Administra tu agenda y horarios' },
+              { icon: <Building2 size={20} />, name: 'Barbería', desc: 'Gestiona tu negocio y equipo' }].map((r) => (
               <div key={r.name} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: 12, marginBottom: 8 }}>
                 <div style={{ fontSize: '1.3rem' }}>{r.icon}</div>
                 <div>
@@ -65,9 +66,9 @@ export default function Login() {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 22 }}>
               {[
-                { val: 'cliente',  icon: '👤', label: 'Cliente' },
-                { val: 'barbero',  icon: '💈', label: 'Barbero' },
-                { val: 'barberia', icon: '🏪', label: 'Barbería' },
+                { val: 'cliente',  icon: <User size={20} />, label: 'Cliente' },
+                { val: 'barbero',  icon: <Scissors size={20} />, label: 'Barbero' },
+                { val: 'barberia', icon: <Building2 size={20} />, label: 'Barbería' },
               ].map((r) => (
                 <div
                   key={r.val}
@@ -108,7 +109,7 @@ export default function Login() {
             ¿No tienes cuenta? Regístrate
           </Link>
           <div className="login-footer">
-            <Link to="/">← Volver al inicio</Link>
+            <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><ArrowLeft size={14} /> Volver al inicio</Link>
           </div>
         </div>
       </div>

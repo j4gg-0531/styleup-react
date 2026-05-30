@@ -1,6 +1,6 @@
 // src/pages/barberia/Ofertas.jsx
 import { useState } from 'react';
-import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2 } from 'lucide-react';
+import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2, BriefcaseBusiness, Wallet, Users, Target, Wrench, Calendar, X, Check, FileText, GraduationCap, Trophy, ArrowLeft } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { ofertasService } from '../../services/ofertasService.js';
 import {
@@ -121,11 +121,11 @@ function CardOferta({ oferta, aplicaciones, onCerrar }) {
 
           {/* Chips de info rápida */}
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: '0.8rem', color: 'var(--muted)' }}>
-            <span>💼 {labelContratacion(oferta.tipoContratacion)}</span>
-            <span>💰 {oferta.condicionEconomica}</span>
-            <span>⏰ {oferta.horario}</span>
-            <span>👥 {oferta.vacantes} vacante{oferta.vacantes !== 1 ? 's' : ''}</span>
-            {oferta.fechaLimite && <span>📅 Límite: {oferta.fechaLimite}</span>}
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><BriefcaseBusiness size={14} /> {labelContratacion(oferta.tipoContratacion)}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Wallet size={14} /> {oferta.condicionEconomica}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Clock size={14} /> {oferta.horario}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Users size={14} /> {oferta.vacantes} vacante{oferta.vacantes !== 1 ? 's' : ''}</span>
+            {oferta.fechaLimite && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Calendar size={14} /> Límite: {oferta.fechaLimite}</span>}
           </div>
         </div>
 
@@ -154,8 +154,8 @@ function CardOferta({ oferta, aplicaciones, onCerrar }) {
           {/* Detalles en grid */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
             {[
-              ['🎯 Experiencia requerida', labelExperiencia(oferta.experienciaRequerida)],
-              ['🔧 Herramientas propias', oferta.herramientasPropias ? 'Sí, requeridas' : 'No requeridas'],
+              ['Experiencia requerida', labelExperiencia(oferta.experienciaRequerida)],
+              ['Herramientas propias', oferta.herramientasPropias ? 'Sí, requeridas' : 'No requeridas'],
             ].map(([l, v]) => (
               <div key={l} style={{
                 background: 'var(--surface2)', borderRadius: 8, padding: '10px 14px',
@@ -255,13 +255,13 @@ function TablaAplicaciones({ aplicaciones }) {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: '1.1rem', flexShrink: 0,
               }}>
-                💈
+                <Scissors size={22} />
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{ap.barberoNombre}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: 2 }}>
-                  {hdv.nivel && <span style={{ marginRight: 10 }}>🏆 {hdv.nivel}</span>}
-                  {hdv.disponibilidad && <span>⏰ {hdv.disponibilidad}</span>}
+                  {hdv.nivel && <span style={{ marginRight: 10, display: 'inline-flex', alignItems: 'center', gap: 4 }}><Trophy size={14} /> {hdv.nivel}</span>}
+                  {hdv.disponibilidad && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Clock size={14} /> {hdv.disponibilidad}</span>}
                 </div>
                 {/* Tags de especialidades del barbero */}
                 {hdv.especialidades?.length > 0 && (
@@ -295,14 +295,14 @@ function TablaAplicaciones({ aplicaciones }) {
                       className="btn btn-success btn-sm"
                       onClick={() => cambiarEstado(ap.id, 'aceptada')}
                     >
-                      ✓ Aceptar
+                      <Check size={14} /> Aceptar
                     </button>
                     <button
                       className="btn btn-outline btn-sm"
                       style={{ color: 'var(--cobre-light)', borderColor: 'var(--cobre-light)' }}
                       onClick={() => cambiarEstado(ap.id, 'rechazada')}
                     >
-                      ✕ Rechazar
+                      <X size={14} /> Rechazar
                     </button>
                   </>
                 )}
@@ -346,7 +346,7 @@ function VistaHojaDeVida({ hdv }) {
         fontFamily: "'Playfair Display', serif",
         fontWeight: 700, fontSize: '0.95rem', marginBottom: 12,
       }}>
-        📄 Hoja de vida — {hdv.nombreCompleto || 'Barbero'}
+        <FileText size={18} /> Hoja de vida — {hdv.nombreCompleto || 'Barbero'}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
@@ -378,7 +378,7 @@ function VistaHojaDeVida({ hdv }) {
           </div>
           {hdv.certificados.map((c, i) => (
             <div key={i} style={{ fontSize: '0.82rem', color: 'var(--text)', marginBottom: 4 }}>
-              🎓 {c.nombre} — {c.institucion} ({c.anio})
+              <GraduationCap size={14} /> {c.nombre} — {c.institucion} ({c.anio})
             </div>
           ))}
         </div>
@@ -484,7 +484,7 @@ export default function Ofertas() {
           gap: 12, marginBottom: 28,
         }}>
           <div>
-            <h2 className="page-title">📋 Ofertas de trabajo</h2>
+            <h2 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><ClipboardList size={22} /> Ofertas de trabajo</h2>
             <p className="page-subtitle">Publica y gestiona ofertas para barberos</p>
           </div>
           {!modoNueva && (
@@ -780,7 +780,7 @@ export default function Ofertas() {
                   </div>
                   <div>
                     <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>
-                      🔧 El barbero debe tener herramientas propias
+                      <Wrench size={14} /> El barbero debe tener herramientas propias
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: 2 }}>
                       Máquina, tijeras, kit completo
@@ -811,13 +811,13 @@ export default function Ofertas() {
 
                   {/* Info clave en chips */}
                   <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
-                    <span className="badge badge-gold">💼 {labelContratacion(form.tipoContratacion)}</span>
-                    <span className="badge badge-gold">💰 {form.condicionEconomica}</span>
-                    <span className="badge badge-muted">⏰ {form.horario}</span>
-                    <span className="badge badge-muted">👥 {form.vacantes} vacante{form.vacantes !== 1 ? 's' : ''}</span>
-                    <span className="badge badge-muted">🎯 {labelExperiencia(form.experienciaRequerida)}</span>
-                    {form.herramientasPropias && <span className="badge badge-muted">🔧 Herramientas requeridas</span>}
-                    {form.fechaLimite && <span className="badge badge-muted">📅 Límite: {form.fechaLimite}</span>}
+                    <span className="badge badge-gold" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><BriefcaseBusiness size={14} /> {labelContratacion(form.tipoContratacion)}</span>
+                    <span className="badge badge-gold" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Wallet size={14} /> {form.condicionEconomica}</span>
+                    <span className="badge badge-muted" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Clock size={14} /> {form.horario}</span>
+                    <span className="badge badge-muted" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Users size={14} /> {form.vacantes} vacante{form.vacantes !== 1 ? 's' : ''}</span>
+                    <span className="badge badge-muted" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Target size={14} /> {labelExperiencia(form.experienciaRequerida)}</span>
+                    {form.herramientasPropias && <span className="badge badge-muted" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Wrench size={14} /> Herramientas requeridas</span>}
+                    {form.fechaLimite && <span className="badge badge-muted" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Calendar size={14} /> Límite: {form.fechaLimite}</span>}
                   </div>
 
                   {/* Descripción */}
@@ -852,7 +852,7 @@ export default function Ofertas() {
                   else setPaso((p) => p - 1);
                 }}
               >
-                {paso === 1 ? '✕ Cancelar' : '← Anterior'}
+                {paso === 1 ? <><X size={16} /> Cancelar</> : <><ArrowLeft size={16} /> Anterior</>}
               </button>
 
               {paso < 3 ? (
@@ -865,7 +865,7 @@ export default function Ofertas() {
                   onClick={handlePublicar}
                   disabled={publicadaOk}
                 >
-                  📋 Publicar oferta
+                  <ClipboardList size={16} /> Publicar oferta
                 </button>
               )}
             </div>

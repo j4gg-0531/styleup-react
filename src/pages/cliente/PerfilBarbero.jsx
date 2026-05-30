@@ -14,6 +14,7 @@ import {
   generarSlots,
 } from '../../services/agendamientoService.js';
 import Estrellas from '../../components/Estrellas.jsx';
+import { Scissors, Building2, MapPin, Phone, MessageCircle, Wallet, Clock, Calendar, ArrowLeft, Smartphone, Check } from 'lucide-react';
 import MapaMini from '../../components/MapaMini.jsx';
 import { getDiasSemana, fmtFecha } from '../../services/semana.js';
 
@@ -165,7 +166,7 @@ export default function PerfilBarbero() {
                 </span>
               </div>
               <div style={{ color: 'var(--gold)', fontSize: '0.95rem', marginBottom: 8 }}>
-                ✂ {barbero.especialidad}
+                <Scissors size={16} /> {barbero.especialidad}
               </div>
               {barberia && (
                 <div style={{
@@ -175,21 +176,21 @@ export default function PerfilBarbero() {
                   borderRadius: 20, padding: '3px 12px',
                   fontSize: '0.78rem', color: 'var(--gold)', marginBottom: 8,
                 }}>
-                  🏪 Trabaja en {barberia.nombre}
+                  <Building2 size={14} /> Trabaja en {barberia.nombre}
                 </div>
               )}
               <div style={{ marginBottom: 12 }}>
                 <Estrellas calificacion={barbero.calificacion} total={barbero.totalCalificaciones} size="lg" />
               </div>
               <div style={{ fontSize: '0.82rem', color: 'var(--muted)', display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-                <span>📍 {barbero.direccion}, {barbero.ciudad}</span>
-                <span>📞 {barbero.telefono}</span>
+                <span><MapPin size={14} /> {barbero.direccion}, {barbero.ciudad}</span>
+                <span><Phone size={14} /> {barbero.telefono}</span>
               </div>
             </div>
 
             <button className="btn btn-outline" style={{ flexShrink: 0 }}
               onClick={() => abrirChatCon(nombreCompleto)}>
-              💬 Enviar mensaje
+              <MessageCircle size={16} /> Enviar mensaje
             </button>
           </div>
         </div>
@@ -207,7 +208,7 @@ export default function PerfilBarbero() {
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             }}>
               <div style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700 }}>
-                💰 Servicios y precios
+                <Wallet size={18} /> Servicios y precios
               </div>
               {!servicioSel
                 ? <span style={{ fontSize: '0.72rem', color: 'var(--gold)', fontWeight: 600 }}>← Elige uno para agendar</span>
@@ -254,7 +255,7 @@ export default function PerfilBarbero() {
                         </div>
                         {/* Duración real del servicio */}
                         <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>
-                          ⏱ {info.dur} min
+                          <Clock size={12} /> {info.dur} min
                         </div>
                       </div>
                     </div>
@@ -287,7 +288,7 @@ export default function PerfilBarbero() {
               background: 'var(--surface2)',
             }}>
               <div style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700 }}>
-                📅 Disponibilidad
+                <Calendar size={18} /> Disponibilidad
               </div>
               {/* Sub-título: muestra la duración del servicio elegido */}
               {servicioSel && (
@@ -300,7 +301,7 @@ export default function PerfilBarbero() {
 
               {!servicioSel ? (
                 <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--muted)', fontSize: '0.88rem' }}>
-                  <div style={{ fontSize: '2rem', marginBottom: 10 }}>👈</div>
+                  <div style={{ fontSize: '2rem', marginBottom: 10, display: 'flex', justifyContent: 'center' }}><ArrowLeft size={32} /></div>
                   Primero selecciona un servicio para ver los horarios disponibles
                 </div>
               ) : (
@@ -440,7 +441,7 @@ export default function PerfilBarbero() {
                 fontFamily: "'Playfair Display', serif",
                 fontWeight: 700, marginBottom: 12, fontSize: '1.1rem',
               }}>
-                ✅ Resumen de tu cita
+                <Check size={20} /> Resumen de tu cita
               </div>
               {[
                 ['Barbero',   nombreCompleto],
@@ -457,7 +458,7 @@ export default function PerfilBarbero() {
                 </div>
               ))}
               <div className="alert alert-info" style={{ marginTop: 12, marginBottom: 12 }}>
-                📱 Recibirás un recordatorio por Telegram 1 hora antes.
+                <Smartphone size={14} /> Recibirás un recordatorio por Telegram 1 hora antes.
               </div>
               {confirmado && (
                 <div className="alert alert-success" style={{ marginBottom: 12 }}>
@@ -469,7 +470,7 @@ export default function PerfilBarbero() {
                   ← Modificar hora
                 </button>
                 <button className="btn btn-success btn-lg" onClick={handleConfirmar} disabled={confirmado}>
-                  ✅ Confirmar cita
+                  <Check size={16} /> Confirmar cita
                 </button>
               </div>
             </div>
@@ -479,7 +480,7 @@ export default function PerfilBarbero() {
         {/* ── UBICACIÓN ── */}
         {(ubicacion.lat && ubicacion.lng) && (
           <div className="card">
-            <div className="card-title">📍 Ubicación</div>
+            <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><MapPin size={18} /> Ubicación</div>
             <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid var(--border)', marginBottom: 12 }}>
               <MapaMini
                 lat={ubicacion.lat} lng={ubicacion.lng}

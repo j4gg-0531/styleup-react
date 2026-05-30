@@ -14,6 +14,7 @@ import {
   generarSlots,
   filtrarBarberosPorServicio,
 } from '../../services/agendamientoService.js';
+import { Zap, Calendar, Smartphone, Check, Scissors, Clock } from 'lucide-react';
 import { preciosService } from '../../services/preciosService.js';
 
 // ── Catálogo de servicios ──────────────────────────────────────────────────
@@ -157,13 +158,13 @@ export default function Agendar() {
           marginBottom: 28,
           display: 'flex', alignItems: 'center', gap: 12,
         }}>
-          <span style={{ fontSize: '1.3rem' }}>⚡</span>
+          <span style={{ fontSize: '1.3rem', display: 'flex' }}><Zap size={24} /></span>
           <div>
             <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
               Agendamiento rápido — Hoy
             </div>
             <div style={{ fontSize: '0.82rem', color: 'var(--muted)', marginTop: 2, textTransform: 'capitalize' }}>
-              📅 {HOY_LABEL}
+              <Calendar size={14} /> {HOY_LABEL}
             </div>
           </div>
         </div>
@@ -199,7 +200,7 @@ export default function Agendar() {
                     <div className="option-icon">{s.icon}</div>
                     <div className="option-name">{s.name}</div>
                     {/* Duración real del servicio */}
-                    <div className="option-sub">⏱ {s.dur} min</div>
+                    <div className="option-sub" style={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'center' }}><Clock size={12} /> {s.dur} min</div>
                   </div>
                 );
               })}
@@ -247,7 +248,7 @@ export default function Agendar() {
                     >
                       <div className="barbero-avatar">{b.avatar}</div>
                       <div className="barbero-name">{nombre}</div>
-                      <div className="barbero-spec">✂ {b.especialidad}</div>
+                      <div className="barbero-spec"><Scissors size={12} /> {b.especialidad}</div>
                       {/* Precio para este servicio */}
                       <div style={{
                         fontFamily: "'Playfair Display', serif",
@@ -297,9 +298,9 @@ export default function Agendar() {
             }}>
               <span className="badge badge-gold">{sel.servicio?.icon} {sel.servicio?.name}</span>
               <span className="badge badge-muted">
-                💈 {sel.barbero?.nombre} {sel.barbero?.apellido}
+                <Scissors size={12} /> {sel.barbero?.nombre} {sel.barbero?.apellido}
               </span>
-              <span className="badge badge-muted">📅 Hoy</span>
+              <span className="badge badge-muted"><Calendar size={12} /> Hoy</span>
             </div>
 
             {slots.length === 0 ? (
@@ -426,7 +427,7 @@ export default function Agendar() {
             </div>
 
             <div className="alert alert-info mb-2">
-              📱 Recibirás un recordatorio por Telegram 1 hora antes de tu cita.
+              <Smartphone size={14} /> Recibirás un recordatorio por Telegram 1 hora antes de tu cita.
             </div>
 
             {confirmado && (
@@ -442,7 +443,7 @@ export default function Agendar() {
                 onClick={confirmar}
                 disabled={confirmado}
               >
-                ✅ Confirmar cita
+                <Check size={16} /> Confirmar cita
               </button>
             </div>
           </div>

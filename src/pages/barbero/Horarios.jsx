@@ -1,6 +1,6 @@
 // src/pages/barbero/Horarios.jsx
 import { useState, useEffect, useMemo } from 'react';
-import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3 } from 'lucide-react';
+import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, Building2, X, Save } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 import { useHorarios } from '../../context/useHorarios.js';
@@ -137,7 +137,7 @@ export default function Horarios() {
   const etiquetaMes    = fmtMesAnio(primerDia);
   const esHoy          = semanaOffset === 0;
 
-  const extra = <div className="spec-badge" style={{ marginTop: 8 }}>✂ Corte a tijera</div>;
+  const extra = <div className="spec-badge" style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}><Scissors size={14} /> Corte a tijera</div>;
 
   return (
     <div className="app-layout">
@@ -155,7 +155,7 @@ export default function Horarios() {
 
         {soloLectura && (
           <div className="alert alert-info" style={{ marginBottom: 20 }}>
-            🏪 Trabajas en <strong>{barberia.nombre}</strong>. Solo la barbería puede
+            <Building2 size={16} /> Trabajas en <strong>{barberia.nombre}</strong>. Solo la barbería puede
             modificar los horarios. Si necesitas un cambio, coordínalo con ellos.
           </div>
         )}
@@ -314,7 +314,7 @@ export default function Horarios() {
                       </div>
                       <div className="horario-actions">
                         <span className={`badge ${badgeClase[h.estado]}`}>{badgeTxt[h.estado]}</span>
-                        {!soloLectura && <button className="btn btn-outline btn-sm" onClick={() => handleEliminar(h.id)}>✕</button>}
+                        {!soloLectura && <button className="btn btn-outline btn-sm" onClick={() => handleEliminar(h.id)}><X size={12} /></button>}
                       </div>
                     </div>
                   ))}
@@ -402,7 +402,7 @@ export default function Horarios() {
               </div>
             )}
             {!soloLectura && <button className="btn btn-primary" onClick={handleGuardar}>
-              💾 Guardar horario
+              <Save size={16} /> Guardar horario
             </button>}
           </div>
         )}

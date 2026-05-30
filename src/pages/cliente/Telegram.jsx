@@ -1,6 +1,6 @@
 // src/pages/cliente/Telegram.jsx
 import { useState } from 'react';
-import { Home, Scissors, BookOpen, Smartphone, User } from 'lucide-react';
+import { Home, Scissors, BookOpen, Smartphone, User, Smartphone as SmartphoneIcon } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 
 export default function Telegram() {
@@ -19,7 +19,7 @@ export default function Telegram() {
 
       <main className="main-content">
         <div className="page-header">
-          <h2 className="page-title">📱 Vincular Telegram</h2>
+          <h2 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><SmartphoneIcon size={22} /> Vincular Telegram</h2>
           <p className="page-subtitle">Recibe recordatorios automáticos de tus citas</p>
         </div>
 

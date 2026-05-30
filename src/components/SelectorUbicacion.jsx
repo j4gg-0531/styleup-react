@@ -1,5 +1,6 @@
 // src/components/SelectorUbicacion.jsx
 import { useState } from 'react';
+import { Hourglass, Search, Lightbulb, Check, X } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -147,7 +148,7 @@ export default function SelectorUbicacion({
           disabled={buscando || !busqueda.trim()}
           style={{ flexShrink: 0, minWidth: 100 }}
         >
-          {buscando ? '⏳ Buscando...' : '🔍 Buscar'}
+          {buscando ? <><Hourglass size={14} /> Buscando...</> : <><Search size={14} /> Buscar</>}
         </button>
       </div>
 
@@ -163,7 +164,7 @@ export default function SelectorUbicacion({
         fontSize: '0.75rem', color: 'var(--muted)',
         marginBottom: 8,
       }}>
-        💡 Si la ubicación no es exacta, arrastra el pin o haz clic en el mapa para ajustarla
+        <Lightbulb size={14} style={{ marginRight: 4 }} /> Si la ubicación no es exacta, arrastra el pin o haz clic en el mapa para ajustarla
       </div>
 
       {/* ── Mapa ── */}
@@ -204,7 +205,7 @@ export default function SelectorUbicacion({
           borderRadius: 8, fontSize: '0.78rem', color: 'var(--gold)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
-          <span>✅ {posicion[0].toFixed(5)}, {posicion[1].toFixed(5)}</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Check size={14} /> {posicion[0].toFixed(5)}, {posicion[1].toFixed(5)}</span>
           <button
             type="button"
             onClick={() => { setPosicion(null); onChange(null); }}
@@ -213,7 +214,7 @@ export default function SelectorUbicacion({
               color: 'var(--muted)', cursor: 'pointer', fontSize: '0.8rem',
             }}
           >
-            ✕ Limpiar
+            <X size={14} /> Limpiar
           </button>
         </div>
       ) : (

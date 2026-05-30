@@ -11,7 +11,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState } from 'react';
-import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3 } from 'lucide-react';
+import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, Building2, Check, Pencil, Save } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 import {
@@ -36,7 +36,7 @@ const navItems = [
   { icon: <BarChart3 size={18} />, label: 'Reportes',      href: '/barbero/reportes' },
 ];
 
-const extra = <div className="spec-badge" style={{ marginTop: 8 }}>✂ Corte a tijera</div>;
+const extra = <div className="spec-badge" style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}><Scissors size={14} /> Corte a tijera</div>;
 
 // ── Formatos ──────────────────────────────────────────────────────────────
 const fmtPrecio = (n) =>
@@ -142,7 +142,7 @@ export default function Servicios() {
           justifyContent: 'space-between', flexWrap: 'wrap', gap: 12,
         }}>
           <div>
-            <h2 className="page-title">✂ Mis servicios</h2>
+            <h2 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Scissors size={22} /> Mis servicios</h2>
             <p className="page-subtitle">
               {soloLectura
                 ? `Los servicios los gestiona ${barberia.nombre}. Contacta a tu barbería para cambios.`
@@ -154,7 +154,7 @@ export default function Servicios() {
         {/* Aviso modo solo lectura */}
         {soloLectura && (
           <div className="alert alert-info" style={{ marginBottom: 20 }}>
-            🏪 Trabajas en <strong>{barberia.nombre}</strong>. Solo la barbería puede
+            <Building2 size={16} /> Trabajas en <strong>{barberia.nombre}</strong>. Solo la barbería puede
             modificar los servicios, precios y horarios.
           </div>
         )}
@@ -337,7 +337,7 @@ export default function Servicios() {
                           </div>
                           {bajoDeMini && (
                             <div style={{ fontSize: '0.65rem', color: 'var(--cobre-light)' }}>
-                              ⚠ Bajo el mínimo
+                              <AlertTriangle size={12} /> Bajo el mínimo
                             </div>
                           )}
                         </div>
@@ -382,7 +382,7 @@ export default function Servicios() {
                           style={{ padding: '5px 8px', fontSize: '0.8rem' }}
                           title={esEditando ? 'Listo' : 'Editar'}
                         >
-                          {esEditando ? '✓' : '✏️'}
+                          {esEditando ? <Check size={14} /> : <Pencil size={14} />}
                         </button>
                       )}
                     </div>
@@ -421,11 +421,11 @@ export default function Servicios() {
             flexWrap: 'wrap',
           }}>
             <div style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>
-              💡 Los cambios no se guardan hasta que presiones el botón.
+              Los cambios no se guardan hasta que presiones el botón.
               Los servicios desactivados no aparecerán en tu perfil público.
             </div>
             <button className="btn btn-primary" onClick={handleGuardar}>
-              💾 Guardar cambios
+              <Save size={16} /> Guardar cambios
             </button>
           </div>
         )}

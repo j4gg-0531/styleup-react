@@ -5,7 +5,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState } from 'react';
-import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2 } from 'lucide-react';
+import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2, Check, Pencil, Save } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import {
   barberiaServiciosService,
@@ -83,7 +83,7 @@ export default function ServiciosBarberia() {
           justifyContent: 'space-between', flexWrap: 'wrap', gap: 12,
         }}>
           <div>
-            <h2 className="page-title">✂️ Servicios</h2>
+            <h2 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Scissors size={22} /> Servicios</h2>
             <p className="page-subtitle">
               Administra los precios y tiempos de cada servicio de tu barbería.
               Estos valores se usarán como referencia para todos los barberos.
@@ -298,7 +298,7 @@ export default function ServiciosBarberia() {
                         style={{ padding: '5px 8px', fontSize: '0.8rem' }}
                         title={esEditando ? 'Listo' : 'Editar'}
                       >
-                        {esEditando ? '✓' : '✏️'}
+                        {esEditando ? <Check size={14} /> : <Pencil size={14} />}
                       </button>
                     </div>
                   </div>
@@ -333,11 +333,11 @@ export default function ServiciosBarberia() {
           flexWrap: 'wrap',
         }}>
           <div style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>
-            💡 Los cambios no se guardan hasta que presiones el botón.
+            Los cambios no se guardan hasta que presiones el botón.
             Los servicios desactivados no estarán disponibles para agendar.
           </div>
           <button className="btn btn-primary" onClick={handleGuardar}>
-            💾 Guardar cambios
+            <Save size={16} /> Guardar cambios
           </button>
         </div>
       </main>

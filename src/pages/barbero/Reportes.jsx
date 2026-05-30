@@ -56,7 +56,7 @@ export default function Reportes() {
 
       <main className="main-content">
         <div className="page-header">
-          <h2 className="page-title">📊 Reportes</h2>
+          <h2 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><BarChart3 size={22} /> Reportes</h2>
           <p className="page-subtitle">Estadísticas y ganancias por período</p>
         </div>
 

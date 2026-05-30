@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3 } from 'lucide-react';
+import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, MapPin, Lock, Save, Trash2, AlertTriangle, Frown } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 import SelectorUbicacion from '../../components/SelectorUbicacion.jsx';
@@ -79,7 +79,7 @@ export default function PerfilBarberoPage() {
                 fontSize: '2.8rem', flexShrink: 0,
                 boxShadow: '0 0 0 4px rgba(192,57,43,0.2), var(--shadow-lg)',
               }}>
-                💈
+                <Scissors size={40} />
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 6 }}>
@@ -88,8 +88,8 @@ export default function PerfilBarberoPage() {
                   </h1>
                   <span className="badge">Barbero</span>
                 </div>
-                <div style={{ color: 'var(--gold)', fontSize: '0.95rem', marginBottom: 4 }}>
-                  ✂ Corte a tijera
+                <div style={{ color: 'var(--gold)', fontSize: '0.95rem', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Scissors size={16} /> Corte a tijera
                 </div>
                 <div style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>
                   Datos personales y profesionales
@@ -105,7 +105,7 @@ export default function PerfilBarberoPage() {
               fontFamily: "'Playfair Display', serif", fontSize: '1.1rem', fontWeight: 700,
               marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8,
             }}>
-              📋 Información personal
+              <ClipboardList size={20} /> Información personal
             </div>
 
             <div className="form-group">
@@ -154,7 +154,7 @@ export default function PerfilBarberoPage() {
               fontFamily: "'Playfair Display', serif", fontSize: '1.1rem', fontWeight: 700,
               marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--gold)',
             }}>
-              📍 Mi ubicación
+              <MapPin size={20} /> Mi ubicación
             </div>
             <p style={{ fontSize: '0.82rem', color: 'var(--muted)', marginBottom: 12 }}>
               Si eres barbero independiente, marca tu ubicación para que los clientes
@@ -174,7 +174,7 @@ export default function PerfilBarberoPage() {
               fontFamily: "'Playfair Display', serif", fontSize: '1.1rem', fontWeight: 700,
               marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8,
             }}>
-              🔒 Cambiar contraseña
+              <Lock size={20} /> Cambiar contraseña
             </div>
 
             {pwOk && (
@@ -203,7 +203,7 @@ export default function PerfilBarberoPage() {
 
             <button className="btn btn-primary" onClick={handleGuardar}
               style={{ marginTop: 8 }}>
-              💾 Guardar cambios
+              <Save size={16} /> Guardar cambios
             </button>
             {saveOk && (
               <div className="alert alert-success" style={{ marginTop: 12 }}>
@@ -217,7 +217,7 @@ export default function PerfilBarberoPage() {
               fontFamily: "'Playfair Display', serif", fontSize: '1.1rem', fontWeight: 700,
               marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--cobre-light)',
             }}>
-              🗑️ Eliminar cuenta
+              <Trash2 size={20} /> Eliminar cuenta
             </div>
             <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginBottom: 16, lineHeight: 1.6 }}>
               Una vez eliminada tu cuenta, no podrás recuperarla. Todos tus datos
@@ -248,7 +248,7 @@ export default function PerfilBarberoPage() {
               maxWidth: 420, width: '100%',
               boxShadow: 'var(--shadow-lg)', textAlign: 'center',
             }}>
-            <div style={{ fontSize: '3.5rem', marginBottom: 16 }}>⚠️</div>
+            <div style={{ fontSize: '3.5rem', marginBottom: 16 }}><AlertTriangle size={56} /></div>
             <h3 style={{
               fontFamily: "'Playfair Display', serif",
               fontSize: '1.3rem', marginBottom: 10,
@@ -272,7 +272,7 @@ export default function PerfilBarberoPage() {
                   background: 'linear-gradient(135deg, var(--cobre), var(--cobre-light))',
                 }}
                 onClick={handleEliminar}>
-                🗑️ Sí, eliminar
+                <Trash2 size={16} /> Sí, eliminar
               </button>
             </div>
           </div>
@@ -293,7 +293,7 @@ export default function PerfilBarberoPage() {
             maxWidth: 420, width: '100%',
             boxShadow: 'var(--shadow-lg)', textAlign: 'center',
           }}>
-            <div style={{ fontSize: '3.5rem', marginBottom: 16 }}>😢</div>
+            <div style={{ fontSize: '3.5rem', marginBottom: 16 }}><Frown size={56} /></div>
             <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.3rem', marginBottom: 10 }}>
               Cuenta eliminada
             </h3>

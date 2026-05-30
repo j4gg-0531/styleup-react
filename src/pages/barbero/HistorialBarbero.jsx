@@ -1,6 +1,6 @@
 // src/pages/barbero/HistorialBarbero.jsx
 import { useState, useEffect } from 'react';
-import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3 } from 'lucide-react';
+import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, X } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 import { useCitas } from '../../context/useCitas.js';
@@ -52,7 +52,7 @@ export default function HistorialBarbero() {
 
       <main className="main-content">
         <div className="page-header">
-          <h2 className="page-title">📖 Historial de citas</h2>
+          <h2 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><BookOpen size={22} /> Historial de citas</h2>
           <p className="page-subtitle">Todas tus citas finalizadas o canceladas</p>
         </div>
 
@@ -71,7 +71,7 @@ export default function HistorialBarbero() {
             />
             {filtroFecha && (
               <button className="btn btn-ghost btn-sm" onClick={() => setFiltroFecha('')}>
-                ✕ Limpiar
+                <X size={14} /> Limpiar
               </button>
             )}
           </div>

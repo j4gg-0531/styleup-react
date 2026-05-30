@@ -1,6 +1,6 @@
 // src/pages/cliente/Historial.jsx
 import { useState, useEffect } from 'react';
-import { Home, Scissors, BookOpen, Smartphone, User } from 'lucide-react';
+import { Home, Scissors, BookOpen, Smartphone, User, X } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 import { useCitas } from '../../context/useCitas.js';
@@ -44,7 +44,7 @@ export default function Historial() {
 
         {/* Historial */}
         <div className="page-header">
-          <h2 className="page-title">📖 Mi historial</h2>
+          <h2 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><BookOpen size={22} /> Mi historial</h2>
           <p className="page-subtitle">Todas tus citas registradas</p>
         </div>
 
@@ -63,7 +63,7 @@ export default function Historial() {
             />
             {filtroFecha && (
               <button className="btn btn-ghost btn-sm" onClick={() => setFiltroFecha('')}>
-                ✕ Limpiar
+                <X size={14} /> Limpiar
               </button>
             )}
           </div>

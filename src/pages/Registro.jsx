@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { User, Scissors, Building2, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../context/useAuth.js'
 import SelectorUbicacion from '../components/SelectorUbicacion.jsx';
 import 'leaflet/dist/leaflet.css';
@@ -36,9 +37,9 @@ export default function Registro() {
             <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', marginBottom: 12 }}>Tipo de cuenta</div>
             <div className="rol-tabs" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
               {[
-                { val: 'cliente',  icon: '👤', name: 'Cliente',  desc: 'Quiero agendar citas' },
-                { val: 'barbero',  icon: '💈', name: 'Barbero',  desc: 'Quiero gestionar mi agenda' },
-                { val: 'barberia', icon: '🏪', name: 'Barbería', desc: 'Quiero gestionar mi negocio' },
+                { val: 'cliente',  icon: <User size={24} />, name: 'Cliente',  desc: 'Quiero agendar citas' },
+                { val: 'barbero',  icon: <Scissors size={24} />, name: 'Barbero',  desc: 'Quiero gestionar mi agenda' },
+                { val: 'barberia', icon: <Building2 size={24} />, name: 'Barbería', desc: 'Quiero gestionar mi negocio' },
               ].map((r) => (
                 <div
                   key={r.val}
@@ -159,7 +160,7 @@ export default function Registro() {
 
         <div style={{ textAlign: 'center', marginTop: 20, fontSize: '0.87rem', color: 'var(--muted)' }}>
           ¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link>
-          {' · '}<Link to="/">← Volver al inicio</Link>
+          {' · '}<Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><ArrowLeft size={14} /> Volver al inicio</Link>
         </div>
       </div>
     </div>

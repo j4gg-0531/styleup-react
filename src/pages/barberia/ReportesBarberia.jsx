@@ -39,7 +39,7 @@ export default function ReportesBarberia() {
       <Sidebar avatar={<Building2 size={20} />} badge="Barbería" badgeClass="badge-cobre" navItems={navItems} />
       <main className="main-content">
         <div className="page-header">
-          <h2 className="page-title">📊 Reportes</h2>
+          <h2 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><BarChart3 size={22} /> Reportes</h2>
           <p className="page-subtitle">Ganancias consolidadas de tu barbería</p>
         </div>
 
@@ -81,7 +81,7 @@ export default function ReportesBarberia() {
 
         {/* Ganancias por barbero */}
         <div className="card">
-          <div className="card-title">💰 Ganancias por barbero</div>
+          <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>💰 Ganancias por barbero</div>
           <div className="table-wrap">
             <table>
               <thead>

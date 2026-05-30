@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Scissors, Calendar, Bell, BarChart3, User, Building2 } from 'lucide-react';
 
 export default function Landing() {
   return (
@@ -34,15 +35,15 @@ export default function Landing() {
           <div className="hero-right">
             <div className="deco-card">
               <div className="deco-card-top">
-                <div className="deco-avatar">💈</div>
+                <div className="deco-avatar"><Scissors size={24} /></div>
                 <div>
                   <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>Nueva cita</div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>hace 2 min</div>
                 </div>
                 <span className="badge badge-green" style={{ marginLeft: 'auto' }}>Confirmada</span>
               </div>
-              <div style={{ fontSize: '0.88rem', color: 'var(--muted)' }}>
-                📅 Mañana · 10:00 AM<br />✂ Corte a tijera · Juan Pérez
+              <div style={{ fontSize: '0.88rem', color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Calendar size={14} /> Mañana · 10:00 AM<br /><Scissors size={14} /> Corte a tijera · Juan Pérez
               </div>
             </div>
             <div className="deco-card">
@@ -72,9 +73,9 @@ export default function Landing() {
         </div>
         <div className="features-grid">
           {[
-            { icon: '📅', title: 'Agendamiento inteligente', desc: 'Wizard paso a paso para reservar citas sin conflictos de horario ni doble ocupación.' },
-            { icon: '🔔', title: 'Recordatorios Telegram', desc: 'Notificaciones automáticas vía Telegram antes de cada cita para reducir inasistencias.' },
-            { icon: '📊', title: 'Reportes y métricas', desc: 'Dashboard con estadísticas de barberos más solicitados y servicios más demandados.' },
+            { icon: <Calendar size={24} />, title: 'Agendamiento inteligente', desc: 'Wizard paso a paso para reservar citas sin conflictos de horario ni doble ocupación.' },
+            { icon: <Bell size={24} />, title: 'Recordatorios Telegram', desc: 'Notificaciones automáticas vía Telegram antes de cada cita para reducir inasistencias.' },
+            { icon: <BarChart3 size={24} />, title: 'Reportes y métricas', desc: 'Dashboard con estadísticas de barberos más solicitados y servicios más demandados.' },
           ].map((f) => (
             <div key={f.title} className="feature-item">
               <div className="feature-icon">{f.icon}</div>
@@ -93,12 +94,12 @@ export default function Landing() {
         <div className="roles-grid">
           {[
             {
-              cls: 'client', icon: '👤', title: 'Cliente', btnCls: 'btn-outline',
+              cls: 'client', icon: <User size={24} />, title: 'Cliente', btnCls: 'btn-outline',
               desc: 'Agenda citas, consulta tu historial y gestiona tu perfil desde cualquier lugar.',
               perks: ['Reservar citas en pocos pasos', 'Ver historial completo', 'Recordatorios por Telegram', 'Actualizar perfil'],
             },
             {
-              cls: 'barber', icon: '💈', title: 'Barbero', btnCls: 'btn-primary',
+              cls: 'barber', icon: <Scissors size={24} />, title: 'Barbero', btnCls: 'btn-primary',
               desc: 'Configura tu disponibilidad, revisa tus citas del día y gestiona tu perfil profesional.',
               perks: ['Configurar horarios', 'Ver citas por fecha', 'Gestionar especialidad', 'Vincular Telegram'],
             },
@@ -120,7 +121,7 @@ export default function Landing() {
         {/* Barbería — centrada debajo */}
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: 28 }}>
           <div className="role-card" style={{ borderTop: '3px solid var(--gold)', maxWidth: 500, width: '100%' }}>
-            <div className="role-icon">🏪</div>
+            <div className="role-icon"><Building2 size={24} /></div>
             <div className="role-title">Barbería</div>
             <div className="role-desc">
               Gestiona tu negocio, publica ofertas de trabajo, administra tu equipo y ve los reportes de ganancias.

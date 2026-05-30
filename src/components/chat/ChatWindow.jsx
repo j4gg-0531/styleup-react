@@ -1,5 +1,6 @@
 // src/components/Chat/ChatWindow.jsx
 import { useState, useEffect, useRef } from 'react';
+import { MessageCircle, ArrowLeft, X, User, Scissors, Send } from 'lucide-react';
 import { chatService } from '../../services/chatService.js';
 import { barberosService } from '../../services/barberosService.js';
 
@@ -94,12 +95,12 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
               onClick={() => setVista('lista')}
               style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '1rem', padding: 0 }}
             >
-              ←
+              <ArrowLeft size={16} />
             </button>
           )}
           <div>
             <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#fff' }}>
-              {vista === 'chat' ? conversacionActiva : '💬 Mensajes'}
+              {vista === 'chat' ? conversacionActiva : <><MessageCircle size={16} /> Mensajes</>}
             </div>
             {vista === 'chat' && (
               <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.75)' }}>
@@ -112,7 +113,7 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
           onClick={onClose}
           style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '1.1rem' }}
         >
-          ✕
+          <X size={18} />
         </button>
       </div>
 
@@ -148,7 +149,7 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: '1.1rem', flexShrink: 0,
                   }}>
-                    {rolActual === 'barbero' ? '👤' : '💈'}
+                    {rolActual === 'barbero' ? <User size={18} /> : <Scissors size={18} />}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>{conv.otroUsuario}</div>
@@ -203,7 +204,7 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>{nombreCompleto}</div>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--muted)' }}>✂ {b.especialidad}</div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 4 }}><Scissors size={12} /> {b.especialidad}</div>
                     </div>
                     <span style={{ fontSize: '0.72rem', color: b.disponibleHoy ? '#3fb950' : 'var(--muted)' }}>
                       {b.disponibleHoy ? '● En línea' : '● Ausente'}
@@ -233,7 +234,7 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
           }}>
             {mensajes.length === 0 ? (
               <div style={{ textAlign: 'center', color: 'var(--muted)', fontSize: '0.85rem', marginTop: 20 }}>
-                Inicia la conversación 👋
+                Inicia la conversación
               </div>
             ) : (
               mensajes.map((m) => {
@@ -303,7 +304,7 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
                 fontSize: '1rem', transition: 'all 0.2s', flexShrink: 0,
               }}
             >
-              ➤
+              <Send size={16} />
             </button>
           </div>
         </>

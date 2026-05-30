@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl } from 'react-leaflet';
 import L from 'leaflet';
 import { useNavigate } from 'react-router-dom';
+import { Scissors, MapPin, Phone, Building2 } from 'lucide-react';
 import Estrellas from '../../components/Estrellas.jsx';
 
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -129,14 +130,14 @@ export default function MapaVista({ barberos, barberias = [], onVerBarberos, tod
                   </div>
                 </div>
                 <div style={{ color: '#e6b86a', fontSize: '0.82rem', marginBottom: 6 }}>
-                  ✂ {b.especialidad}
+                  <Scissors size={14} /> {b.especialidad}
                 </div>
                 <div style={{ marginBottom: 6 }}>
                   <Estrellas calificacion={b.calificacion} total={b.totalCalificaciones} />
                 </div>
                 <div style={{ color: '#8b949e', fontSize: '0.78rem', marginBottom: 10 }}>
-                  📍 {b.direccion}, {b.ciudad}<br />
-                  📞 {b.telefono}
+                  <MapPin size={14} /> {b.direccion}, {b.ciudad}<br />
+                  <Phone size={14} /> {b.telefono}
                 </div>
                 <button
                   onClick={() => navigate(`/cliente/barberos/${b.id}`)}
@@ -170,7 +171,7 @@ export default function MapaVista({ barberos, barberias = [], onVerBarberos, tod
               }}>
                 {/* Nombre barbería */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                  <span style={{ fontSize: '1.4rem' }}>🏪</span>
+                  <span style={{ fontSize: '1.4rem', display: 'flex' }}><Building2 size={24} /></span>
                   <div>
                     <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#e6edf3' }}>
                       {b.nombre}
@@ -183,8 +184,8 @@ export default function MapaVista({ barberos, barberias = [], onVerBarberos, tod
 
                 {/* Dirección */}
                 <div style={{ color: '#8b949e', fontSize: '0.78rem', marginBottom: 10 }}>
-                  📍 {b.direccion}, {b.ciudad}<br />
-                  📞 {b.telefono}
+                  <MapPin size={14} /> {b.direccion}, {b.ciudad}<br />
+                  <Phone size={14} /> {b.telefono}
                 </div>
 
                 {/* Barberos que trabajan aquí */}
@@ -194,7 +195,7 @@ export default function MapaVista({ barberos, barberias = [], onVerBarberos, tod
                     textTransform: 'uppercase', letterSpacing: '0.05em',
                     marginBottom: 6,
                   }}>
-                    💈 {b.barberoIds.length > 0
+                    <Scissors size={12} /> {b.barberoIds.length > 0
                       ? `${b.barberoIds.length} barbero${b.barberoIds.length !== 1 ? 's' : ''}`
                       : 'Sin barberos aún'}
                   </div>

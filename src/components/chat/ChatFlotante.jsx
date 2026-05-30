@@ -1,5 +1,6 @@
 // src/components/chat/ChatFlotante.jsx
 import { useState } from 'react';
+import { MessageCircle, X } from 'lucide-react';
 import { useAuth } from '../../context/useAuth.js';
 import { useChatFlotante } from '../../context/useChatFlotante.js';
 import { chatService } from '../../services/chatService.js';
@@ -48,7 +49,7 @@ export default function ChatFlotante() {
           transform: abierto ? 'rotate(45deg)' : 'rotate(0deg)',
         }}
       >
-        {abierto ? '✕' : '💬'}
+        {abierto ? <X size={24} /> : <MessageCircle size={24} />}
         {!abierto && noLeidos > 0 && (
           <span style={{
             position: 'absolute', top: -4, right: -4,
