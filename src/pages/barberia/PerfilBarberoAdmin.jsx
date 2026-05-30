@@ -5,6 +5,7 @@ import { Scissors, MapPin, Phone, MessageCircle, XOctagon, Clock, Save, Pencil, 
 import { barberosService } from '../../services/barberosService.js';
 import { citasService } from '../../services/citasService.js';
 import { preciosService } from '../../services/preciosService.js';
+import { notificacionesService } from '../../services/notificacionesService.js';
 import { useChatFlotante } from '../../context/useChatFlotante.js';
 import Estrellas from '../../components/Estrellas.jsx';
 
@@ -83,6 +84,15 @@ export default function PerfilBarberoAdmin() {
       total + preciosService.getPrecioServicio(nombreCompleto, c.servicio?.id), 0);
 
   const handleDespedir = () => {
+    notificacionesService.crear({
+      tipo: 'despedido',
+      paraRol: 'barbero',
+      paraNombre: nombreCompleto,
+      deRol: 'barberia',
+      deNombre: 'BarberShop Style',
+      mensaje: `Has sido despedido de BarberShop Style`,
+      metadata: { barberoId: id },
+    });
     setDespedido(true);
     setTimeout(() => navigate('/barberia/barberos'), 2000);
   };

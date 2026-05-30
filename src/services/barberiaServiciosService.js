@@ -4,6 +4,9 @@
 // que ofrece la barbería (sobreescribe los valores por defecto).
 // FUTURO: los datos vendrán de /api/barberias/:id/servicios
 // ─────────────────────────────────────────────────────────────
+import { notificacionesService } from './notificacionesService.js';
+import { barberosService } from './barberosService.js';
+import { barberiaService } from './barberiaService.js';
 
 const STORAGE_KEY = 'styleup_barberia_servicios';
 
@@ -55,6 +58,25 @@ export const barberiaServiciosService = {
     });
     config[barberiaId] = data;
     guardarConfig(config);
+
+    const barberia = barberiaService.getById(barberiaId);
+    if (barberia?.barberoIds?.length) {
+      barberia.barberoIds.forEach((bid) => {
+        const barbero = barberosService.getById(bid);
+        if (barbero) {
+          notificacionesService.crear({
+            tipo: 'servicios_modificados',
+            paraRol: 'barbero',
+            paraNombre: `${barbero.nombre} ${barbero.apellido}`,
+            deRol: 'barberia',
+            deNombre: barberia.nombre,
+            mensaje: `${barberia.nombre} actualizó los precios y servicios`,
+            metadata: { barberiaId },
+          });
+        }
+      });
+    }
+
     return data;
   },
 
