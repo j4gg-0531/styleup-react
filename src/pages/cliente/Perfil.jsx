@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, Scissors, BookOpen, Smartphone, User, ClipboardList, Lock, Save, Trash2, AlertTriangle, Frown } from 'lucide-react';
+import { Home, Scissors, BookOpen, Smartphone, User, ClipboardList, Lock, Save, Trash2, AlertTriangle, Frown, CheckCircle } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 
@@ -140,8 +140,8 @@ export default function Perfil() {
             </div>
             
             {pwOk && (
-              <div className="alert alert-success" style={{ marginBottom: 16 }}>
-                ✅ Contraseña actualizada correctamente.
+              <div className="alert alert-success" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <CheckCircle size={16} /> Contraseña actualizada correctamente.
               </div>
             )}
             {pwError && (
@@ -168,8 +168,8 @@ export default function Perfil() {
               <Save size={16} /> Guardar cambios
             </button>
             {saveOk && (
-              <div className="alert alert-success" style={{ marginTop: 12 }}>
-                ✅ Perfil actualizado.
+              <div className="alert alert-success" style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <CheckCircle size={16} /> Perfil actualizado.
               </div>
             )}
           </div>

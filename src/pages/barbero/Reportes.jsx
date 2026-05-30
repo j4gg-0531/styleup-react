@@ -48,7 +48,7 @@ export default function Reportes() {
     { icon: <BarChart3 size={18} />, label: 'Reportes',      href: '/barbero/reportes' },
   ];
 
-  const extra = <div className="spec-badge" style={{ marginTop: 8 }}>✂ Corte a tijera</div>;
+  const extra = <div className="spec-badge" style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}><Scissors size={14} /> Corte a tijera</div>;
 
   return (
     <div className="app-layout">
@@ -94,7 +94,7 @@ export default function Reportes() {
 
         <div className="grid-2">
           <div className="card">
-            <div className="card-title">💰 Resumen del período</div>
+            <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><BarChart3 size={18} /> Resumen del período</div>
             <div className="stats-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               {[
                 [formatPrecio(gananciasReportes), 'Ganancias', 'var(--gold)'],
@@ -111,7 +111,7 @@ export default function Reportes() {
           </div>
 
           <div className="card">
-            <div className="card-title">✂ Servicios del período</div>
+            <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Scissors size={18} /> Servicios del período</div>
             {Object.entries(NOMBRES_SERVICIOS).map(([id, nombre]) => {
               const cantidad = citasReportes.filter(
                 (c) => c.servicio?.id === id && c.estado === 'completada'

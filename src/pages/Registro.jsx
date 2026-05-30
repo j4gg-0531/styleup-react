@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Scissors, Building2, ArrowLeft } from 'lucide-react';
+import { User, Scissors, Building2, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useAuth } from '../context/useAuth.js'
 import SelectorUbicacion from '../components/SelectorUbicacion.jsx';
 import 'leaflet/dist/leaflet.css';
@@ -19,7 +19,7 @@ export default function Registro() {
     if (form.password !== form.password2) { setMsg({ tipo: 'error', texto: 'Las contraseñas no coinciden.' }); return; }
     if (form.password.length < 6) { setMsg({ tipo: 'error', texto: 'La contraseña debe tener al menos 6 caracteres.' }); return; }
     login(form.nombre, rol);
-    setMsg({ tipo: 'success', texto: '✅ ¡Cuenta creada! Redirigiendo...' });
+    setMsg({ tipo: 'success', texto: '¡Cuenta creada! Redirigiendo...' });
     setTimeout(() => navigate(rol === 'barbero' ? '/barbero' : '/cliente'), 800);
   };
 
@@ -27,7 +27,7 @@ export default function Registro() {
     <div className="registro-page">
       <div className="reg-wrap">
         <div className="reg-header">
-          <div className="reg-logo">✂ Style<span style={{ color: 'var(--cobre-light)' }}>Up</span></div>
+          <div className="reg-logo" style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'center' }}><Scissors size={22} /> Style<span style={{ color: 'var(--cobre-light)' }}>Up</span></div>
           <h2 style={{ fontSize: '1.7rem', marginTop: 8 }}>Crea tu cuenta</h2>
           <p style={{ color: 'var(--muted)', fontSize: '0.9rem', marginTop: 4 }}>Únete a StyleUp y gestiona tus citas fácilmente</p>
         </div>
@@ -153,7 +153,7 @@ export default function Registro() {
               </>
             )}
 
-            {msg && <div className={`alert alert-${msg.tipo === 'error' ? 'error' : 'success'}`}>{msg.texto}</div>}
+            {msg && <div className={`alert alert-${msg.tipo === 'error' ? 'error' : 'success'}`} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>{msg.tipo === 'success' && <CheckCircle size={16} />}{msg.texto}</div>}
             <button type="submit" className="btn btn-primary btn-block btn-lg" style={{ marginTop: 8 }}>Crear cuenta</button>
           </form>
         </div>

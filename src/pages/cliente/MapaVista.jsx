@@ -3,8 +3,9 @@ import { useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl } from 'react-leaflet';
 import L from 'leaflet';
 import { useNavigate } from 'react-router-dom';
-import { Scissors, MapPin, Phone, Building2 } from 'lucide-react';
+import { Scissors, MapPin, Phone, Building2, Circle, ArrowRight } from 'lucide-react';
 import Estrellas from '../../components/Estrellas.jsx';
+import { SVG_SCISSORS, SVG_BUILDING2 } from '../../components/MapaMini.jsx';
 
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon   from 'leaflet/dist/images/marker-icon.png';
@@ -110,7 +111,7 @@ export default function MapaVista({ barberos, barberias = [], onVerBarberos, tod
           <Marker
             key={b.id}
             position={[b.lat, b.lng]}
-            icon={crearPin('#e74c3c', '💈')}
+            icon={crearPin('#e74c3c', SVG_SCISSORS)}
           >
             <Popup minWidth={220}>
               <div style={{
@@ -125,7 +126,7 @@ export default function MapaVista({ barberos, barberias = [], onVerBarberos, tod
                       {b.nombre} {b.apellido}
                     </div>
                     <span style={{ fontSize: '0.7rem', fontWeight: 600, color: b.disponibleHoy ? '#3fb950' : '#8b949e' }}>
-                      {b.disponibleHoy ? '● Disponible hoy' : '● No disponible'}
+                      {b.disponibleHoy ? <><Circle size={8} fill="#3fb950" color="#3fb950" /> Disponible hoy</> : <><Circle size={8} color="#8b949e" /> No disponible</>}
                     </span>
                   </div>
                 </div>
@@ -149,7 +150,7 @@ export default function MapaVista({ barberos, barberias = [], onVerBarberos, tod
                     cursor: 'pointer', fontFamily: 'Inter, sans-serif',
                   }}
                 >
-                  Ver perfil y agendar →
+                  Ver perfil y agendar <ArrowRight size={14} />
                 </button>
               </div>
             </Popup>
@@ -161,7 +162,7 @@ export default function MapaVista({ barberos, barberias = [], onVerBarberos, tod
           <Marker
             key={b.id}
             position={[b.lat, b.lng]}
-            icon={crearPin('#e6b86a', '🏪')}
+            icon={crearPin('#e6b86a', SVG_BUILDING2)}
           >
             <Popup minWidth={240}>
               <div style={{
@@ -221,7 +222,7 @@ export default function MapaVista({ barberos, barberias = [], onVerBarberos, tod
                     cursor: 'pointer', fontFamily: 'Inter, sans-serif',
                   }}
                 >
-                  Ver barberos →
+                  Ver barberos <ArrowRight size={14} />
                 </button>
               </div>
             </Popup>

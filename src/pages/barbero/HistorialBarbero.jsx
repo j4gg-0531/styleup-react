@@ -44,7 +44,7 @@ export default function HistorialBarbero() {
     { icon: <BarChart3 size={18} />, label: 'Reportes',      href: '/barbero/reportes' },
   ];
 
-  const extra = <div className="spec-badge" style={{ marginTop: 8 }}>✂ Corte a tijera</div>;
+  const extra = <div className="spec-badge" style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}><Scissors size={14} /> Corte a tijera</div>;
 
   return (
     <div className="app-layout">

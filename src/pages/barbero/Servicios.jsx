@@ -11,7 +11,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState } from 'react';
-import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, Building2, Check, Pencil, Save } from 'lucide-react';
+import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, Building2, Check, Pencil, Save, CheckCircle } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 import {
@@ -19,7 +19,6 @@ import {
   PRECIOS_MINIMOS,
   NOMBRES_SERVICIOS,
   DURACIONES_DEFAULT,
-  ICONOS_SERVICIOS,
 } from '../../services/preciosService.js';
 import { barberiaService } from '../../services/barberiaService.js';
 import { barberosService } from '../../services/barberosService.js';
@@ -165,8 +164,8 @@ export default function Servicios() {
           </div>
         )}
         {guardadoOk && (
-          <div className="alert alert-success" style={{ marginBottom: 20 }}>
-            ✅ Servicios guardados correctamente.
+          <div className="alert alert-success" style={{ marginBottom: 20, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <CheckCircle size={16} /> Servicios guardados correctamente.
           </div>
         )}
 
@@ -236,7 +235,7 @@ export default function Servicios() {
                     letterSpacing: '0.06em', display: 'flex',
                     alignItems: 'center', gap: 6,
                   }}>
-                    🏠 Servicio especial
+                    <Home size={14} /> Servicio especial
                   </div>
                 )}
 
@@ -258,25 +257,11 @@ export default function Servicios() {
                     alignItems: 'center',
                   }}>
 
-                    {/* ── Nombre + icono ── */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{
-                        width: 38, height: 38, borderRadius: 8, flexShrink: 0,
-                        background: s.activo
-                          ? 'linear-gradient(135deg, var(--cobre), var(--cobre-light))'
-                          : 'var(--surface2)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '1.1rem',
-                        boxShadow: s.activo ? 'var(--shadow-red)' : 'none',
-                        transition: 'all 0.2s',
-                      }}>
-                        {ICONOS_SERVICIOS[id]}
-                      </div>
-                      <div>
-                        <div style={{ fontWeight: 600, fontSize: '0.92rem' }}>{nombre}</div>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--muted)', marginTop: 2 }}>
-                          min {fmtPrecio(minimo)}
-                        </div>
+                    {/* ── Nombre del servicio ── */}
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: '0.92rem' }}>{nombre}</div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--muted)', marginTop: 2 }}>
+                        min {fmtPrecio(minimo)}
                       </div>
                     </div>
 

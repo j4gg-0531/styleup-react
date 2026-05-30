@@ -1,6 +1,6 @@
 // src/pages/barberia/Barberos.jsx
 import { useNavigate } from 'react-router-dom';  // ← agregar este import
-import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2, Scissors as ScissorsIcon } from 'lucide-react';
+import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2, Circle, ChevronRight } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 
 const BARBEROS_EMPLEADOS = [
@@ -26,7 +26,7 @@ export default function BarberosBarberia() {
       <Sidebar avatar={<Building2 size={20} />} badge="Barbería" badgeClass="badge-cobre" navItems={navItems} />
       <main className="main-content">
         <div className="page-header">
-          <h2 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><ScissorsIcon size={22} /> Mis barberos</h2>
+          <h2 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Scissors size={22} /> Mis barberos</h2>
           <p className="page-subtitle">Haz clic en un barbero para ver su perfil completo</p>
         </div>
 
@@ -40,7 +40,7 @@ export default function BarberosBarberia() {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                 <div className="barbero-avatar" style={{ fontSize: '1.5rem', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
-                  <ScissorsIcon size={24} />
+                  <Scissors size={24} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: 4 }}>
@@ -61,10 +61,10 @@ export default function BarberosBarberia() {
                     <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>citas hoy</div>
                   </div>
                   <span className={`badge ${b.estado === 'activo' ? 'badge-green' : 'badge-muted'}`}>
-                    {b.estado === 'activo' ? '● Activo' : '● Inactivo'}
+                    {b.estado === 'activo' ? <><Circle size={8} fill="#3fb950" color="#3fb950" /> Activo</> : <><Circle size={8} color="var(--muted)" /> Inactivo</>}
                   </span>
                   {/* Quitamos el botón "Ver horarios" — ahora toda la card es clickeable */}
-                  <span style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>›</span>
+                  <ChevronRight size={18} color="var(--muted)" />
                 </div>
               </div>
             </div>

@@ -33,7 +33,7 @@ export default function Login() {
         {/* Panel izquierdo decorativo */}
         <div className="login-panel-left">
           <div>
-            <div className="login-brand">✂ Style<span style={{ color: 'var(--cobre-light)' }}>Up</span></div>
+            <div className="login-brand" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Scissors size={22} /> Style<span style={{ color: 'var(--cobre-light)' }}>Up</span></div>
             <div className="login-tagline">Sistema de Gestión de Barbería</div>
           </div>
           <div className="login-illo"><Scissors size={48} /></div>

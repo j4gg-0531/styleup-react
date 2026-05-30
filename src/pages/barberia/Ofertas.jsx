@@ -1,6 +1,6 @@
 // src/pages/barberia/Ofertas.jsx
 import { useState } from 'react';
-import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2, BriefcaseBusiness, Wallet, Users, Target, Wrench, Calendar, X, Check, FileText, GraduationCap, Trophy, ArrowLeft } from 'lucide-react';
+import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2, BriefcaseBusiness, Wallet, Users, Target, Wrench, Calendar, X, Check, FileText, GraduationCap, Trophy, ArrowLeft, Circle, ChevronDown, ArrowRight, CheckCircle } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { ofertasService } from '../../services/ofertasService.js';
 import {
@@ -69,7 +69,7 @@ function SelectorTags({ opciones, seleccionados, onChange, max = 5 }) {
               opacity: seleccionados.length >= max && !activo ? 0.4 : 1,
             }}
           >
-            {activo ? '✓ ' : ''}{tag}
+            {activo ? <><Check size={12} /> </> : ''}{tag}
           </button>
         );
       })}
@@ -110,7 +110,7 @@ function CardOferta({ oferta, aplicaciones, onCerrar }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6, flexWrap: 'wrap' }}>
             <div style={{ fontWeight: 700, fontSize: '1rem' }}>{oferta.titulo}</div>
             <span className={`badge ${oferta.estado === 'activa' ? 'badge-green' : 'badge-muted'}`}>
-              {oferta.estado === 'activa' ? '● Activa' : '● Cerrada'}
+              {oferta.estado === 'activa' ? <><Circle size={8} /> Activa</> : <><Circle size={8} /> Cerrada</>}
             </span>
             {appsDeEstaOferta.length > 0 && (
               <span className="badge badge-gold">
@@ -135,7 +135,7 @@ function CardOferta({ oferta, aplicaciones, onCerrar }) {
           transition: 'transform 0.2s',
           transform: expandida ? 'rotate(180deg)' : 'rotate(0deg)',
         }}>
-          ▼
+          <ChevronDown size={14} />
         </div>
       </div>
 
@@ -521,7 +521,7 @@ export default function Ofertas() {
             <div className="steps" style={{ marginBottom: 28 }}>
               {['Información básica', 'Detalles del puesto', 'Revisar y publicar'].map((l, i) => (
                 <div key={l} className={`step ${paso === i + 1 ? 'active' : paso > i + 1 ? 'done' : ''}`}>
-                  <div className="step-circle">{paso > i + 1 ? '✓' : i + 1}</div>
+                  <div className="step-circle">{paso > i + 1 ? <Check size={12} /> : i + 1}</div>
                   <div className="step-label">{l}</div>
                 </div>
               ))}
@@ -662,7 +662,7 @@ export default function Ofertas() {
                                 <option key={h}>{h}</option>
                               ))}
                             </select>
-                            <span style={{ color: 'var(--muted)', fontSize: '0.8rem', flexShrink: 0 }}>→</span>
+                            <span style={{ color: 'var(--muted)', fontSize: '0.8rem', flexShrink: 0, display: 'inline-flex' }}><ArrowRight size={12} /></span>
                             <select
                               className="form-control"
                               style={{ flex: 1, padding: '7px 10px', fontSize: '0.85rem' }}
@@ -776,7 +776,7 @@ export default function Ofertas() {
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: '0.7rem', color: '#000', flexShrink: 0, transition: 'all 0.2s',
                   }}>
-                    {form.herramientasPropias ? '✓' : ''}
+                    {form.herramientasPropias ? <Check size={10} /> : ''}
                   </div>
                   <div>
                     <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>
@@ -836,8 +836,8 @@ export default function Ofertas() {
                 </div>
 
                 {publicadaOk && (
-                  <div className="alert alert-success" style={{ marginBottom: 16 }}>
-                    ✅ ¡Oferta publicada correctamente!
+                  <div className="alert alert-success" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <CheckCircle size={16} /> ¡Oferta publicada correctamente!
                   </div>
                 )}
               </div>
@@ -857,7 +857,7 @@ export default function Ofertas() {
 
               {paso < 3 ? (
                 <button className="btn btn-primary" onClick={handleSiguiente}>
-                  Siguiente →
+                  Siguiente <ArrowRight size={16} />
                 </button>
               ) : (
                 <button

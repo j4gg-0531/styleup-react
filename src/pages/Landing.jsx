@@ -6,7 +6,7 @@ export default function Landing() {
     <>
       <nav className="navbar">
         <div className="navbar-brand">
-          <span>✂</span> Style<span style={{ color: 'var(--cobre-light)' }}>Up</span>
+          <Scissors size={20} /> Style<span style={{ color: 'var(--cobre-light)' }}>Up</span>
         </div>
         <div className="navbar-links">
           <Link to="/login" className="btn btn-outline btn-sm">Iniciar sesión</Link>
@@ -17,7 +17,7 @@ export default function Landing() {
       <section className="hero">
         <div className="hero-content">
           <div className="hero-left">
-            <div className="hero-eyebrow">✂ Sistema de Barbería</div>
+            <div className="hero-eyebrow" style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'center' }}><Scissors size={16} /> Sistema de Barbería</div>
             <h1 className="hero-title">
               Gestiona tu barbería<br />
               con <span className="accent">estilo</span>
@@ -139,7 +139,7 @@ export default function Landing() {
       </section>
 
       <footer>
-        <div className="footer-brand">✂ StyleUp</div>
+        <div className="footer-brand" style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'center' }}><Scissors size={18} /> StyleUp</div>
         <div>Sistema de Gestión de Barbería · Prototipo Web 2025</div>
       </footer>
     </>

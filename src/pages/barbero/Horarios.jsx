@@ -1,6 +1,6 @@
 // src/pages/barbero/Horarios.jsx
 import { useState, useEffect, useMemo } from 'react';
-import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, Building2, X, Save } from 'lucide-react';
+import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, Building2, X, Save, ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 import { useHorarios } from '../../context/useHorarios.js';
@@ -110,7 +110,7 @@ export default function Horarios() {
         estado: estadoSel,
       });
     });
-    setMsgNuevo({ tipo: 'success', texto: '✅ Horario guardado correctamente.' });
+    setMsgNuevo({ tipo: 'success', texto: 'Horario guardado correctamente.' });
     setTimeout(() => { setMsgNuevo(null); setTab('ver'); setDiasSel([]); }, 1500);
   };
 
@@ -145,7 +145,7 @@ export default function Horarios() {
 
       <main className="main-content">
         <div className="page-header">
-          <h2 className="page-title">⏰ Mis horarios</h2>
+          <h2 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Clock size={22} /> Mis horarios</h2>
           <p className="page-subtitle">
             {soloLectura
               ? `Tus horarios los gestiona ${barberia.nombre}. Contacta a tu barbería para cambios.`
@@ -173,7 +173,7 @@ export default function Horarios() {
               setDiasSel([]); // ← limpia aquí directamente
             }}
           >
-            ← Semana anterior
+            <ArrowLeft size={16} /> Semana anterior
           </button>
 
           <div style={{ textAlign: 'center' }}>
@@ -200,7 +200,7 @@ export default function Horarios() {
               setDiasSel([]); // ← limpia aquí directamente
             }}
           >
-            Semana siguiente →
+            Semana siguiente <ArrowRight size={16} />
           </button>
         </div>
 
@@ -397,7 +397,8 @@ export default function Horarios() {
             </div>
 
             {msgNuevo && (
-              <div className={`alert alert-${msgNuevo.tipo === 'error' ? 'error' : 'success'}`}>
+              <div className={`alert alert-${msgNuevo.tipo === 'error' ? 'error' : 'success'}`} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                {msgNuevo.tipo === 'success' && <CheckCircle size={16} />}
                 {msgNuevo.texto}
               </div>
             )}

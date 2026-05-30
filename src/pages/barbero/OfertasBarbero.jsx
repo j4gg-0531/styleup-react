@@ -1,6 +1,6 @@
 // src/pages/barbero/OfertasBarbero.jsx
 import { useState } from 'react';
-import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, BriefcaseBusiness, Wallet, Users, Target, Wrench, Calendar, Building2, X, Check, Sparkles, Frown, Hourglass } from 'lucide-react';
+import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, BriefcaseBusiness, Wallet, Users, Target, Wrench, Calendar, Building2, X, Check, Sparkles, Frown, Hourglass, GraduationCap, Lightbulb, ArrowLeft, ArrowRight } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 import { ofertasService } from '../../services/ofertasService.js';
@@ -22,7 +22,7 @@ const navItems = [
   { icon: <BarChart3 size={18} />, label: 'Reportes',      href: '/barbero/reportes' },
 ];
 
-const extra = <div className="spec-badge" style={{ marginTop: 8 }}>✂ Corte a tijera</div>;
+const extra = <div className="spec-badge" style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}><Scissors size={14} /> Corte a tijera</div>;
 
 // ── Badge de tipo de contratación ─────────────────────────────
 const colorContratacion = {
@@ -73,7 +73,7 @@ function SelectorTags({ opciones, seleccionados, onChange, max = 6 }) {
               opacity: seleccionados.length >= max && !activo ? 0.4 : 1,
             }}
           >
-            {activo ? '✓ ' : ''}{tag}
+            {activo ? <><Check size={12} /> </> : ''}{tag}
           </button>
         );
       })}
@@ -278,7 +278,7 @@ function ModalOferta({ oferta, onCerrar, onAplicar, yaAplic, estadoApp }) {
                   fontSize: '0.72rem', color: 'var(--muted)',
                   textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6,
                 }}>
-                  ⏰ Horario
+                  <Clock size={12} /> Horario
                 </div>
                 <div style={{ fontSize: '0.88rem', fontWeight: 600 }}>
                   {oferta.horario || '—'}
@@ -322,7 +322,7 @@ function ModalOferta({ oferta, onCerrar, onAplicar, yaAplic, estadoApp }) {
                 style={{ marginTop: 8 }}
                 onClick={() => setPaso(2)}
               >
-                Aplicar a esta oferta →
+                Aplicar a esta oferta <ArrowRight size={14} />
               </button>
             </div>
           )}
@@ -331,7 +331,7 @@ function ModalOferta({ oferta, onCerrar, onAplicar, yaAplic, estadoApp }) {
           {!yaAplic && !enviado && paso === 2 && (
             <div>
               <div className="alert alert-info" style={{ marginBottom: 20, fontSize: '0.82rem' }}>
-                💡 Esta información se enviará directamente a <strong>{oferta.barberiaNombre}</strong>.
+                <Lightbulb size={14} /> Esta información se enviará directamente a <strong>{oferta.barberiaNombre}</strong>.
                 Complétala con cuidado — es tu carta de presentación.
               </div>
 
@@ -493,7 +493,7 @@ function ModalOferta({ oferta, onCerrar, onAplicar, yaAplic, estadoApp }) {
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '0.7rem', color: '#000', flexShrink: 0, transition: 'all 0.2s',
                 }}>
-                  {hdv.herramientasPropias ? '✓' : ''}
+                  {hdv.herramientasPropias ? <Check size={10} /> : ''}
                 </div>
                 <div>
                   <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>
@@ -525,7 +525,7 @@ function ModalOferta({ oferta, onCerrar, onAplicar, yaAplic, estadoApp }) {
                   }}
                 >
                   <div style={{ fontSize: '0.72rem', color: 'var(--muted)', marginBottom: 10 }}>
-                    🎓 Certificado {i + 1}
+                    <GraduationCap size={14} /> Certificado {i + 1}
                   </div>
                   <div className="grid-2" style={{ gap: 10 }}>
                     <div className="form-group" style={{ marginBottom: 8 }}>
@@ -594,7 +594,7 @@ function ModalOferta({ oferta, onCerrar, onAplicar, yaAplic, estadoApp }) {
               {/* Botones */}
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
                 <button className="btn btn-outline" onClick={() => setPaso(1)}>
-                  ← Ver oferta
+                  <ArrowLeft size={16} /> Ver oferta
                 </button>
                 <button className="btn btn-success btn-lg" onClick={handleEnviar}>
                   <Check size={16} /> Enviar aplicación
@@ -766,7 +766,7 @@ export default function OfertasBarbero() {
 
                     {/* Flecha / check */}
                     <div style={{ flexShrink: 0, color: 'var(--muted)', fontSize: '0.9rem' }}>
-                      {aplicado ? '✓' : '›'}
+                      {aplicado ? <Check size={14} /> : <span style={{ fontSize: '0.9rem' }}>›</span>}
                     </div>
                   </div>
                 </div>

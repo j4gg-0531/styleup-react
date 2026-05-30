@@ -14,17 +14,17 @@ import {
   generarSlots,
   filtrarBarberosPorServicio,
 } from '../../services/agendamientoService.js';
-import { Zap, Calendar, Smartphone, Check, Scissors, Clock } from 'lucide-react';
+import { Calendar, Smartphone, Check, Scissors, Clock, ArrowLeft, ArrowRight, Circle, Frown, CheckCircle, Zap } from 'lucide-react';
 import { preciosService } from '../../services/preciosService.js';
 
 // ── Catálogo de servicios ──────────────────────────────────────────────────
 const SERVICIOS = [
-  { id: 'E001', icon: '✂',  name: 'Corte a tijera',    dur: DURACION_SERVICIOS.E001 },
-  { id: 'E002', icon: '💈', name: 'Degradado / Fade',   dur: DURACION_SERVICIOS.E002 },
-  { id: 'E006', icon: '🪒', name: 'Afeitado con navaja', dur: DURACION_SERVICIOS.E006 },
-  { id: 'E008', icon: '🧔', name: 'Corte + Barba',       dur: DURACION_SERVICIOS.E008 },
-  { id: 'E007', icon: '🎨', name: 'Diseño en cabello',   dur: DURACION_SERVICIOS.E007 },
-  { id: 'E004', icon: '⚡', name: 'Undercut',            dur: DURACION_SERVICIOS.E004 },
+  { id: 'E001', name: 'Corte a tijera',    dur: DURACION_SERVICIOS.E001 },
+  { id: 'E002', name: 'Degradado / Fade',   dur: DURACION_SERVICIOS.E002 },
+  { id: 'E006', name: 'Afeitado con navaja', dur: DURACION_SERVICIOS.E006 },
+  { id: 'E008', name: 'Corte + Barba',       dur: DURACION_SERVICIOS.E008 },
+  { id: 'E007', name: 'Diseño en cabello',   dur: DURACION_SERVICIOS.E007 },
+  { id: 'E004', name: 'Undercut',            dur: DURACION_SERVICIOS.E004 },
 ];
 
 // Fecha de HOY formateada para mostrar y para filtrar citas
@@ -144,9 +144,9 @@ export default function Agendar() {
           display: 'flex', alignItems: 'center',
           justifyContent: 'space-between', marginBottom: 32,
         }}>
-          <Link to="/cliente" className="wizard-back">← Volver al panel</Link>
+          <Link to="/cliente" className="wizard-back" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><ArrowLeft size={16} /> Volver al panel</Link>
           <div style={{ fontFamily: "'Playfair Display',serif", fontSize: '1.1rem' }}>
-            ✂ StyleUp
+            <Scissors size={16} /> StyleUp
           </div>
         </div>
 
@@ -173,7 +173,7 @@ export default function Agendar() {
         <div className="steps mb-3">
           {['Servicio', 'Barbero', 'Hora', 'Confirmar'].map((l, i) => (
             <div key={l} className={`step ${paso === i+1 ? 'active' : paso > i+1 ? 'done' : ''}`}>
-              <div className="step-circle">{paso > i+1 ? '✓' : i+1}</div>
+              <div className="step-circle" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{paso > i+1 ? <Check size={14} /> : i+1}</div>
               <div className="step-label">{l}</div>
             </div>
           ))}
@@ -197,7 +197,6 @@ export default function Agendar() {
                     className={`option-card ${esSel ? 'selected' : ''}`}
                     onClick={() => setSel({ servicio: s, barbero: null, slot: null })}
                   >
-                    <div className="option-icon">{s.icon}</div>
                     <div className="option-name">{s.name}</div>
                     {/* Duración real del servicio */}
                     <div className="option-sub" style={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'center' }}><Clock size={12} /> {s.dur} min</div>
@@ -211,7 +210,7 @@ export default function Agendar() {
             <div className="nav-btns">
               <span />
               <button className="btn btn-primary" onClick={validar1}>
-                Siguiente →
+                Siguiente <ArrowRight size={14} />
               </button>
             </div>
           </div>
@@ -231,7 +230,7 @@ export default function Agendar() {
 
             {barberosFiltrados.length === 0 ? (
               <div className="alert alert-info">
-                😕 No hay barberos disponibles hoy para este servicio.
+                <Frown size={16} /> No hay barberos disponibles hoy para este servicio.
                 Prueba con el agendamiento normal para elegir otra fecha.
               </div>
             ) : (
@@ -257,8 +256,8 @@ export default function Agendar() {
                       }}>
                         {fmtPrecio(precio)}
                       </div>
-                      <div className="barbero-avail" style={{ color: '#2ecc71', marginTop: 4 }}>
-                        ● Disponible hoy
+                      <div className="barbero-avail" style={{ color: '#2ecc71', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <Circle size={8} /> Disponible hoy
                       </div>
                     </div>
                   );
@@ -270,10 +269,10 @@ export default function Agendar() {
               <div className="alert alert-error">Selecciona un barbero para continuar.</div>
             )}
             <div className="nav-btns">
-              <button className="btn btn-outline" onClick={() => setPaso(1)}>← Anterior</button>
+              <button className="btn btn-outline" onClick={() => setPaso(1)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><ArrowLeft size={16} /> Anterior</button>
               <button className="btn btn-primary" onClick={irAPaso3}
-                disabled={barberosFiltrados.length === 0}>
-                Siguiente →
+                disabled={barberosFiltrados.length === 0} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                Siguiente <ArrowRight size={14} />
               </button>
             </div>
           </div>
@@ -305,7 +304,7 @@ export default function Agendar() {
 
             {slots.length === 0 ? (
               <div className="alert alert-info">
-                😕 No hay horarios disponibles hoy para este barbero.
+                <Frown size={16} /> No hay horarios disponibles hoy para este barbero.
                 Puedes intentar con otro barbero o usar el agendamiento normal
                 para elegir otra fecha.
               </div>
@@ -390,10 +389,10 @@ export default function Agendar() {
               <div className="alert alert-error">Selecciona un horario para continuar.</div>
             )}
             <div className="nav-btns">
-              <button className="btn btn-outline" onClick={() => setPaso(2)}>← Anterior</button>
+              <button className="btn btn-outline" onClick={() => setPaso(2)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><ArrowLeft size={16} /> Anterior</button>
               <button className="btn btn-primary" onClick={validar3}
-                disabled={slots.length === 0}>
-                Ver resumen →
+                disabled={slots.length === 0} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                Ver resumen <ArrowRight size={14} />
               </button>
             </div>
           </div>
@@ -431,13 +430,13 @@ export default function Agendar() {
             </div>
 
             {confirmado && (
-              <div className="alert alert-success">
-                ✅ ¡Cita agendada con éxito! Redirigiendo...
+              <div className="alert alert-success" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <CheckCircle size={16} /> ¡Cita agendada con éxito! Redirigiendo...
               </div>
             )}
 
             <div className="nav-btns">
-              <button className="btn btn-outline" onClick={() => setPaso(3)}>← Modificar</button>
+              <button className="btn btn-outline" onClick={() => setPaso(3)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><ArrowLeft size={16} /> Modificar</button>
               <button
                 className="btn btn-success btn-lg"
                 onClick={confirmar}

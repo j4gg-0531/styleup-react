@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, MapPin, Lock, Save, Trash2, AlertTriangle, Frown } from 'lucide-react';
+import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, MapPin, Lock, Save, Trash2, AlertTriangle, Frown, CheckCircle } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 import SelectorUbicacion from '../../components/SelectorUbicacion.jsx';
@@ -14,7 +14,7 @@ const navItems = [
   { icon: <BarChart3 size={18} />, label: 'Reportes',      href: '/barbero/reportes' },
 ];
 
-const extra = <div className="spec-badge" style={{ marginTop: 8 }}>✂ Corte a tijera</div>;
+const extra = <div className="spec-badge" style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}><Scissors size={14} /> Corte a tijera</div>;
 
 export default function PerfilBarberoPage() {
   const { user, logout } = useAuth();
@@ -178,8 +178,8 @@ export default function PerfilBarberoPage() {
             </div>
 
             {pwOk && (
-              <div className="alert alert-success" style={{ marginBottom: 16 }}>
-                ✅ Contraseña actualizada correctamente.
+              <div className="alert alert-success" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <CheckCircle size={16} /> Contraseña actualizada correctamente.
               </div>
             )}
             {pwError && (
@@ -206,8 +206,8 @@ export default function PerfilBarberoPage() {
               <Save size={16} /> Guardar cambios
             </button>
             {saveOk && (
-              <div className="alert alert-success" style={{ marginTop: 12 }}>
-                ✅ Perfil actualizado.
+              <div className="alert alert-success" style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <CheckCircle size={16} /> Perfil actualizado.
               </div>
             )}
           </div>

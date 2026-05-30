@@ -1,7 +1,7 @@
 // src/pages/barberia/PerfilBarberoAdmin.jsx
 import { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Scissors, MapPin, Phone, MessageCircle, XOctagon, Clock, Save, Pencil, Lightbulb, ClipboardList, AlertTriangle } from 'lucide-react';
+import { Scissors, MapPin, Phone, MessageCircle, XOctagon, Clock, Save, Pencil, Lightbulb, ClipboardList, AlertTriangle, CheckCircle } from 'lucide-react';
 import { barberosService } from '../../services/barberosService.js';
 import { citasService } from '../../services/citasService.js';
 import { preciosService } from '../../services/preciosService.js';
@@ -464,8 +464,8 @@ export default function PerfilBarberoAdmin() {
 
       {despedido && (
         <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 32px' }}>
-          <div className="alert alert-success" style={{ marginTop: 16 }}>
-            ✅ {nombreCompleto} ha sido removido del equipo. Redirigiendo...
+          <div className="alert alert-success" style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <CheckCircle size={16} /> {nombreCompleto} ha sido removido del equipo. Redirigiendo...
           </div>
         </div>
       )}

@@ -14,17 +14,17 @@ import {
   generarSlots,
 } from '../../services/agendamientoService.js';
 import Estrellas from '../../components/Estrellas.jsx';
-import { Scissors, Building2, MapPin, Phone, MessageCircle, Wallet, Clock, Calendar, ArrowLeft, Smartphone, Check } from 'lucide-react';
-import MapaMini from '../../components/MapaMini.jsx';
+import { Scissors, Building2, MapPin, Phone, MessageCircle, Wallet, Clock, Calendar, ArrowLeft, Smartphone, Check, Circle, CheckCircle } from 'lucide-react';
+import MapaMini, { SVG_SCISSORS, SVG_BUILDING2 } from '../../components/MapaMini.jsx';
 import { getDiasSemana, fmtFecha } from '../../services/semana.js';
 
 const SERVICIOS_INFO = {
-  E001: { icon: '✂',  dur: DURACION_SERVICIOS.E001 },
-  E002: { icon: '💈', dur: DURACION_SERVICIOS.E002 },
-  E006: { icon: '🪒', dur: DURACION_SERVICIOS.E006 },
-  E008: { icon: '🧔', dur: DURACION_SERVICIOS.E008 },
-  E007: { icon: '🎨', dur: DURACION_SERVICIOS.E007 },
-  E004: { icon: '⚡', dur: DURACION_SERVICIOS.E004 },
+  E001: { dur: DURACION_SERVICIOS.E001 },
+  E002: { dur: DURACION_SERVICIOS.E002 },
+  E006: { dur: DURACION_SERVICIOS.E006 },
+  E008: { dur: DURACION_SERVICIOS.E008 },
+  E007: { dur: DURACION_SERVICIOS.E007 },
+  E004: { dur: DURACION_SERVICIOS.E004 },
 };
 
 export default function PerfilBarbero() {
@@ -142,7 +142,7 @@ export default function PerfilBarbero() {
           <button className="btn btn-ghost btn-sm"
             style={{ marginBottom: 24, color: 'var(--muted)' }}
             onClick={() => navigate('/cliente/barberos')}>
-            ← Volver a barberos
+            <ArrowLeft size={16} /> Volver a barberos
           </button>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap' }}>
@@ -162,7 +162,7 @@ export default function PerfilBarbero() {
                   {nombreCompleto}
                 </h1>
                 <span className={`badge ${barbero.disponibleHoy ? 'badge-green' : 'badge-muted'}`}>
-                  {barbero.disponibleHoy ? '● Disponible hoy' : '● No disponible'}
+                  {barbero.disponibleHoy ? <><Circle size={8} /> Disponible hoy</> : <><Circle size={8} /> No disponible</>}
                 </span>
               </div>
               <div style={{ color: 'var(--gold)', fontSize: '0.95rem', marginBottom: 8 }}>
@@ -211,13 +211,13 @@ export default function PerfilBarbero() {
                 <Wallet size={18} /> Servicios y precios
               </div>
               {!servicioSel
-                ? <span style={{ fontSize: '0.72rem', color: 'var(--gold)', fontWeight: 600 }}>← Elige uno para agendar</span>
-                : <span className="badge badge-green">✓ Seleccionado</span>
+                ? <span style={{ fontSize: '0.72rem', color: 'var(--gold)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}><ArrowLeft size={14} /> Elige uno para agendar</span>
+                : <span className="badge badge-green" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Check size={12} /> Seleccionado</span>
               }
             </div>
             <div style={{ padding: '8px 16px' }}>
               {Object.entries(NOMBRES_SERVICIOS).map(([sid, nombre]) => {
-                const info   = SERVICIOS_INFO[sid] || { icon: '✂', dur: 30 };
+                const info   = SERVICIOS_INFO[sid] || { dur: 30 };
                 const precio = precios[sid] || preciosService.getPrecioServicio(nombreCompleto, sid);
                 const esSel  = servicioSel?.id === sid;
                 return (
@@ -239,24 +239,12 @@ export default function PerfilBarbero() {
                     onMouseEnter={(e) => { if (!esSel) e.currentTarget.style.background = 'var(--surface2)'; }}
                     onMouseLeave={(e) => { if (!esSel) e.currentTarget.style.background = 'transparent'; }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <span style={{
-                        width: 34, height: 34, borderRadius: 8,
-                        background: esSel ? 'rgba(230,184,106,0.15)' : 'var(--surface2)',
-                        border: esSel ? '1px solid rgba(230,184,106,0.3)' : '1px solid transparent',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '1rem', flexShrink: 0, transition: 'all 0.2s',
-                      }}>
-                        {info.icon}
-                      </span>
-                      <div>
-                        <div style={{ fontSize: '0.88rem', fontWeight: 600, color: esSel ? 'var(--gold)' : 'var(--text)' }}>
-                          {nombre}
-                        </div>
-                        {/* Duración real del servicio */}
-                        <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>
-                          <Clock size={12} /> {info.dur} min
-                        </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <div style={{ fontSize: '0.88rem', fontWeight: 600, color: esSel ? 'var(--gold)' : 'var(--text)' }}>
+                        {nombre}
+                      </div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>
+                        <Clock size={12} /> {info.dur} min
                       </div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -271,8 +259,8 @@ export default function PerfilBarbero() {
                           width: 20, height: 20, borderRadius: '50%',
                           background: 'var(--gold)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: '0.7rem', color: '#000', fontWeight: 700, flexShrink: 0,
-                        }}>✓</span>
+                          flexShrink: 0,
+                        }}><Check size={12} color="#000" /></span>
                       )}
                     </div>
                   </div>
@@ -461,13 +449,13 @@ export default function PerfilBarbero() {
                 <Smartphone size={14} /> Recibirás un recordatorio por Telegram 1 hora antes.
               </div>
               {confirmado && (
-                <div className="alert alert-success" style={{ marginBottom: 12 }}>
-                  ✅ ¡Cita agendada! Redirigiendo...
+                <div className="alert alert-success" style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <CheckCircle size={16} /> ¡Cita agendada! Redirigiendo...
                 </div>
               )}
               <div style={{ display: 'flex', gap: 12 }}>
                 <button className="btn btn-outline" onClick={() => setSlotSel(null)}>
-                  ← Modificar hora
+                  <ArrowLeft size={16} /> Modificar hora
                 </button>
                 <button className="btn btn-success btn-lg" onClick={handleConfirmar} disabled={confirmado}>
                   <Check size={16} /> Confirmar cita
@@ -484,15 +472,15 @@ export default function PerfilBarbero() {
             <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid var(--border)', marginBottom: 12 }}>
               <MapaMini
                 lat={ubicacion.lat} lng={ubicacion.lng}
-                icono={barberia ? '🏪' : '💈'}
+                icono={barberia ? SVG_BUILDING2 : SVG_SCISSORS}
                 color={barberia ? '#e6b86a' : '#e74c3c'}
                 altura={230}
               />
             </div>
             <div style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>
               {barberia
-                ? <><strong style={{ color: 'var(--text)' }}>🏪 {barberia.nombre}</strong> · {barberia.direccion}, {barberia.ciudad}</>
-                : <>📍 {barbero.direccion}, {barbero.ciudad}</>
+                ? <><strong style={{ color: 'var(--text)', display: 'inline-flex', alignItems: 'center', gap: 4 }}><Building2 size={14} /> {barberia.nombre}</strong> · {barberia.direccion}, {barberia.ciudad}</>
+                : <><span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><MapPin size={14} /> {barbero.direccion}, {barbero.ciudad}</span></>
               }
             </div>
           </div>

@@ -1,6 +1,6 @@
 // src/pages/cliente/Telegram.jsx
 import { useState } from 'react';
-import { Home, Scissors, BookOpen, Smartphone, User, Smartphone as SmartphoneIcon } from 'lucide-react';
+import { Home, Scissors, BookOpen, Smartphone, User, Smartphone as SmartphoneIcon, CheckCircle } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 
 export default function Telegram() {
@@ -42,8 +42,8 @@ export default function Telegram() {
             Vincular cuenta
           </button>
           {tgOk && (
-            <div className="alert alert-success" style={{ marginTop: 8 }}>
-              ✅ Cuenta vinculada. Recibirás recordatorios por Telegram.
+            <div className="alert alert-success" style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <CheckCircle size={16} /> Cuenta vinculada. Recibirás recordatorios por Telegram.
             </div>
           )}
         </div>

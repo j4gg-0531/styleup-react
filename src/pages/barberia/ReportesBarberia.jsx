@@ -81,7 +81,7 @@ export default function ReportesBarberia() {
 
         {/* Ganancias por barbero */}
         <div className="card">
-          <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>💰 Ganancias por barbero</div>
+          <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><BarChart3 size={18} /> Ganancias por barbero</div>
           <div className="table-wrap">
             <table>
               <thead>

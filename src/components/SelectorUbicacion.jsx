@@ -28,7 +28,9 @@ const iconoPin = (color) => L.divIcon({
       box-shadow: 0 4px 12px rgba(0,0,0,0.4);
       display: flex; align-items: center; justify-content: center;
     ">
-      <span style="transform: rotate(45deg); font-size: 1rem;">📍</span>
+      <span style="transform: rotate(45deg); display: flex; align-items: center; justify-content: center;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+      </span>
     </div>
   `,
   iconSize:   [38, 38],

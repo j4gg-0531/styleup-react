@@ -90,7 +90,7 @@ export default function Historial() {
                     <tr key={c.id}>
                       <td>{c.fechaDia} {c.fechaMes} {c.fechaAnio}</td>
                       <td>{c.hora}</td>
-                      <td>{c.servicio?.icon} {c.servicio?.name}</td>
+                      <td>{c.servicio?.name}</td>
                       <td>{c.barbero?.name}</td>
                       <td>{c.servicio?.dur}</td>
                       <td>{badgePorEstado[c.estado]}</td>

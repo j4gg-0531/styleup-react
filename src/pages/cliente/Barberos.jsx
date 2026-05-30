@@ -1,7 +1,7 @@
 // src/pages/cliente/Barberos.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, Scissors, BookOpen, Smartphone, User } from 'lucide-react';
+import { Home, Scissors, BookOpen, Smartphone, User, MapPin, Phone, Building2, X, List, Map, Circle } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { barberosService } from '../../services/barberosService.js';
 import Estrellas from '../../components/Estrellas.jsx';
@@ -62,7 +62,7 @@ export default function Barberos() {
 
       <main className="main-content">
         <div className="page-header">
-          <h2 className="page-title">💈 Nuestros barberos</h2>
+          <h2 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Scissors size={22} /> Nuestros barberos</h2>
           <p className="page-subtitle">Elige tu barbero y agenda tu cita</p>
         </div>
 
@@ -91,7 +91,7 @@ export default function Barberos() {
               className="btn btn-ghost btn-sm"
               onClick={() => { setBusqueda(''); setEspecialidadFiltro(''); }}
             >
-              ✕ Limpiar filtros
+              <X size={14} /> Limpiar filtros
             </button>
           )}
 
@@ -123,7 +123,7 @@ export default function Barberos() {
                 color: vista === 'lista' ? '#fff' : 'var(--muted)',
               }}
             >
-              ☰ Lista
+              <List size={16} /> Lista
             </button>
             <button
               onClick={() => setVista('mapa')}
@@ -141,7 +141,7 @@ export default function Barberos() {
                 color: vista === 'mapa' ? '#fff' : 'var(--muted)',
               }}
             >
-              🗺️ Mapa
+              <Map size={16} /> Mapa
             </button>
           </div>
         </div>
@@ -173,17 +173,17 @@ export default function Barberos() {
                         <span style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>
                           ID: {b.id}
                         </span>
-                        <span className={`badge ${b.disponibleHoy ? 'badge-green' : 'badge-muted'}`}>
-                          {b.disponibleHoy ? '● Disponible' : '● No disponible'}
+                        <span className={`badge ${b.disponibleHoy ? 'badge-green' : 'badge-muted'}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          {b.disponibleHoy ? <><Circle size={8} /> Disponible</> : <><Circle size={8} /> No disponible</>}
                         </span>
                       </div>
-                      <div style={{ color: 'var(--gold)', fontSize: '0.85rem', marginBottom: 8 }}>
-                        ✂ {b.especialidad}
+                      <div style={{ color: 'var(--gold)', fontSize: '0.85rem', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <Scissors size={14} /> {b.especialidad}
                       </div>
                       <div style={{ fontSize: '0.82rem', color: 'var(--muted)', display: 'flex', gap: 20, flexWrap: 'wrap' }}>
-                        <span>📍 {b.direccion}, {b.ciudad}</span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><MapPin size={14} /> {b.direccion}, {b.ciudad}</span>
                         <Estrellas calificacion={b.calificacion} total={b.totalCalificaciones} />
-                        <span>📞 {b.telefono}</span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Phone size={14} /> {b.telefono}</span>
                       </div>
                     </div>
 
@@ -227,7 +227,7 @@ export default function Barberos() {
               }}>
                 <div>
                   <div style={{ fontFamily: "'Cinzel',serif", fontWeight: 700, fontSize: '1.1rem' }}>
-                    🏪 {barberiaModal.nombre}
+                    <Building2 size={16} /> {barberiaModal.nombre}
                   </div>
                   <div style={{ fontSize: '0.78rem', color: 'var(--muted)', marginTop: 2 }}>
                     {barberiaModal.barberoIds.length > 0
@@ -240,7 +240,7 @@ export default function Barberos() {
                   onClick={() => setBarberiaModal(null)}
                   style={{ fontSize: '1.1rem', lineHeight: 1 }}
                 >
-                  ✕
+                  <X size={16} />
                 </button>
               </div>
 
@@ -264,15 +264,15 @@ export default function Barberos() {
                           <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
                             {b.nombre} {b.apellido}
                           </div>
-                          <div style={{ color: 'var(--gold)', fontSize: '0.8rem', marginTop: 2 }}>
-                            ✂ {b.especialidad}
+                          <div style={{ color: 'var(--gold)', fontSize: '0.8rem', marginTop: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <Scissors size={12} /> {b.especialidad}
                           </div>
-                          <div style={{ color: 'var(--muted)', fontSize: '0.75rem', marginTop: 1 }}>
-                            📍 {b.ciudad}
+                          <div style={{ color: 'var(--muted)', fontSize: '0.75rem', marginTop: 1, display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <MapPin size={12} /> {b.ciudad}
                           </div>
                         </div>
-                        <span className={`badge ${b.disponibleHoy ? 'badge-green' : 'badge-muted'}`} style={{ flexShrink: 0 }}>
-                          {b.disponibleHoy ? '● Disponible' : '● No disponible'}
+                        <span className={`badge ${b.disponibleHoy ? 'badge-green' : 'badge-muted'}`} style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          {b.disponibleHoy ? <><Circle size={8} /> Disponible</> : <><Circle size={8} /> No disponible</>}
                         </span>
                       </div>
                     </div>
