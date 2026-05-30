@@ -1,5 +1,5 @@
 // src/pages/barberia/HorariosBarberia.jsx
-import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2 } from 'lucide-react';
+import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2, Lightbulb } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 
 const BARBEROS = ['Juan Pérez', 'Carlos López', 'Miguel Torres'];
