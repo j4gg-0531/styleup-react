@@ -1,11 +1,13 @@
 // src/pages/barbero/Horarios.jsx
 import { useState, useEffect, useMemo } from 'react';
-import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, Building2, X, Save, ArrowLeft, ArrowRight, CheckCircle, Bell } from 'lucide-react';
+import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, Building2, X, Save, ArrowLeft, ArrowRight, Bell, Check, X as XIcon } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 import { useHorarios } from '../../context/useHorarios.js';
 import { barberiaService } from '../../services/barberiaService.js';
 import { barberosService } from '../../services/barberosService.js';
+import { horariosService } from '../../services/horariosService.js';
+import { useToast } from '../../context/useToast.js';
 
 // ── Calcula los 6 días laborales (Lun–Sáb) de la semana indicada ──
 // offset = 0 (semana actual), -1 (semana pasada), 1 (próxima semana)…
@@ -55,8 +57,9 @@ export default function Horarios() {
   const [estadoSel, setEstadoSel]   = useState('disponible');
   const [horaInicio, setHoraInicio] = useState('09:00');
   const [horaFin, setHoraFin]       = useState('13:00');
-  const [msgNuevo, setMsgNuevo]     = useState(null);
-  const [msgElim, setMsgElim]       = useState(false);
+  const [propuestas, setPropuestas] = useState([]);
+  const [propuestasAdmin, setPropuestasAdmin] = useState([]);
+  const toast = useToast();
 
   // Recalcula los días cada vez que cambia la semana seleccionada
   const DIAS_SEMANA = useMemo(() => getDiasSemana(semanaOffset), [semanaOffset]);
@@ -64,6 +67,13 @@ export default function Horarios() {
   useEffect(() => {
     if (user?.nombre) cargarHorarios(user.nombre);
   }, [user, cargarHorarios]);
+
+  useEffect(() => {
+    if (user?.nombre) {
+      setPropuestas(horariosService.getPropuestasByBarbero(user.nombre));
+      setPropuestasAdmin(horariosService.getPropuestasAdminByBarbero(user.nombre));
+    }
+  }, [user]);
 
   const navItems = [
     { icon: <Home size={18} />, label: 'Dashboard',     href: '/barbero' },
@@ -83,36 +93,70 @@ export default function Horarios() {
   const handleEliminar = (id) => {
     if (soloLectura) return;
     eliminarHorario(id);
-    setMsgElim(true);
-    setTimeout(() => setMsgElim(false), 2000);
+    toast.info('Horario eliminado.');
   };
 
   const handleGuardar = () => {
-    if (soloLectura) return;
     if (diasSel.length === 0) {
-      setMsgNuevo({ tipo: 'error', texto: 'Selecciona al menos un día.' });
+      toast.error('Selecciona al menos un día.');
       return;
     }
     if (horaInicio >= horaFin) {
-      setMsgNuevo({ tipo: 'error', texto: 'La hora de fin debe ser mayor a la de inicio.' });
+      toast.error('La hora de fin debe ser mayor a la de inicio.');
       return;
     }
-    diasSel.forEach((diaNum) => {
-      const diaInfo = DIAS_SEMANA.find((d) => d.num === diaNum);
-      agregarHorario({
+
+    if (soloLectura) {
+      const nombresDia = diasSel.map((diaNum) => {
+        const d = DIAS_SEMANA.find((x) => x.num === diaNum);
+        return d?.name || '';
+      });
+      horariosService.crearPropuesta({
         barberoNombre: user.nombre,
-        dia: diaNum,
-        mes: diaInfo?.name || '',
-        // Guardamos la semana para poder filtrar por semana luego
+        dias: diasSel,
+        nombresDia,
         semanaOffset,
         rango: `${horaInicio} — ${horaFin}`,
         horaInicio,
         horaFin,
         estado: estadoSel,
       });
-    });
-    setMsgNuevo({ tipo: 'success', texto: 'Horario guardado correctamente.' });
-    setTimeout(() => { setMsgNuevo(null); setTab('ver'); setDiasSel([]); }, 1500);
+      toast.success('Propuesta enviada a la barbería. Espera su aprobación.');
+      setPropuestas(horariosService.getPropuestasByBarbero(user.nombre));
+    } else {
+      diasSel.forEach((diaNum) => {
+        const diaInfo = DIAS_SEMANA.find((d) => d.num === diaNum);
+        agregarHorario({
+          barberoNombre: user.nombre,
+          dia: diaNum,
+          mes: diaInfo?.name || '',
+          semanaOffset,
+          rango: `${horaInicio} — ${horaFin}`,
+          horaInicio,
+          horaFin,
+          estado: estadoSel,
+        });
+      });
+      toast.success('Horario guardado correctamente.');
+    }
+    setTab('ver');
+    setDiasSel([]);
+  };
+
+  const handleAceptarAdmin = (id) => {
+    const result = horariosService.aceptarPropuestaAdmin(id);
+    if (result) {
+      setPropuestasAdmin(horariosService.getPropuestasAdminByBarbero(user.nombre));
+      toast.success('Propuesta aceptada. Tu horario ha sido actualizado.');
+    }
+  };
+
+  const handleRechazarAdmin = (id) => {
+    const result = horariosService.rechazarPropuestaAdmin(id);
+    if (result) {
+      setPropuestasAdmin(horariosService.getPropuestasAdminByBarbero(user.nombre));
+      toast.info('Propuesta rechazada.');
+    }
   };
 
   const badgeClase = { disponible: 'badge-green', descanso: 'badge-muted' };
@@ -154,12 +198,12 @@ export default function Horarios() {
           </p>
         </div>
 
-        {soloLectura && (
-          <div className="alert alert-info" style={{ marginBottom: 20 }}>
-            <Building2 size={16} /> Trabajas en <strong>{barberia.nombre}</strong>. Solo la barbería puede
-            modificar los horarios. Si necesitas un cambio, coordínalo con ellos.
-          </div>
-        )}
+          {soloLectura && (
+            <div className="alert alert-info" style={{ marginBottom: 20 }}>
+              <Building2 size={16} /> Trabajas en <strong>{barberia.nombre}</strong>. Puedes enviar propuestas
+              de horario para que la barbería las apruebe.
+            </div>
+          )}
 
         {/* ── Navegador de semana ── */}
         <div style={{
@@ -210,10 +254,9 @@ export default function Horarios() {
           <div className={`hor-tab ${tab === 'ver' ? 'active' : ''}`} onClick={() => setTab('ver')}>
             Ver horarios
           </div>
-          <div className={`hor-tab ${tab === 'nuevo' ? 'active' : ''}`} onClick={() => !soloLectura && setTab('nuevo')}
-            style={{ opacity: soloLectura ? 0.4 : 1, cursor: soloLectura ? 'not-allowed' : 'pointer' }}
-            title={soloLectura ? `Bloqueado — tu barbería gestiona los horarios` : ''}>
-            + Agregar horario
+          <div className={`hor-tab ${tab === 'nuevo' ? 'active' : ''}`} onClick={() => setTab('nuevo')}
+            title={soloLectura ? 'Envía una propuesta de horario a tu barbería' : 'Agregar nuevo bloque'}>
+            {soloLectura ? '+ Proponer horario' : '+ Agregar horario'}
           </div>
         </div>
 
@@ -322,7 +365,78 @@ export default function Horarios() {
                 </div>
               ))
             )}
-            {msgElim && <div className="alert alert-info" style={{ marginTop: 12 }}>Horario eliminado.</div>}
+            {propuestasAdmin.filter((p) => p.estadoPropuesta === 'pendiente').length > 0 && (
+              <div style={{ marginTop: 32, borderLeft: '3px solid #9b59b6', paddingLeft: 16 }}>
+                <h3 style={{ fontFamily: "'Playfair Display',serif", fontSize: '1rem', marginBottom: 12, color: '#9b59b6' }}>
+                  Propuestas de la barbería
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {propuestasAdmin.filter((p) => p.estadoPropuesta === 'pendiente').map((p) => (
+                    <div
+                      key={p.id}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 12,
+                        padding: '10px 14px', borderRadius: 8,
+                        border: '1px solid var(--border)',
+                        background: 'rgba(155,89,182,0.04)',
+                      }}
+                    >
+                      <div style={{ flex: 1, fontSize: '0.85rem' }}>
+                        <strong>{p.barberiaNombre}</strong> te ha enviado una propuesta de horario.
+                      </div>
+                      <button className="btn btn-primary btn-sm" onClick={() => handleAceptarAdmin(p.id)} style={{ background: '#2ecc71' }}>
+                        <Check size={14} /> Aceptar
+                      </button>
+                      <button className="btn btn-outline btn-sm" onClick={() => handleRechazarAdmin(p.id)} style={{ borderColor: '#e74c3c', color: '#e74c3c' }}>
+                        <XIcon size={14} /> Rechazar
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {propuestas.length > 0 && (
+              <div style={{ marginTop: 32 }}>
+                <h3 style={{ fontFamily: "'Playfair Display',serif", fontSize: '1rem', marginBottom: 12 }}>
+                  Mis propuestas
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {propuestas.slice().reverse().map((p) => (
+                    <div
+                      key={p.id}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 12,
+                        padding: '10px 14px', borderRadius: 8,
+                        border: '1px solid var(--border)',
+                        background: p.estadoPropuesta === 'pendiente' ? 'rgba(241,196,15,0.06)' :
+                                    p.estadoPropuesta === 'aceptada' ? 'rgba(46,204,113,0.06)' :
+                                    'rgba(231,76,60,0.06)',
+                      }}
+                    >
+                      <div style={{
+                        width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
+                        background: p.estadoPropuesta === 'pendiente' ? '#f1c40f' :
+                                    p.estadoPropuesta === 'aceptada' ? '#2ecc71' : '#e74c3c',
+                      }} />
+                      <div style={{ flex: 1, fontSize: '0.85rem' }}>
+                        <span style={{ fontWeight: 600 }}>{p.rango}</span>
+                        <span style={{ color: 'var(--muted)', marginLeft: 8 }}>
+                          ({p.dias.length} día{p.dias.length > 1 ? 's' : ''})
+                        </span>
+                      </div>
+                      <span className={`badge ${
+                        p.estadoPropuesta === 'pendiente' ? 'badge-warning' :
+                        p.estadoPropuesta === 'aceptada' ? 'badge-green' : 'badge-muted'
+                      }`}>
+                        {p.estadoPropuesta === 'pendiente' ? 'Pendiente' :
+                         p.estadoPropuesta === 'aceptada' ? 'Aceptada' : 'Rechazada'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -397,15 +511,9 @@ export default function Horarios() {
               ))}
             </div>
 
-            {msgNuevo && (
-              <div className={`alert alert-${msgNuevo.tipo === 'error' ? 'error' : 'success'}`} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                {msgNuevo.tipo === 'success' && <CheckCircle size={16} />}
-                {msgNuevo.texto}
-              </div>
-            )}
-            {!soloLectura && <button className="btn btn-primary" onClick={handleGuardar}>
-              <Save size={16} /> Guardar horario
-            </button>}
+            <button className="btn btn-primary" onClick={handleGuardar}>
+              <Save size={16} /> {soloLectura ? 'Enviar propuesta' : 'Guardar horario'}
+            </button>
           </div>
         )}
       </main>

@@ -5,6 +5,8 @@ import { NotificacionesProvider } from './context/NotificacionesContext.jsx';
 import { CitasProvider } from './context/CitasContext.jsx';
 import { HorariosProvider } from './context/HorariosContext.jsx';
 import { ChatFlotanteProvider } from './context/ChatFlotanteContext.jsx';
+import { ToastProvider } from './context/ToastContext.jsx';
+import ToastContainer from './components/ui/ToastContainer.jsx';
 import { useAuth } from './context/useAuth.js';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
@@ -45,6 +47,7 @@ function RutaProtegida({ children, rol }) {
 export default function App() {
   return (
     <AuthProvider>
+      <ToastProvider>
       <NotificacionesProvider>
         <CitasProvider>
           <HorariosProvider>
@@ -138,11 +141,13 @@ export default function App() {
               </Routes>
               <ChatFlotante />
               <ThemeToggle />
+              <ToastContainer />
             </BrowserRouter>
             </ChatFlotanteProvider>
           </HorariosProvider>
         </CitasProvider>
       </NotificacionesProvider>
+      </ToastProvider>
     </AuthProvider>
   );
 }
