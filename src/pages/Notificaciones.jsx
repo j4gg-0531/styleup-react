@@ -16,6 +16,12 @@ const TIPO_ICON = {
   servicios_modificados: 'servicios',
   queja_cliente: 'queja',
   renuncia_barbero: 'renuncia',
+  propuesta_horario: 'propuesta',
+  propuesta_aceptada: 'aceptada',
+  propuesta_rechazada: 'rechazada',
+  propuesta_admin: 'propuesta_admin',
+  propuesta_admin_aceptada: 'propuesta_admin_aceptada',
+  propuesta_admin_rechazada: 'propuesta_admin_rechazada',
 };
 
 const iconoPorTipo = (tipo) => {
@@ -30,6 +36,12 @@ const iconoPorTipo = (tipo) => {
     servicios_modificados: '✂️',
     queja_cliente: '⚠️',
     renuncia_barbero: '👋',
+    propuesta_horario: '📋',
+    propuesta_aceptada: '✅',
+    propuesta_rechazada: '❌',
+    propuesta_admin: '📩',
+    propuesta_admin_aceptada: '👍',
+    propuesta_admin_rechazada: '👎',
   };
   return map[tipo] || '🔔';
 };

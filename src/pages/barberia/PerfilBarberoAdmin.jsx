@@ -2,18 +2,15 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Scissors, MapPin, Phone, MessageCircle, XOctagon, Clock, Save, Pencil, Lightbulb, ClipboardList, AlertTriangle, CheckCircle } from 'lucide-react';
+import { useAuth } from '../../context/useAuth.js';
 import { barberosService } from '../../services/barberosService.js';
+import { barberiaService } from '../../services/barberiaService.js';
 import { citasService } from '../../services/citasService.js';
 import { preciosService } from '../../services/preciosService.js';
 import { notificacionesService } from '../../services/notificacionesService.js';
+import { horariosService } from '../../services/horariosService.js';
 import { useChatFlotante } from '../../context/useChatFlotante.js';
 import Estrellas from '../../components/Estrellas.jsx';
-
-const HORARIO_MOCK = {
-  'Juan Pérez':    { Lun:'09:00–18:00', Mar:'09:00–18:00', Mié:'09:00–18:00', Jue:'09:00–18:00', Vie:'09:00–18:00', Sáb:'09:00–14:00', Dom:'—' },
-  'Carlos López':  { Lun:'12:00–20:00', Mar:'12:00–20:00', Mié:'Descanso',    Jue:'12:00–20:00', Vie:'12:00–20:00', Sáb:'10:00–16:00', Dom:'—' },
-  'Miguel Torres': { Lun:'Descanso',    Mar:'10:00–18:00', Mié:'10:00–18:00', Jue:'10:00–18:00', Vie:'10:00–18:00', Sáb:'Descanso',    Dom:'—' },
-};
 
 const DIAS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
@@ -25,7 +22,11 @@ const formatPrecio = (n) =>
 export default function PerfilBarberoAdmin() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { abrirChatCon } = useChatFlotante();
+
+  const barberia = user?.nombre ? barberiaService.getByNombre(user.nombre) : null;
+  const barberiaNombre = barberia?.nombre || 'BarberShop Style';
 
   const barbero = barberosService.getById(id);
   const nombreCompleto = barbero ? `${barbero.nombre} ${barbero.apellido}` : '';
@@ -35,17 +36,11 @@ export default function PerfilBarberoAdmin() {
   const [mostrarConfirmDespido, setMostrarConfirmDespido] = useState(false);
   const [despedido, setDespedido]                         = useState(false);
 
-  const STORAGE_KEY_HORARIOS = 'styleup_barberia_horarios_admin';
-  const horarioInicial = () => {
-    const guardado = sessionStorage.getItem(STORAGE_KEY_HORARIOS);
-    if (guardado) {
-      const data = JSON.parse(guardado);
-      if (data[nombreCompleto]) return data[nombreCompleto];
-    }
-    return { ...(HORARIO_MOCK[nombreCompleto] || {}) };
-  };
   const [editandoHorario, setEditandoHorario] = useState(false);
-  const [horarioEdit, setHorarioEdit] = useState(horarioInicial);
+  const [horarioEdit, setHorarioEdit] = useState(
+    () => horariosService.getHorarioAdmin(nombreCompleto)
+  );
+  const [msgAdmin, setMsgAdmin] = useState(null);
 
   const OPCIONES_TURNOS = [
     '—', 'Descanso',
@@ -89,8 +84,8 @@ export default function PerfilBarberoAdmin() {
       paraRol: 'barbero',
       paraNombre: nombreCompleto,
       deRol: 'barberia',
-      deNombre: 'BarberShop Style',
-      mensaje: `Has sido despedido de BarberShop Style`,
+      deNombre: barberiaNombre,
+      mensaje: `Has sido despedido de ${barberiaNombre}`,
       metadata: { barberoId: id },
     });
     setDespedido(true);
@@ -253,27 +248,31 @@ export default function PerfilBarberoAdmin() {
               </div>
               <div style={{ fontSize: '0.78rem', color: 'var(--muted)' }}>
                 {editandoHorario
-                  ? 'Selecciona el turno para cada día y guarda los cambios.'
-                  : 'Solo lectura — usa "Editar horario" para modificar'}
+                  ? 'Selecciona el turno para cada día y envía la propuesta al barbero.'
+                  : 'Solo lectura — usa "Editar horario" para proponer cambios'}
               </div>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               {editandoHorario ? (
                 <>
                   <button className="btn btn-outline btn-sm" onClick={() => {
-                    setHorarioEdit(horarioInicial());
+                    setHorarioEdit(horariosService.getHorarioAdmin(nombreCompleto));
                     setEditandoHorario(false);
                   }}>
                     Cancelar
                   </button>
                   <button className="btn btn-success btn-sm" onClick={() => {
-                    const guardado = sessionStorage.getItem(STORAGE_KEY_HORARIOS);
-                    const data = guardado ? JSON.parse(guardado) : {};
-                    data[nombreCompleto] = horarioEdit;
-                    sessionStorage.setItem(STORAGE_KEY_HORARIOS, JSON.stringify(data));
+                    horariosService.crearPropuestaAdmin({
+                      barberoNombre: nombreCompleto,
+                      barberiaNombreDueno: user?.nombre || '',
+                      barberiaNombre: barberiaNombre,
+                      horario: horarioEdit,
+                    });
                     setEditandoHorario(false);
+                    setMsgAdmin({ tipo: 'success', texto: `Propuesta enviada a ${nombreCompleto}. Espera su aprobación.` });
+                    setTimeout(() => setMsgAdmin(null), 4000);
                   }}>
-                    <Save size={16} /> Guardar horario
+                    <Save size={16} /> Enviar propuesta
                   </button>
                 </>
               ) : (
@@ -359,8 +358,14 @@ export default function PerfilBarberoAdmin() {
 
           {!editandoHorario && (
             <div className="alert alert-info" style={{ marginTop: 16, fontSize: '0.82rem' }}>
-              <Lightbulb size={16} /> Puedes editar el horario de <strong>{barbero.nombre}</strong> directamente
-              presionando <strong>Editar horario</strong>.
+              <Lightbulb size={16} /> Edita el horario de <strong>{barbero.nombre}</strong> y envía una propuesta.
+              El barbero debe aceptarla para que los cambios se apliquen.
+            </div>
+          )}
+
+          {msgAdmin && (
+            <div className={`alert alert-${msgAdmin.tipo}`} style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <CheckCircle size={16} /> {msgAdmin.texto}
             </div>
           )}
         </div>

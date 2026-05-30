@@ -14,6 +14,15 @@ import { barberosService } from './barberosService.js';
 import { barberiaService } from './barberiaService.js';
 
 const STORAGE_KEY = 'styleup_horarios';
+const PROPUESTAS_KEY = 'styleup_propuestas';
+const STORAGE_KEY_ADMIN = 'styleup_barberia_horarios_admin';
+
+// Mock de horarios para el admin de barbería (PerfilBarberoAdmin)
+const HORARIO_ADMIN_MOCK = {
+  'Juan Pérez':    { Lun:'09:00–18:00', Mar:'09:00–18:00', Mié:'09:00–18:00', Jue:'09:00–18:00', Vie:'09:00–18:00', Sáb:'09:00–14:00', Dom:'—' },
+  'Carlos López':  { Lun:'12:00–20:00', Mar:'12:00–20:00', Mié:'Descanso',    Jue:'12:00–20:00', Vie:'12:00–20:00', Sáb:'10:00–16:00', Dom:'—' },
+  'Miguel Torres': { Lun:'Descanso',    Mar:'10:00–18:00', Mié:'10:00–18:00', Jue:'10:00–18:00', Vie:'10:00–18:00', Sáb:'Descanso',    Dom:'—' },
+};
 
 // ── Calcula el número de día real de cada día de la semana actual ──────────
 // Necesario porque los horarios se filtran por h.dia === "27" (número del mes),
@@ -61,7 +70,7 @@ const generarMockBarbero = (barberoNombre, turnosConfig) => {
       rango:         `${turno.inicio} — ${turno.fin}`,
       estado:        turno.estado || 'disponible',
       semanaOffset:  0,
-      esMock:        true, // marca para distinguirlos de los horarios reales
+      esMock:        true,
     }))
   );
 };
@@ -103,6 +112,15 @@ const guardarHorarios = (horarios) => {
   sessionStorage.setItem(STORAGE_KEY, JSON.stringify(horarios));
 };
 
+const leerPropuestas = () => {
+  const data = sessionStorage.getItem(PROPUESTAS_KEY);
+  return data ? JSON.parse(data) : [];
+};
+
+const guardarPropuestas = (propuestas) => {
+  sessionStorage.setItem(PROPUESTAS_KEY, JSON.stringify(propuestas));
+};
+
 const findBarberiaByBarberoNombre = (barberoNombre) => {
   const todas = barberiaService.getTodas();
   for (const barberia of todas) {
@@ -122,25 +140,18 @@ const findBarberiaByBarberoNombre = (barberoNombre) => {
 export const horariosService = {
 
   // Obtener horarios de un barbero específico.
-  // Combina los mocks con los horarios reales guardados en sessionStorage.
-  // Así el barbero puede agregar/eliminar sus propios bloques y los mocks
-  // siempre están disponibles de fondo.
-  // FUTURO: return await fetch(`/api/horarios?barbero=${barberoNombre}`)
   getHorariosByBarbero: (barberoNombre) => {
     const guardados = leerHorarios();
     const reales    = guardados.filter((h) => h.barberoNombre === barberoNombre);
     const mocks     = HORARIOS_MOCK.filter((h) => h.barberoNombre === barberoNombre);
 
-    // Los horarios reales tienen prioridad; los mocks completan los días vacíos.
-    // Evitamos duplicar: si ya hay un bloque real para ese día, no mostramos el mock.
     const diasConReal = new Set(reales.map((h) => h.dia));
     const mocksFiltrados = mocks.filter((m) => !diasConReal.has(m.dia));
 
     return [...reales, ...mocksFiltrados];
   },
 
-  // Agregar un nuevo bloque de horario (creado por el barbero en la UI)
-  // FUTURO: return await fetch('/api/horarios', { method: 'POST', body: ... })
+  // Agregar un nuevo bloque de horario
   agregarHorario: (datos) => {
     const horarios = leerHorarios();
     const nuevo = {
@@ -167,7 +178,6 @@ export const horariosService = {
   },
 
   // Eliminar un bloque de horario
-  // FUTURO: return await fetch(`/api/horarios/${id}`, { method: 'DELETE' })
   eliminarHorario: (id) => {
     const horarios = leerHorarios();
     const eliminado = horarios.find((h) => h.id === id);
@@ -190,5 +200,248 @@ export const horariosService = {
     }
 
     return actualizados;
+  },
+
+  // ── Propuestas de horario (Fase 2) ──────────────────────────────────────
+
+  // Barbero crea una propuesta → notifica a la barbería
+  crearPropuesta: (datos) => {
+    const propuestas = leerPropuestas();
+    const nueva = {
+      id: 'prop_' + Date.now().toString(),
+      origen: 'barbero',
+      barberoNombre: datos.barberoNombre,
+      dias: datos.dias,
+      nombresDia: datos.nombresDia,
+      horaInicio: datos.horaInicio,
+      horaFin: datos.horaFin,
+      rango: datos.rango,
+      semanaOffset: datos.semanaOffset,
+      estado: datos.estado,
+      estadoPropuesta: 'pendiente',
+      fechaCreacion: new Date().toISOString(),
+      fechaRespuesta: null,
+    };
+    guardarPropuestas([...propuestas, nueva]);
+
+    const barberia = findBarberiaByBarberoNombre(datos.barberoNombre);
+    if (barberia) {
+      notificacionesService.crear({
+        tipo: 'propuesta_horario',
+        paraRol: 'barberia',
+        paraNombre: barberia.nombreDueno,
+        deRol: 'barbero',
+        deNombre: datos.barberoNombre,
+        mensaje: `${datos.barberoNombre} propuso un nuevo horario (${datos.rango})`,
+        metadata: { propuestaId: nueva.id },
+      });
+    }
+
+    return nueva;
+  },
+
+  // Propuestas de un barbero específico
+  getPropuestasByBarbero: (barberoNombre) => {
+    return leerPropuestas().filter((p) => p.barberoNombre === barberoNombre && p.origen === 'barbero');
+  },
+
+  // Propuestas pendientes para una barbería (por nombreDueno)
+  getPropuestasByBarberia: (nombreDueno) => {
+    const barberia = barberiaService.getByNombre(nombreDueno);
+    if (!barberia) return [];
+    const barberoNombres = (barberia.barberoIds || [])
+      .map((id) => {
+        const b = barberosService.getById(id);
+        return b ? `${b.nombre} ${b.apellido}` : null;
+      })
+      .filter(Boolean);
+
+    return leerPropuestas().filter(
+      (p) => barberoNombres.includes(p.barberoNombre) && p.estadoPropuesta === 'pendiente' && p.origen === 'barbero'
+    );
+  },
+
+  // Barbería acepta una propuesta → crea bloques de horario + notifica barbero
+  aceptarPropuesta: (propuestaId) => {
+    const propuestas = leerPropuestas();
+    const idx = propuestas.findIndex((p) => p.id === propuestaId);
+    if (idx === -1) return null;
+
+    const propuesta = propuestas[idx];
+    if (propuesta.estadoPropuesta !== 'pendiente') return null;
+
+    propuesta.estadoPropuesta = 'aceptada';
+    propuesta.fechaRespuesta = new Date().toISOString();
+    guardarPropuestas(propuestas);
+
+    const horarios = leerHorarios();
+    const nuevos = propuesta.dias.map((dia, i) => ({
+      id: Date.now().toString() + '_' + i,
+      barberoNombre: propuesta.barberoNombre,
+      dia,
+      mes: propuesta.nombresDia[i] || '',
+      semanaOffset: propuesta.semanaOffset,
+      rango: propuesta.rango,
+      horaInicio: propuesta.horaInicio,
+      horaFin: propuesta.horaFin,
+      estado: propuesta.estado,
+      fechaCreacion: new Date().toISOString(),
+    }));
+    guardarHorarios([...horarios, ...nuevos]);
+
+    const barberia = findBarberiaByBarberoNombre(propuesta.barberoNombre);
+    if (barberia) {
+      notificacionesService.crear({
+        tipo: 'propuesta_aceptada',
+        paraRol: 'barbero',
+        paraNombre: propuesta.barberoNombre,
+        deRol: 'barberia',
+        deNombre: barberia.nombreDueno,
+        mensaje: `Tu propuesta de horario (${propuesta.rango}) fue aceptada por la barbería`,
+        metadata: { propuestaId },
+      });
+    }
+
+    return { ...propuesta, horariosCreados: nuevos };
+  },
+
+  // Barbería rechaza una propuesta → notifica barbero
+  rechazarPropuesta: (propuestaId) => {
+    const propuestas = leerPropuestas();
+    const idx = propuestas.findIndex((p) => p.id === propuestaId);
+    if (idx === -1) return null;
+
+    const propuesta = propuestas[idx];
+    if (propuesta.estadoPropuesta !== 'pendiente') return null;
+
+    propuesta.estadoPropuesta = 'rechazada';
+    propuesta.fechaRespuesta = new Date().toISOString();
+    guardarPropuestas(propuestas);
+
+    const barberia = findBarberiaByBarberoNombre(propuesta.barberoNombre);
+    if (barberia) {
+      notificacionesService.crear({
+        tipo: 'propuesta_rechazada',
+        paraRol: 'barbero',
+        paraNombre: propuesta.barberoNombre,
+        deRol: 'barberia',
+        deNombre: barberia.nombreDueno,
+        mensaje: `Tu propuesta de horario (${propuesta.rango}) fue rechazada. Edítala y vuelve a enviarla`,
+        metadata: { propuestaId },
+      });
+    }
+
+    return propuesta;
+  },
+
+  // ── Propuestas desde la barbería al barbero (Fase 2) ─────────────────
+
+  // Obtiene el horario admin de un barbero (desde storage o mock)
+  getHorarioAdmin: (barberoNombre) => {
+    const guardado = sessionStorage.getItem(STORAGE_KEY_ADMIN);
+    if (guardado) {
+      const data = JSON.parse(guardado);
+      if (data[barberoNombre]) return data[barberoNombre];
+    }
+    return { ...(HORARIO_ADMIN_MOCK[barberoNombre] || {}) };
+  },
+
+  // Barbería crea una propuesta de horario para un barbero
+  crearPropuestaAdmin: (datos) => {
+    const propuestas = leerPropuestas();
+    const nueva = {
+      id: 'prop_admin_' + Date.now().toString(),
+      origen: 'barberia',
+      barberoNombre: datos.barberoNombre,
+      barberiaNombreDueno: datos.barberiaNombreDueno,
+      barberiaNombre: datos.barberiaNombre,
+      horario: datos.horario,
+      estadoPropuesta: 'pendiente',
+      fechaCreacion: new Date().toISOString(),
+      fechaRespuesta: null,
+    };
+    guardarPropuestas([...propuestas, nueva]);
+
+    notificacionesService.crear({
+      tipo: 'propuesta_admin',
+      paraRol: 'barbero',
+      paraNombre: datos.barberoNombre,
+      deRol: 'barberia',
+      deNombre: datos.barberiaNombreDueno,
+      mensaje: `${datos.barberiaNombre} te ha enviado una propuesta de horario. Revísala`,
+      metadata: { propuestaId: nueva.id },
+    });
+
+    return nueva;
+  },
+
+  // Propuestas de la barbería (origen: 'barberia') para un barbero
+  getPropuestasAdminByBarbero: (barberoNombre) => {
+    return leerPropuestas().filter(
+      (p) => p.barberoNombre === barberoNombre && p.origen === 'barberia'
+    );
+  },
+
+  // Barbero acepta la propuesta de la barbería
+  aceptarPropuestaAdmin: (propuestaId) => {
+    const propuestas = leerPropuestas();
+    const idx = propuestas.findIndex((p) => p.id === propuestaId);
+    if (idx === -1) return null;
+
+    const propuesta = propuestas[idx];
+    if (propuesta.estadoPropuesta !== 'pendiente') return null;
+
+    propuesta.estadoPropuesta = 'aceptada';
+    propuesta.fechaRespuesta = new Date().toISOString();
+    guardarPropuestas(propuestas);
+
+    const guardado = sessionStorage.getItem(STORAGE_KEY_ADMIN);
+    const data = guardado ? JSON.parse(guardado) : {};
+    data[propuesta.barberoNombre] = propuesta.horario;
+    sessionStorage.setItem(STORAGE_KEY_ADMIN, JSON.stringify(data));
+
+    const barberia = findBarberiaByBarberoNombre(propuesta.barberoNombre);
+    if (barberia) {
+      notificacionesService.crear({
+        tipo: 'propuesta_admin_aceptada',
+        paraRol: 'barberia',
+        paraNombre: barberia.nombreDueno,
+        deRol: 'barbero',
+        deNombre: propuesta.barberoNombre,
+        mensaje: `${propuesta.barberoNombre} aceptó tu propuesta de horario`,
+        metadata: { propuestaId },
+      });
+    }
+
+    return propuesta;
+  },
+
+  // Barbero rechaza la propuesta de la barbería
+  rechazarPropuestaAdmin: (propuestaId) => {
+    const propuestas = leerPropuestas();
+    const idx = propuestas.findIndex((p) => p.id === propuestaId);
+    if (idx === -1) return null;
+
+    const propuesta = propuestas[idx];
+    if (propuesta.estadoPropuesta !== 'pendiente') return null;
+
+    propuesta.estadoPropuesta = 'rechazada';
+    propuesta.fechaRespuesta = new Date().toISOString();
+    guardarPropuestas(propuestas);
+
+    const barberia = findBarberiaByBarberoNombre(propuesta.barberoNombre);
+    if (barberia) {
+      notificacionesService.crear({
+        tipo: 'propuesta_admin_rechazada',
+        paraRol: 'barberia',
+        paraNombre: barberia.nombreDueno,
+        deRol: 'barbero',
+        deNombre: propuesta.barberoNombre,
+        mensaje: `${propuesta.barberoNombre} rechazó tu propuesta de horario`,
+        metadata: { propuestaId },
+      });
+    }
+
+    return propuesta;
   },
 };
