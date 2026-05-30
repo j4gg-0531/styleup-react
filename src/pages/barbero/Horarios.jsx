@@ -4,6 +4,7 @@ import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 import { useHorarios } from '../../context/useHorarios.js';
 import { barberiaService } from '../../services/barberiaService.js';
+import { barberosService } from '../../services/barberosService.js';
 
 // ── Calcula los 6 días laborales (Lun–Sáb) de la semana indicada ──
 // offset = 0 (semana actual), -1 (semana pasada), 1 (próxima semana)…
@@ -39,8 +40,11 @@ export default function Horarios() {
   const { horarios, cargarHorarios, agregarHorario, eliminarHorario } = useHorarios();
 
   // ¿El barbero trabaja en una barbería? Si sí, modo solo lectura
+  const barberoActual = barberosService.getTodos().find(
+    (b) => b.nombre?.toLowerCase() === user?.nombre?.toLowerCase()
+  );
   const barberia = barberiaService.getTodas().find(
-    (b) => b.barberos?.includes(user?.nombre)
+    (b) => b.barberoIds?.includes(barberoActual?.id)
   ) ?? null;
   const soloLectura = !!barberia;
 

@@ -1,5 +1,5 @@
 // src/pages/cliente/Barberos.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/layout/Sidebar';
 import { barberosService } from '../../services/barberosService.js';
@@ -26,6 +26,18 @@ export default function Barberos() {
   // 'lista' | 'mapa' — controla qué vista se muestra
   const [vista, setVista]                           = useState('lista');
   const [barberias] = useState(() => barberiaService.getParaMapa());
+  const [barberiaModal, setBarberiaModal] = useState(null);
+
+  const barberosDeBarberia = barberiaModal
+    ? barberos.filter((b) => barberiaModal.barberoIds.includes(b.id))
+    : [];
+
+  useEffect(() => {
+    if (!barberiaModal) return;
+    const handler = (e) => { if (e.key === 'Escape') setBarberiaModal(null); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [barberiaModal]);
 
   const barberosFiltrados = barberos.filter((b) => {
     const coincideBusqueda =
@@ -154,7 +166,7 @@ export default function Barberos() {
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
-                        <div style={{ fontFamily: "'Playfair Display',serif", fontSize: '1.1rem', fontWeight: 700 }}>
+                        <div style={{ fontFamily: "'Cinzel',serif", fontSize: '1.1rem', fontWeight: 700 }}>
                           {b.nombre} {b.apellido}
                         </div>
                         <span style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>
@@ -183,7 +195,91 @@ export default function Barberos() {
 
         {/* ── Vista MAPA ── */}
         {vista === 'mapa' && (
-          <MapaVista barberos={barberosFiltrados} barberias={barberias} />
+          <MapaVista barberos={barberosFiltrados} barberias={barberias} onVerBarberos={setBarberiaModal} todosBarberos={barberos} />
+        )}
+        {/* ── Modal de barberos de barbería ── */}
+        {barberiaModal && (
+          <div
+            style={{
+              position: 'fixed', inset: 0, zIndex: 9999,
+              background: 'rgba(0,0,0,0.6)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              padding: 20,
+            }}
+            onClick={() => setBarberiaModal(null)}
+          >
+            <div
+              style={{
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius)',
+                maxWidth: 500, width: '100%',
+                maxHeight: '80vh', overflow: 'auto',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '20px 24px', borderBottom: '1px solid var(--border)',
+              }}>
+                <div>
+                  <div style={{ fontFamily: "'Cinzel',serif", fontWeight: 700, fontSize: '1.1rem' }}>
+                    🏪 {barberiaModal.nombre}
+                  </div>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--muted)', marginTop: 2 }}>
+                    {barberiaModal.barberoIds.length > 0
+                      ? `${barberiaModal.barberoIds.length} barbero${barberiaModal.barberoIds.length !== 1 ? 's' : ''}`
+                      : 'Sin barberos'}
+                  </div>
+                </div>
+                <button
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => setBarberiaModal(null)}
+                  style={{ fontSize: '1.1rem', lineHeight: 1 }}
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Body */}
+              <div style={{ padding: 16 }}>
+                {barberosDeBarberia.length === 0 ? (
+                  <div className="alert alert-info" style={{ margin: 0 }}>
+                    Esta barbería aún no tiene barberos registrados.
+                  </div>
+                ) : (
+                  barberosDeBarberia.map((b) => (
+                    <div
+                      key={b.id}
+                      className="card"
+                      style={{ cursor: 'pointer', padding: 16, marginBottom: 8 }}
+                      onClick={() => { setBarberiaModal(null); navigate(`/cliente/barberos/${b.id}`); }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                        <div style={{ fontSize: '1.6rem', flexShrink: 0 }}>{b.avatar}</div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
+                            {b.nombre} {b.apellido}
+                          </div>
+                          <div style={{ color: 'var(--gold)', fontSize: '0.8rem', marginTop: 2 }}>
+                            ✂ {b.especialidad}
+                          </div>
+                          <div style={{ color: 'var(--muted)', fontSize: '0.75rem', marginTop: 1 }}>
+                            📍 {b.ciudad}
+                          </div>
+                        </div>
+                        <span className={`badge ${b.disponibleHoy ? 'badge-green' : 'badge-muted'}`} style={{ flexShrink: 0 }}>
+                          {b.disponibleHoy ? '● Disponible' : '● No disponible'}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
         )}
       </main>
     </div>

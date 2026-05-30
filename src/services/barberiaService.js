@@ -25,8 +25,8 @@ const BARBERIAS_MOCK = [
     totalCalificaciones: 38,
     lat: 10.4635,
     lng: -73.2518,
-    // Barberos que trabajan aquí — FUTURO: relación BD barberias_barberos
-    barberos: ['Juan Pérez', 'Carlos López'],
+    // Barberos que trabajan aquí — por ID (relación BD futura: barberias_barberos)
+    barberoIds: ['B001', 'B002'],
   },
   {
     id: 'BAR002',
@@ -40,7 +40,7 @@ const BARBERIAS_MOCK = [
     totalCalificaciones: 22,
     lat: 10.4648,
     lng: -73.2540,
-    barberos: ['Miguel Torres'],
+    barberoIds: ['B003'],
   },
   {
     id: 'BAR003',
@@ -54,7 +54,7 @@ const BARBERIAS_MOCK = [
     totalCalificaciones: 55,
     lat: 10.4620,
     lng: -73.2505,
-    barberos: [],
+    barberoIds: [],
   },
 ];
 
@@ -82,7 +82,7 @@ export const barberiaService = {
     const nueva = {
       ...datos,
       id: `BAR${Date.now()}`,
-      barberos: [],
+    barberoIds: [],
       calificacion: 0,
       totalCalificaciones: 0,
       fechaRegistro: new Date().toISOString(),

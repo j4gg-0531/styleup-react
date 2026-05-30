@@ -21,6 +21,7 @@ import {
   ICONOS_SERVICIOS,
 } from '../../services/preciosService.js';
 import { barberiaService } from '../../services/barberiaService.js';
+import { barberosService } from '../../services/barberosService.js';
 
 // Duraciones válidas (cada 5 min, de 10 a 120)
 const OPCIONES_DURACION = Array.from({ length: 23 }, (_, i) => (i + 2) * 5); // 10,15,...,120
@@ -46,8 +47,11 @@ export default function Servicios() {
   const { user } = useAuth();
 
   // ¿El barbero trabaja en una barbería? Si sí, modo solo lectura
+  const barberoActual = barberosService.getTodos().find(
+    (b) => b.nombre?.toLowerCase() === user?.nombre?.toLowerCase()
+  );
   const barberia = barberiaService.getTodas().find(
-    (b) => b.barberos?.includes(user?.nombre)
+    (b) => b.barberoIds?.includes(barberoActual?.id)
   ) ?? null;
   const soloLectura = !!barberia;
 

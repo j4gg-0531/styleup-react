@@ -55,7 +55,7 @@ export default function PerfilBarbero() {
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const barberia = useMemo(
-    () => barberiaService.getTodas().find((b) => b.barberos?.includes(nombreCompleto)) ?? null,
+    () => barberiaService.getTodas().find((b) => b.barberoIds?.includes(barbero.id)) ?? null,
     [nombreCompleto]
   );
 

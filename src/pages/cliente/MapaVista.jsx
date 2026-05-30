@@ -47,9 +47,10 @@ function CentrarMapa({ center }) {
   return null;
 }
 
-export default function MapaVista({ barberos, barberias = [] }) {
+export default function MapaVista({ barberos, barberias = [], onVerBarberos, todosBarberos = [] }) {
   const navigate = useNavigate();
   const centro = [10.4631, -73.2532];
+  const barberoMap = Object.fromEntries(todosBarberos.map((b) => [b.id, b]));
 
   const barberosConUbicacion = barberos.filter(
     (b) => b.lat != null && b.lng != null
@@ -193,17 +194,16 @@ export default function MapaVista({ barberos, barberias = [] }) {
                     textTransform: 'uppercase', letterSpacing: '0.05em',
                     marginBottom: 6,
                   }}>
-                    💈 {b.barberos.length > 0
-                      ? `${b.barberos.length} barbero${b.barberos.length !== 1 ? 's' : ''}`
+                    💈 {b.barberoIds.length > 0
+                      ? `${b.barberoIds.length} barbero${b.barberoIds.length !== 1 ? 's' : ''}`
                       : 'Sin barberos aún'}
                   </div>
-                  {b.barberos.length > 0 && (
+                  {b.barberoIds.length > 0 && (
                     <div style={{ fontSize: '0.78rem', color: '#e6edf3' }}>
-                      {/* Muestra máx 3 nombres + "y X más" si hay más */}
-                      {b.barberos.slice(0, 3).join(', ')}
-                      {b.barberos.length > 3 && (
+                      {b.barberoIds.slice(0, 3).map((id) => barberoMap[id]?.nombre || id).join(', ')}
+                      {b.barberoIds.length > 3 && (
                         <span style={{ color: '#8b949e' }}>
-                          {' '}y {b.barberos.length - 3} más
+                          {' '}y {b.barberoIds.length - 3} más
                         </span>
                       )}
                     </div>
@@ -211,7 +211,7 @@ export default function MapaVista({ barberos, barberias = [] }) {
                 </div>
 
                 <button
-                  onClick={() => navigate(`/cliente/barberos`)}
+                  onClick={() => onVerBarberos(b)}
                   style={{
                     width: '100%', padding: '8px 0',
                     background: 'linear-gradient(135deg, #c49a4a, #e6b86a)',
