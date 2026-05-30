@@ -9,12 +9,13 @@ import { barberosService } from '../../services/barberosService.js';
 import { citasService } from '../../services/citasService.js';
 import { preciosService, NOMBRES_SERVICIOS } from '../../services/preciosService.js';
 import { barberiaService } from '../../services/barberiaService.js';
+import { notificacionesService } from '../../services/notificacionesService.js';
 import {
   DURACION_SERVICIOS,
   generarSlots,
 } from '../../services/agendamientoService.js';
 import Estrellas from '../../components/Estrellas.jsx';
-import { Scissors, Building2, MapPin, Phone, MessageCircle, Wallet, Clock, Calendar, ArrowLeft, Smartphone, Check, Circle, CheckCircle } from 'lucide-react';
+import { Scissors, Building2, MapPin, Phone, MessageCircle, Wallet, Clock, Calendar, ArrowLeft, Smartphone, Check, Circle, CheckCircle, AlertTriangle } from 'lucide-react';
 import MapaMini, { SVG_SCISSORS, SVG_BUILDING2 } from '../../components/MapaMini.jsx';
 import { getDiasSemana, fmtFecha } from '../../services/semana.js';
 
@@ -43,6 +44,9 @@ export default function PerfilBarbero() {
   // Carga de horarios una sola vez (patrón lazy sin useEffect)
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const [horariosListos, setHorariosListos] = useState(false);
+  const [mostrarQueja, setMostrarQueja] = useState(false);
+  const [quejaTexto, setQuejaTexto] = useState('');
+  const [quejaEnviada, setQuejaEnviada] = useState(false);
   if (!horariosListos) {
     cargarHorarios(nombreCompleto);
     setHorariosListos(true);
@@ -188,15 +192,22 @@ export default function PerfilBarbero() {
               </div>
             </div>
 
-            <button className="btn btn-outline" style={{ flexShrink: 0 }}
-              onClick={() => abrirChatCon(nombreCompleto)}>
-              <MessageCircle size={16} /> Enviar mensaje
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
+              <button className="btn btn-outline"
+                onClick={() => abrirChatCon(nombreCompleto)}>
+                <MessageCircle size={16} /> Enviar mensaje
+              </button>
+              <button className="btn btn-outline"
+                style={{ color: 'var(--cobre-light)', borderColor: 'var(--cobre-light)' }}
+                onClick={() => setMostrarQueja(true)}>
+                <AlertTriangle size={16} /> Reportar queja
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* ── CONTENIDO ── */}
+        {/* ── CONTENIDO ── */}
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '32px' }}>
         <div className="grid-2" style={{ marginBottom: 28 }}>
 
@@ -486,6 +497,89 @@ export default function PerfilBarbero() {
           </div>
         )}
       </div>
+
+      {mostrarQueja && (
+        <div onClick={() => setMostrarQueja(false)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 2000,
+            background: 'rgba(0,0,0,0.75)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
+          }}>
+          <div onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'var(--surface)',
+              border: '1px solid rgba(192,57,43,0.3)',
+              borderRadius: 16, padding: '28px 24px',
+              maxWidth: 480, width: '100%',
+              boxShadow: 'var(--shadow-lg)',
+            }}>
+            <div style={{ fontSize: '2rem', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--cobre-light)' }}>
+              <AlertTriangle size={28} /> Reportar queja
+            </div>
+            <p style={{ fontSize: '0.82rem', color: 'var(--muted)', marginBottom: 16, lineHeight: 1.5 }}>
+              Describe el motivo de tu queja contra <strong>{nombreCompleto}</strong>:
+            </p>
+            <textarea
+              className="form-control"
+              rows={4}
+              placeholder="Escribe aquí los detalles de tu queja..."
+              value={quejaTexto}
+              onChange={(e) => setQuejaTexto(e.target.value)}
+              style={{ marginBottom: 16, resize: 'vertical' }}
+            />
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button className="btn btn-outline" onClick={() => { setMostrarQueja(false); setQuejaTexto(''); }}>
+                Cancelar
+              </button>
+              <button className="btn btn-primary"
+                style={{
+                  background: quejaTexto.trim() ? 'linear-gradient(135deg, var(--cobre), var(--cobre-light))' : 'var(--surface2)',
+                }}
+                disabled={!quejaTexto.trim()}
+                onClick={() => {
+                  const datosQueja = {
+                    tipo: 'queja_cliente',
+                    deRol: 'cliente',
+                    deNombre: user?.nombre || 'Cliente',
+                    mensaje: `Queja de ${user?.nombre || 'Cliente'} contra ${nombreCompleto}: ${quejaTexto.trim()}`,
+                    metadata: { barberoId: id, barberoNombre: nombreCompleto },
+                  };
+                  notificacionesService.crear({
+                    ...datosQueja,
+                    paraRol: 'barberia',
+                    paraNombre: 'styleup',
+                  });
+                  notificacionesService.crear({
+                    ...datosQueja,
+                    paraRol: 'barbero',
+                    paraNombre: nombreCompleto,
+                  });
+                  setQuejaTexto('');
+                  setMostrarQueja(false);
+                  setQuejaEnviada(true);
+                  setTimeout(() => setQuejaEnviada(false), 3000);
+                }}>
+                <AlertTriangle size={16} /> Enviar queja
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {quejaEnviada && (
+        <div style={{
+          position: 'fixed', bottom: 24, right: 24, zIndex: 2001,
+          background: 'var(--surface)',
+          border: '1px solid rgba(230,184,106,0.3)',
+          borderRadius: 12, padding: '14px 20px',
+          boxShadow: 'var(--shadow-lg)',
+          display: 'flex', alignItems: 'center', gap: 8,
+          fontSize: '0.88rem', color: 'var(--gold)',
+        }}>
+          <AlertTriangle size={18} /> Queja enviada correctamente
+        </div>
+      )}
     </div>
   );
 }
