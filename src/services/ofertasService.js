@@ -4,6 +4,8 @@
 // FUTURO: reemplazar con llamadas a /api/ofertas y /api/aplicaciones
 // ─────────────────────────────────────────────────────────────
 
+import { notificacionesService } from './notificacionesService.js';
+
 const KEY_OFERTAS      = 'styleup_ofertas';
 const KEY_APLICACIONES = 'styleup_aplicaciones';
 
@@ -127,6 +129,20 @@ export const ofertasService = {
       fecha: new Date().toISOString().split('T')[0],
     };
     guardarAplicaciones([...aplicaciones, nueva]);
+
+    const oferta = leerOfertas().find((o) => o.id === ofertaId);
+    if (oferta) {
+      notificacionesService.crear({
+        tipo: 'aplicacion_nueva',
+        paraRol: 'barberia',
+        paraNombre: oferta.barberiaNombre,
+        deRol: 'barbero',
+        deNombre: barberoNombre,
+        mensaje: `${barberoNombre} aplicó a tu oferta "${oferta.titulo}"`,
+        metadata: { ofertaId, aplicacionId: nueva.id },
+      });
+    }
+
     return nueva;
   },
 
@@ -149,5 +165,22 @@ export const ofertasService = {
       a.id === aplicacionId ? { ...a, estado: nuevoEstado } : a
     );
     guardarAplicaciones(aplicaciones);
+
+    const aplicacion = leerAplicaciones().find((a) => a.id === aplicacionId);
+    if (aplicacion) {
+      const oferta = leerOfertas().find((o) => o.id === aplicacion.ofertaId);
+      const veredicto = nuevoEstado === 'aceptada' ? 'aceptada' : 'rechazada';
+      notificacionesService.crear({
+        tipo: nuevoEstado === 'aceptada' ? 'aplicacion_aceptada' : 'aplicacion_rechazada',
+        paraRol: 'barbero',
+        paraNombre: aplicacion.barberoNombre,
+        deRol: 'barberia',
+        deNombre: oferta?.barberiaNombre || 'Barbería',
+        mensaje: nuevoEstado === 'aceptada'
+          ? `¡Felicidades! Tu aplicación para "${oferta?.titulo || 'la oferta'}" fue ACEPTADA`
+          : `Tu aplicación para "${oferta?.titulo || 'la oferta'}" fue RECHAZADA`,
+        metadata: { ofertaId: aplicacion.ofertaId, aplicacionId },
+      });
+    }
   },
 };

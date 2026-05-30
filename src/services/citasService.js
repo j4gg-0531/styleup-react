@@ -8,6 +8,7 @@
 // - agregarCita ahora guarda horaFin además de horaInicio
 // - nuevo método: getSlotsBloqueados (para validación de conflictos)
 // ─────────────────────────────────────────────────────────────
+import { notificacionesService } from './notificacionesService.js';
 
 const STORAGE_KEY = 'styleup_citas';
 
@@ -54,10 +55,24 @@ export const citasService = {
   // FUTURO: return await fetch(`/api/citas/${id}/cancelar`, { method: 'PATCH' })
   cancelarCita: (citaId) => {
     const citas = leerCitas();
+    const cita = citas.find((c) => c.id === citaId);
     const actualizadas = citas.map((c) =>
       c.id === citaId ? { ...c, estado: 'cancelada' } : c
     );
     guardarCitas(actualizadas);
+
+    if (cita?.barbero?.name) {
+      notificacionesService.crear({
+        tipo: 'cita_cancelada',
+        paraRol: 'barbero',
+        paraNombre: cita.barbero.name,
+        deRol: 'cliente',
+        deNombre: cita.clienteNombre,
+        mensaje: `El cliente ${cita.clienteNombre} canceló su cita del ${cita.fechaDia} ${cita.fechaMes} a las ${cita.hora}`,
+        metadata: { citaId },
+      });
+    }
+
     return actualizadas;
   },
 

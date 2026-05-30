@@ -9,6 +9,10 @@
 // FUTURO: vendrán de GET /api/horarios?barbero=X
 // ─────────────────────────────────────────────────────────────
 
+import { notificacionesService } from './notificacionesService.js';
+import { barberosService } from './barberosService.js';
+import { barberiaService } from './barberiaService.js';
+
 const STORAGE_KEY = 'styleup_horarios';
 
 // ── Calcula el número de día real de cada día de la semana actual ──────────
@@ -99,6 +103,20 @@ const guardarHorarios = (horarios) => {
   sessionStorage.setItem(STORAGE_KEY, JSON.stringify(horarios));
 };
 
+const findBarberiaByBarberoNombre = (barberoNombre) => {
+  const todas = barberiaService.getTodas();
+  for (const barberia of todas) {
+    if (!barberia.barberoIds?.length) continue;
+    for (const bid of barberia.barberoIds) {
+      const barbero = barberosService.getById(bid);
+      if (barbero && `${barbero.nombre} ${barbero.apellido}` === barberoNombre) {
+        return barberia;
+      }
+    }
+  }
+  return null;
+};
+
 // ── Servicio exportado ────────────────────────────────────────────────────
 
 export const horariosService = {
@@ -131,6 +149,20 @@ export const horariosService = {
       fechaCreacion: new Date().toISOString(),
     };
     guardarHorarios([...horarios, nuevo]);
+
+    const barberia = findBarberiaByBarberoNombre(datos.barberoNombre);
+    if (barberia) {
+      notificacionesService.crear({
+        tipo: 'horario_modificado',
+        paraRol: 'barberia',
+        paraNombre: barberia.nombreDueno,
+        deRol: 'barbero',
+        deNombre: datos.barberoNombre,
+        mensaje: `${datos.barberoNombre} modificó su horario (nuevo bloque: ${datos.rango})`,
+        metadata: { horarioId: nuevo.id },
+      });
+    }
+
     return nuevo;
   },
 
@@ -138,8 +170,25 @@ export const horariosService = {
   // FUTURO: return await fetch(`/api/horarios/${id}`, { method: 'DELETE' })
   eliminarHorario: (id) => {
     const horarios = leerHorarios();
+    const eliminado = horarios.find((h) => h.id === id);
     const actualizados = horarios.filter((h) => h.id !== id);
     guardarHorarios(actualizados);
+
+    if (eliminado) {
+      const barberia = findBarberiaByBarberoNombre(eliminado.barberoNombre);
+      if (barberia) {
+        notificacionesService.crear({
+          tipo: 'horario_modificado',
+          paraRol: 'barberia',
+          paraNombre: barberia.nombreDueno,
+          deRol: 'barbero',
+          deNombre: eliminado.barberoNombre,
+          mensaje: `${eliminado.barberoNombre} eliminó un bloque de horario (${eliminado.rango})`,
+          metadata: { horarioId: id },
+        });
+      }
+    }
+
     return actualizados;
   },
 };
