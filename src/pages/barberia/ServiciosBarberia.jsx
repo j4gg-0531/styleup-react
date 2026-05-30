@@ -5,6 +5,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState } from 'react';
+import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2 } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import {
   barberiaServiciosService,
@@ -17,12 +18,12 @@ import {
 const OPCIONES_DURACION = Array.from({ length: 23 }, (_, i) => (i + 2) * 5);
 
 const navItems = [
-  { icon: '🏠', label: 'Dashboard',  href: '/barberia' },
-  { icon: '💈', label: 'Barberos',   href: '/barberia/barberos' },
-  { icon: '📋', label: 'Ofertas',    href: '/barberia/ofertas' },
-  { icon: '⏰', label: 'Horarios',   href: '/barberia/horarios' },
-  { icon: '✂️', label: 'Servicios',  href: '/barberia/servicios' },
-  { icon: '📊', label: 'Reportes',   href: '/barberia/reportes' },
+  { icon: <Home size={18} />, label: 'Dashboard',  href: '/barberia' },
+  { icon: <Scissors size={18} />, label: 'Barberos',   href: '/barberia/barberos' },
+  { icon: <ClipboardList size={18} />, label: 'Ofertas',    href: '/barberia/ofertas' },
+  { icon: <Clock size={18} />, label: 'Horarios',   href: '/barberia/horarios' },
+  { icon: <Scissors size={18} />, label: 'Servicios',  href: '/barberia/servicios' },
+  { icon: <BarChart3 size={18} />, label: 'Reportes',   href: '/barberia/reportes' },
 ];
 
 const fmtPrecio = (n) =>
@@ -74,7 +75,7 @@ export default function ServiciosBarberia() {
 
   return (
     <div className="app-layout">
-      <Sidebar avatar="🏪" badge="Barbería" badgeClass="badge-cobre" navItems={navItems} />
+      <Sidebar avatar={<Building2 size={20} />} badge="Barbería" badgeClass="badge-cobre" navItems={navItems} />
 
       <main className="main-content">
         <div className="page-header" style={{

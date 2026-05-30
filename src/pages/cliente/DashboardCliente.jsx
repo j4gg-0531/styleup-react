@@ -2,6 +2,7 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Sidebar from '../../components/layout/Sidebar';
+import { Home, Scissors, BookOpen, Smartphone, User } from 'lucide-react';
 import { useAuth } from '../../context/useAuth.js';
 import { useCitas } from '../../context/useCitas.js';
 
@@ -29,15 +30,15 @@ export default function DashboardCliente() {
   };
 
   const navItems = [
-    { icon: '🏠', label: 'Dashboard',        href: '/cliente' },
-    { icon: '💈', label: 'Barberos',          href: '/cliente/barberos' },
-    { icon: '📖', label: 'Mi historial',      href: '/cliente/historial' },
-    { icon: '📱', label: 'Vincular Telegram', href: '/cliente/telegram' },
+    { icon: <Home size={18} />, label: 'Dashboard',        href: '/cliente' },
+    { icon: <Scissors size={18} />, label: 'Barberos',          href: '/cliente/barberos' },
+    { icon: <BookOpen size={18} />, label: 'Mi historial',      href: '/cliente/historial' },
+    { icon: <Smartphone size={18} />, label: 'Vincular Telegram', href: '/cliente/telegram' },
   ];
 
   return (
     <div className="app-layout">
-      <Sidebar avatar="👤" badge="Cliente" badgeClass="badge-gold" navItems={navItems} />
+      <Sidebar avatar={<User size={20} />} badge="Cliente" badgeClass="badge-gold" navItems={navItems} />
 
       <main className="main-content">
         <div className="welcome-banner">

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { LogOut } from 'lucide-react';
 import { useAuth } from '../../context/useAuth.js';
 
 let _expandido = false;
@@ -58,7 +59,7 @@ export default function Sidebar({ avatar, badge, badgeClass = 'badge-cobre', nav
 
       <div className="sidebar-footer">
         <button className="btn btn-ghost btn-sm btn-block" onClick={() => {_expandido = false; logout();}}>
-          <span>🚪</span>
+          <LogOut size={16} />
           <span>Cerrar sesión</span>
         </button>
       </div>

@@ -1,6 +1,7 @@
 // src/pages/barberia/DashboardBarberia.jsx
 import {  useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2 } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 import { barberiaService } from '../../services/barberiaService.js';
@@ -13,17 +14,17 @@ export default function DashboardBarberia() {
 );
 
   const navItems = [
-    { icon: '🏠', label: 'Dashboard',  href: '/barberia' },
-    { icon: '💈', label: 'Barberos',   href: '/barberia/barberos' },
-    { icon: '📋', label: 'Ofertas',    href: '/barberia/ofertas' },
-    { icon: '⏰', label: 'Horarios',   href: '/barberia/horarios' },
-    { icon: '✂️', label: 'Servicios',  href: '/barberia/servicios' },
-    { icon: '📊', label: 'Reportes',   href: '/barberia/reportes' },
+    { icon: <Home size={18} />, label: 'Dashboard',  href: '/barberia' },
+    { icon: <Scissors size={18} />, label: 'Barberos',   href: '/barberia/barberos' },
+    { icon: <ClipboardList size={18} />, label: 'Ofertas',    href: '/barberia/ofertas' },
+    { icon: <Clock size={18} />, label: 'Horarios',   href: '/barberia/horarios' },
+    { icon: <Scissors size={18} />, label: 'Servicios',  href: '/barberia/servicios' },
+    { icon: <BarChart3 size={18} />, label: 'Reportes',   href: '/barberia/reportes' },
   ];
 
   return (
     <div className="app-layout">
-      <Sidebar avatar="🏪" badge="Barbería" badgeClass="badge-cobre" navItems={navItems} />
+      <Sidebar avatar={<Building2 size={20} />} badge="Barbería" badgeClass="badge-cobre" navItems={navItems} />
 
       <main className="main-content">
         <div className="welcome-banner">

@@ -1,6 +1,7 @@
 // src/pages/barbero/DashboardBarbero.jsx
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3 } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 import { useCitas } from '../../context/useCitas.js';
@@ -45,19 +46,19 @@ export default function DashboardBarbero() {
   };
 
   const navItems = [
-    { icon: '🏠', label: 'Dashboard',     href: '/barbero' },
-    { icon: '⏰', label: 'Mis horarios',  href: '/barbero/horarios' },
-    { icon: '✂',  label: 'Mis servicios', href: '/barbero/precios' },
-    { icon: '📋', label: 'Ofertas',       href: '/barbero/ofertas' },
-    { icon: '📖', label: 'Historial',     href: '/barbero/historial' },
-    { icon: '📊', label: 'Reportes',      href: '/barbero/reportes' },
+    { icon: <Home size={18} />, label: 'Dashboard',     href: '/barbero' },
+    { icon: <Clock size={18} />, label: 'Mis horarios',  href: '/barbero/horarios' },
+    { icon: <Scissors size={18} />, label: 'Mis servicios', href: '/barbero/precios' },
+    { icon: <ClipboardList size={18} />, label: 'Ofertas',       href: '/barbero/ofertas' },
+    { icon: <BookOpen size={18} />, label: 'Historial',     href: '/barbero/historial' },
+    { icon: <BarChart3 size={18} />, label: 'Reportes',      href: '/barbero/reportes' },
   ];
 
   const extra = <div className="spec-badge" style={{ marginTop: 8 }}>✂ Corte a tijera</div>;
 
   return (
     <div className="app-layout">
-      <Sidebar avatar="💈" badge="Barbero" navItems={navItems} extra={extra} />
+      <Sidebar avatar={<Scissors size={20} />} badge="Barbero" navItems={navItems} extra={extra} />
 
       <main className="main-content">
         <div className="today-header">
