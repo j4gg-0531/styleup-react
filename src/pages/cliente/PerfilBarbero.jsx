@@ -69,9 +69,31 @@ export default function PerfilBarbero() {
   const [semanaOffset, setSemanaOffset] = useState(0);
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const diasSemana = useMemo(() => getDiasSemana(semanaOffset), [semanaOffset]);
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const hoyMidnight = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
+
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const [diaSeleccionado, setDiaSeleccionado] = useState(
-    () => String(new Date().getDate())
+    () => {
+      const hoyNum = String(new Date().getDate());
+      const dias = getDiasSemana(0);
+      const hoyMid = new Date();
+      hoyMid.setHours(0, 0, 0, 0);
+      // Si hoy está en la semana y no es pasado → seleccionar hoy
+      for (const d of dias) {
+        if (d.num === hoyNum && d.fecha >= hoyMid) return hoyNum;
+      }
+      // Si no, el primer día futuro disponible
+      for (const d of dias) {
+        if (d.fecha >= hoyMid) return d.num;
+      }
+      return hoyNum;
+    }
   );
 
   // ── Booking ────────────────────────────────────────────────────────────
@@ -330,6 +352,7 @@ export default function PerfilBarbero() {
                   {/* Días de la semana */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 6, marginBottom: 16 }}>
                     {diasSemana.map((d) => {
+                      const esPasado = d.fecha < hoyMidnight;
                       const esSeleccionado = diaSeleccionado === d.num;
                       const esHoyDia = String(new Date().getDate()) === d.num && semanaOffset === 0;
                       const tieneSlots = horarios.some(
@@ -338,10 +361,12 @@ export default function PerfilBarbero() {
                       return (
                         <div
                           key={d.num}
-                          onClick={() => { setDiaSeleccionado(d.num); setSlotSel(null); }}
+                          onClick={esPasado ? undefined : () => { setDiaSeleccionado(d.num); setSlotSel(null); }}
                           style={{
                             padding: '8px 4px', textAlign: 'center', borderRadius: 8,
-                            cursor: 'pointer', border: '1.5px solid',
+                            cursor: esPasado ? 'not-allowed' : 'pointer',
+                            opacity: esPasado ? 0.35 : 1,
+                            border: '1.5px solid',
                             borderColor: esSeleccionado ? 'var(--gold)' : esHoyDia ? 'var(--cobre-light)' : 'var(--border)',
                             background: esSeleccionado ? 'rgba(230,184,106,0.12)' : 'var(--surface)',
                             transition: 'all 0.2s',
