@@ -15,7 +15,7 @@ import {
   generarSlots,
 } from '../../services/agendamientoService.js';
 import Estrellas from '../../components/Estrellas.jsx';
-import { Scissors, Building2, MapPin, Phone, MessageCircle, Wallet, Clock, Calendar, ArrowLeft, Smartphone, Check, Circle, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Scissors, Building2, MapPin, Phone, MessageCircle, Wallet, Clock, Calendar, ArrowLeft, Smartphone, Circle, CheckCircle, AlertTriangle } from 'lucide-react';
 import MapaMini, { SVG_SCISSORS, SVG_BUILDING2 } from '../../components/MapaMini.jsx';
 import { getDiasSemana, fmtFecha } from '../../services/semana.js';
 
@@ -160,7 +160,7 @@ export default function PerfilBarbero() {
 
       {/* ── HERO BANNER ── */}
       <div style={{
-        background: 'linear-gradient(160deg, #1a0806 0%, #2c0f0a 50%, #161b22 100%)',
+        background: 'var(--bg)',
         borderBottom: '1px solid var(--border)',
         padding: '32px',
       }}>
@@ -211,6 +211,30 @@ export default function PerfilBarbero() {
               <div style={{ fontSize: '0.82rem', color: 'var(--muted)', display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                 <span><MapPin size={14} /> {barbero.direccion}, {barbero.ciudad}</span>
                 <span><Phone size={14} /> {barbero.telefono}</span>
+                {barbero.instagram && (
+                  <a href={`https://instagram.com/${barbero.instagram.replace('@', '')}`}
+                    target="_blank" rel="noopener noreferrer"
+                    style={{ color: 'var(--muted)', display: 'inline-flex', alignItems: 'center' }}
+                    onClick={(e) => e.stopPropagation()}
+                    title="Instagram">
+                    <svg viewBox="0 0 24 24" width={14} height={14} fill="none" stroke="currentColor" strokeWidth={2} style={{flexShrink:0}}>
+                      <rect x={2} y={2} width={20} height={20} rx={5} />
+                      <circle cx={12} cy={12} r={5} />
+                      <circle cx={17.5} cy={6.5} r={1.5} fill="currentColor" />
+                    </svg>
+                  </a>
+                )}
+                {barbero.tiktok && (
+                  <a href={`https://tiktok.com/@${barbero.tiktok.replace('@', '')}`}
+                    target="_blank" rel="noopener noreferrer"
+                    style={{ color: 'var(--muted)', display: 'inline-flex', alignItems: 'center' }}
+                    onClick={(e) => e.stopPropagation()}
+                    title="TikTok">
+                    <svg viewBox="0 0 24 24" width={14} height={14} fill="currentColor" style={{flexShrink:0}}>
+                      <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z" />
+                    </svg>
+                  </a>
+                )}
               </div>
             </div>
 
@@ -243,10 +267,11 @@ export default function PerfilBarbero() {
               <div style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700 }}>
                 <Wallet size={18} /> Servicios y precios
               </div>
-              {!servicioSel
-                ? <span style={{ fontSize: '0.72rem', color: 'var(--gold)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}><ArrowLeft size={14} /> Elige uno para agendar</span>
-                : <span className="badge badge-green" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Check size={12} /> Seleccionado</span>
-              }
+              {!servicioSel && (
+                <span style={{ fontSize: '0.72rem', color: 'var(--gold)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <ArrowLeft size={14} /> Elige uno para agendar
+                </span>
+              )}
             </div>
             <div style={{ padding: '8px 16px' }}>
               {Object.entries(NOMBRES_SERVICIOS).map(([sid, nombre]) => {
@@ -287,14 +312,6 @@ export default function PerfilBarbero() {
                       }}>
                         {formatPrecio(precio)}
                       </div>
-                      {esSel && (
-                        <span style={{
-                          width: 20, height: 20, borderRadius: '50%',
-                          background: 'var(--gold)',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          flexShrink: 0,
-                        }}><Check size={12} color="#000" /></span>
-                      )}
                     </div>
                   </div>
                 );
