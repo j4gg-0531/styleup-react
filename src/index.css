@@ -85,8 +85,7 @@ a:hover { color: var(--gold-dim); }
 .navbar {
   display: flex; align-items: center; justify-content: space-between;
   padding: 16px 40px;
-  background: rgba(22,27,34,0.85);
-  backdrop-filter: blur(12px);
+  background: var(--surface2);
   border-bottom: 1px solid var(--border);
   position: sticky; top: 0; z-index: 100;
   box-shadow: var(--shadow-sm);
