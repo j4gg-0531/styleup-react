@@ -25,6 +25,7 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
   const [texto, setTexto] = useState('');
   const [imagenPreview, setImagenPreview] = useState(null);
   const [imagenParaEnviar, setImagenParaEnviar] = useState(null);
+  const [imagenAmpliada, setImagenAmpliada] = useState(null);
   const fileInputRef = useRef(null);
   const mensajesEndRef = useRef(null);
 
@@ -49,6 +50,14 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
   useEffect(() => {
     mensajesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [mensajes]);
+
+  // Cerrar lightbox con Escape
+  useEffect(() => {
+    if (!imagenAmpliada) return;
+    const handleKey = (e) => { if (e.key === 'Escape') setImagenAmpliada(null); };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [imagenAmpliada]);
 
   const limpiarImagen = () => {
     setImagenPreview(null);
@@ -89,6 +98,7 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
   };
 
   return (
+    <>
     <div style={{
       position: 'fixed', bottom: 88, right: 24, zIndex: 1000,
       width: 340, height: 480,
@@ -281,7 +291,7 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
                             marginTop: m.texto ? 8 : 0, cursor: 'pointer',
                             objectFit: 'contain', background: '#000',
                           }}
-                          onClick={() => window.open(m.imagen, '_blank')} />
+                          onClick={() => setImagenAmpliada(m.imagen)} />
                       )}
                       <div style={{ fontSize: '0.65rem', opacity: 0.7, marginTop: 3, textAlign: 'right' }}>
                         {m.hora}
@@ -375,5 +385,33 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
         </>
       )}
     </div>
-  );
+
+    {/* Lightbox */}
+    {imagenAmpliada && (
+      <div onClick={() => setImagenAmpliada(null)}
+        style={{
+          position: 'fixed', inset: 0, zIndex: 1001,
+          background: 'rgba(0,0,0,0.85)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer',
+        }}>
+        <img src={imagenAmpliada} alt="imagen ampliada"
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            maxWidth: '90vw', maxHeight: '90vh', objectFit: 'contain',
+            borderRadius: 8, cursor: 'default',
+          }} />
+        <button onClick={() => setImagenAmpliada(null)}
+          style={{
+            position: 'absolute', top: 16, right: 16,
+            background: 'rgba(0,0,0,0.5)', border: 'none',
+            color: '#fff', width: 36, height: 36, borderRadius: '50%',
+            cursor: 'pointer', display: 'flex', alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+          <X size={20} />
+        </button>
+      </div>
+    )}
+  </>);
 }
