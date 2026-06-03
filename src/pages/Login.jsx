@@ -30,33 +30,10 @@ export default function Login() {
   return (
     <div className="login-page">
       <div className="login-wrap">
-        {/* Panel izquierdo decorativo */}
-        <div className="login-panel-left">
-          <div>
-            <div className="login-brand" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Scissors size={22} /> Style<span style={{ color: 'var(--cobre-light)' }}>Up</span></div>
-            <div className="login-tagline">Sistema de Gestión de Barbería</div>
-          </div>
-          <div className="login-illo"><Scissors size={48} /></div>
-          <div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
-              Accede como
-            </div>
-            {[{ icon: <User size={20} />, name: 'Cliente', desc: 'Agenda y gestiona tus citas' },
-              { icon: <Scissors size={20} />, name: 'Barbero', desc: 'Administra tu agenda y horarios' },
-              { icon: <Building2 size={20} />, name: 'Barbería', desc: 'Gestiona tu negocio y equipo' }].map((r) => (
-              <div key={r.name} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: 12, marginBottom: 8 }}>
-                <div style={{ fontSize: '1.3rem' }}>{r.icon}</div>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>{r.name}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>{r.desc}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Panel derecho — formulario */}
         <div className="login-panel-right">
+          <div className="login-brand" style={{ textAlign: 'center', marginBottom: 10 }}>
+            <Scissors size={22} /> Style<span style={{ color: 'var(--cobre-light)' }}>Up</span>
+          </div>
           <h2 className="login-title">Bienvenido de nuevo</h2>
           <p className="login-subtitle">Inicia sesión para continuar en StyleUp</p>
 

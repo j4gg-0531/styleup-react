@@ -543,22 +543,29 @@ footer {
     var(--bg);
 }
 .login-wrap {
-  display: flex; background: var(--surface); border: 1px solid var(--border);
-  border-radius: 20px; overflow: hidden; width: 100%; max-width: 860px;
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column;
+  width: 100%; max-width: 420px;
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 20px; padding: 48px 40px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   box-shadow: var(--shadow-lg);
+  animation: loginFadeIn 0.5s ease;
 }
-.login-panel-left {
-  width: 340px; flex-shrink: 0;
-  background: linear-gradient(160deg, #180f08 0%, #241408 50%, #1a1208 100%);
-  padding: 52px 40px; display: flex; flex-direction: column; justify-content: space-between;
-  border-right: 1px solid var(--border);
+.login-wrap::before {
+  content: ''; position: absolute; inset: 0;
+  background: var(--surface); opacity: 0.7;
+  border-radius: inherit; z-index: -1;
 }
 .login-brand { font-family: 'Cinzel', serif; font-size: 1.6rem; font-weight: 900; }
-.login-tagline { color: var(--muted); font-size: 0.88rem; margin-top: 6px; }
-.login-illo { font-size: 5rem; text-align: center; margin: 32px 0; }
-.login-panel-right { flex: 1; padding: 52px 44px; }
-.login-title { font-size: 1.8rem; font-weight: 900; margin-bottom: 6px; }
-.login-subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 32px; }
+.login-panel-right { width: 100%; }
+@keyframes loginFadeIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.login-title { font-size: 1.8rem; font-weight: 900; margin-bottom: 6px; text-align: center; }
+.login-subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 32px; text-align: center; }
 .role-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 22px; }
 .role-opt {
   border: 1.5px solid var(--border); border-radius: 10px;
@@ -847,8 +854,7 @@ footer {
   .features, .roles { padding: 48px 24px; }
   .features-grid, .roles-grid { grid-template-columns: 1fr; }
   footer { flex-direction: column; gap: 8px; text-align: center; padding: 24px; }
-  .login-wrap { flex-direction: column; margin: 16px; max-width: 100%; }
-  .login-panel-left { width: 100%; padding: 32px 24px; }
+  .login-wrap { margin: 16px; max-width: 100%; padding: 32px 24px; }
 }
 
 /* ── CHAT FLOTANTE ── */
