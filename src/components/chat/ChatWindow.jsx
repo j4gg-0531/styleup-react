@@ -352,14 +352,18 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
             />
             <button
               onClick={() => fileInputRef.current?.click()}
+              title="Adjuntar imagen"
               style={{
-                width: 36, height: 36, borderRadius: 8, border: 'none',
-                background: 'var(--surface2)',
+                width: 36, height: 36, borderRadius: 8,
+                border: '1px solid var(--border)',
+                background: 'transparent',
                 color: 'var(--muted)',
                 cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                flexShrink: 0,
-              }}>
+                flexShrink: 0, transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'var(--surface2)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
               <Image size={16} />
             </button>
             <input ref={fileInputRef} type="file" accept="image/*"
