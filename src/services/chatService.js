@@ -35,7 +35,7 @@ export const chatService = {
 
   // Enviar un mensaje
   // FUTURO: socket.emit('mensaje', { de, para, texto })
-  enviarMensaje: (de, para, texto) => {
+  enviarMensaje: (de, para, texto, imagenBase64 = null) => {
     const chats = leerChats();
     const id = getConversacionId(de, para);
     const mensaje = {
@@ -43,6 +43,7 @@ export const chatService = {
       de,
       para,
       texto,
+      imagen: imagenBase64,
       hora: new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }),
       timestamp: Date.now(),
     };

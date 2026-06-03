@@ -1,8 +1,9 @@
 // src/components/Chat/ChatWindow.jsx
 import { useState, useEffect, useRef } from 'react';
-import { MessageCircle, ArrowLeft, X, User, Scissors, Send } from 'lucide-react';
+import { MessageCircle, ArrowLeft, X, User, Scissors, Send, Image } from 'lucide-react';
 import { chatService } from '../../services/chatService.js';
 import { barberosService } from '../../services/barberosService.js';
+import { perfilService } from '../../services/perfilService.js';
 
 export default function ChatWindow({ usuarioActual, rolActual, onClose, conversacionInicial, onConversacionAbierta }) {
 
@@ -22,6 +23,9 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
   });
 
   const [texto, setTexto] = useState('');
+  const [imagenPreview, setImagenPreview] = useState(null);
+  const [imagenParaEnviar, setImagenParaEnviar] = useState(null);
+  const fileInputRef = useRef(null);
   const mensajesEndRef = useRef(null);
 
   // Lista de barberos disponibles para chatear
@@ -46,14 +50,28 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
     mensajesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [mensajes]);
 
+  const limpiarImagen = () => {
+    setImagenPreview(null);
+    setImagenParaEnviar(null);
+  };
+
   const handleEnviar = () => {
-    if (!texto.trim() || !conversacionActiva) return;
-    chatService.enviarMensaje(usuarioActual, conversacionActiva, texto.trim());
+    if ((!texto.trim() && !imagenParaEnviar) || !conversacionActiva) return;
+    chatService.enviarMensaje(usuarioActual, conversacionActiva, texto.trim(), imagenParaEnviar);
     const msgs = chatService.getMensajes(usuarioActual, conversacionActiva);
     setMensajes(msgs);
     const convs = chatService.getConversaciones(usuarioActual);
     setConversaciones(convs);
     setTexto('');
+    limpiarImagen();
+  };
+
+  const handleImageSelect = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const base64 = await perfilService.procesarImagen(file, 800, 0.7);
+    setImagenPreview(URL.createObjectURL(file));
+    setImagenParaEnviar(base64);
   };
 
   const handleKeyDown = (e) => {
@@ -157,7 +175,8 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
                       fontSize: '0.78rem', color: 'var(--muted)',
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>
-                      {conv.ultimoMensaje.de === usuarioActual ? 'Tú: ' : ''}{conv.ultimoMensaje.texto}
+                      {conv.ultimoMensaje.de === usuarioActual ? 'Tú: ' : ''}
+                      {conv.ultimoMensaje.imagen && !conv.ultimoMensaje.texto ? '📷 Imagen' : conv.ultimoMensaje.texto}
                     </div>
                   </div>
                   <div style={{ fontSize: '0.7rem', color: 'var(--muted)', flexShrink: 0 }}>
@@ -255,6 +274,15 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
                       boxShadow: 'var(--shadow-sm)',
                     }}>
                       <div>{m.texto}</div>
+                      {m.imagen && (
+                        <img src={m.imagen} alt="imagen"
+                          style={{
+                            maxWidth: '100%', maxHeight: 200, borderRadius: 8,
+                            marginTop: m.texto ? 8 : 0, cursor: 'pointer',
+                            objectFit: 'contain', background: '#000',
+                          }}
+                          onClick={() => window.open(m.imagen, '_blank')} />
+                      )}
                       <div style={{ fontSize: '0.65rem', opacity: 0.7, marginTop: 3, textAlign: 'right' }}>
                         {m.hora}
                       </div>
@@ -265,6 +293,28 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
             )}
             <div ref={mensajesEndRef} />
           </div>
+
+          {/* Preview imagen */}
+          {imagenPreview && (
+            <div style={{
+              padding: '8px 12px',
+              borderTop: '1px solid var(--border)',
+              display: 'flex', alignItems: 'center', gap: 8,
+              background: 'var(--surface2)',
+            }}>
+              <img src={imagenPreview} alt="preview"
+                style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6 }} />
+              <span style={{ fontSize: '0.78rem', color: 'var(--muted)' }}>1 imagen adjunta</span>
+              <button onClick={limpiarImagen}
+                style={{
+                  marginLeft: 'auto', background: 'none', border: 'none',
+                  color: 'var(--muted)', cursor: 'pointer', padding: 4,
+                  display: 'flex',
+                }}>
+                <X size={14} />
+              </button>
+            </div>
+          )}
 
           {/* Input */}
           <div style={{
@@ -291,15 +341,30 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
               onBlur={(e) => e.target.style.borderColor = 'var(--border)'}
             />
             <button
-              onClick={handleEnviar}
-              disabled={!texto.trim()}
+              onClick={() => fileInputRef.current?.click()}
               style={{
                 width: 36, height: 36, borderRadius: 8, border: 'none',
-                background: texto.trim()
+                background: 'var(--surface2)',
+                color: 'var(--muted)',
+                cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
+              }}>
+              <Image size={16} />
+            </button>
+            <input ref={fileInputRef} type="file" accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleImageSelect} />
+            <button
+              onClick={handleEnviar}
+              disabled={!texto.trim() && !imagenParaEnviar}
+              style={{
+                width: 36, height: 36, borderRadius: 8, border: 'none',
+                background: texto.trim() || imagenParaEnviar
                   ? 'linear-gradient(135deg, var(--cobre), var(--cobre-light))'
                   : 'var(--surface2)',
-                color: texto.trim() ? '#fff' : 'var(--muted)',
-                cursor: texto.trim() ? 'pointer' : 'not-allowed',
+                color: texto.trim() || imagenParaEnviar ? '#fff' : 'var(--muted)',
+                cursor: texto.trim() || imagenParaEnviar ? 'pointer' : 'not-allowed',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: '1rem', transition: 'all 0.2s', flexShrink: 0,
               }}
