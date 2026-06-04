@@ -17,6 +17,9 @@ app.get('/', (req, res) => {
 const authRoutes = require('./routes/auth')
 app.use('/api/auth', authRoutes)
 
+const barberosRoutes = require('./routes/barberos')
+app.use('/api/barberos', barberosRoutes)
+
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`)
 })
