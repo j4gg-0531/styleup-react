@@ -23,6 +23,9 @@ app.use('/api/barberos', barberosRoutes)
 const clientesRoutes = require('./routes/clientes')
 app.use('/api/clientes', clientesRoutes)
 
+const citasRoutes = require('./routes/citas')
+app.use('/api/citas', citasRoutes)
+
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`)
 })
