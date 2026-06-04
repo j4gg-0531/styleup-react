@@ -32,6 +32,7 @@ import ReportesBarberia from './pages/barberia/ReportesBarberia';
 import PerfilBarberia from './pages/barberia/PerfilBarberia';
 import ServiciosBarberia from './pages/barberia/ServiciosBarberia';
 import OfertasBarbero from './pages/barbero/OfertasBarbero';
+import MiHojaDeVida from './pages/barbero/MiHojaDeVida';
 import ChatFlotante from './components/chat/ChatFlotante.jsx';
 import ThemeToggle from './components/ui/ThemeToggle.jsx';
 import PerfilBarberoAdmin from './pages/barberia/PerfilBarberoAdmin';
@@ -101,6 +102,9 @@ export default function App() {
                 } />
                 <Route path="/barbero/perfil" element={
                   <RutaProtegida rol="barbero"><PerfilBarberoPage /></RutaProtegida>
+                } />
+                <Route path="/barbero/hoja-de-vida" element={
+                  <RutaProtegida rol="barbero"><MiHojaDeVida /></RutaProtegida>
                 } />
                 <Route path="/barbero/ofertas" element={
                   <RutaProtegida rol="barbero"><OfertasBarbero /></RutaProtegida>

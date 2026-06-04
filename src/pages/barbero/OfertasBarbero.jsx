@@ -1,6 +1,6 @@
 // src/pages/barbero/OfertasBarbero.jsx
 import { useState } from 'react';
-import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, BriefcaseBusiness, Wallet, Users, Target, Wrench, Calendar, Building2, X, Check, Sparkles, Frown, Hourglass, GraduationCap, Lightbulb, ArrowLeft, ArrowRight, Bell } from 'lucide-react';
+import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, BriefcaseBusiness, Wallet, Users, Target, Wrench, Calendar, Building2, X, Check, Sparkles, Frown, Hourglass, GraduationCap, Lightbulb, ArrowLeft, ArrowRight, Bell, FileText } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 import { ofertasService } from '../../services/ofertasService.js';
@@ -17,6 +17,7 @@ const navItems = [
   { icon: <Home size={18} />, label: 'Dashboard',     href: '/barbero' },
   { icon: <Clock size={18} />, label: 'Mis horarios',  href: '/barbero/horarios' },
   { icon: <Scissors size={18} />, label: 'Mis servicios', href: '/barbero/precios' },
+  { icon: <FileText size={18} />, label: 'Mi Hoja de Vida', href: '/barbero/hoja-de-vida' },
   { icon: <ClipboardList size={18} />, label: 'Ofertas',       href: '/barbero/ofertas' },
   { icon: <BookOpen size={18} />, label: 'Historial',     href: '/barbero/historial' },
   { icon: <BarChart3 size={18} />, label: 'Reportes',      href: '/barbero/reportes' },

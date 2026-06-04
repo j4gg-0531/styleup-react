@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3,
   MapPin, Lock, Save, Trash2, AlertTriangle, Frown, CheckCircle,
-  Bell, LogOut, User, X, Pencil, Star, ChevronDown, ChevronRight, ExternalLink,
+  Bell, LogOut, User, X, Pencil, Star, ChevronDown, ChevronRight, ExternalLink, FileText,
 } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
@@ -19,6 +19,7 @@ const navItems = [
   { icon: <Home size={18} />, label: 'Dashboard',     href: '/barbero' },
   { icon: <Clock size={18} />, label: 'Mis horarios',  href: '/barbero/horarios' },
   { icon: <Scissors size={18} />, label: 'Mis servicios', href: '/barbero/precios' },
+  { icon: <FileText size={18} />, label: 'Mi Hoja de Vida', href: '/barbero/hoja-de-vida' },
   { icon: <ClipboardList size={18} />, label: 'Ofertas',       href: '/barbero/ofertas' },
   { icon: <BookOpen size={18} />, label: 'Historial',     href: '/barbero/historial' },
   { icon: <BarChart3 size={18} />, label: 'Reportes',      href: '/barbero/reportes' },
