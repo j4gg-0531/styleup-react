@@ -20,6 +20,9 @@ app.use('/api/auth', authRoutes)
 const barberosRoutes = require('./routes/barberos')
 app.use('/api/barberos', barberosRoutes)
 
+const clientesRoutes = require('./routes/clientes')
+app.use('/api/clientes', clientesRoutes)
+
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`)
 })
