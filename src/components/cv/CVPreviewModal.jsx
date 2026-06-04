@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Printer, Award, GraduationCap, Briefcase, Scissors } from 'lucide-react';
 
-export default function CVPreviewModal({ cv, nombre, onClose }) {
+export default function CVPreviewModal({ cv, nombre, onClose, showPrintButton = true }) {
 
   // Cerrar con Escape
   useEffect(() => {
@@ -43,16 +43,18 @@ export default function CVPreviewModal({ cv, nombre, onClose }) {
             <Scissors size={16} /> Vista previa de hoja de vida
           </span>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={handlePrint}
-              className="no-print"
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-                padding: '8px 16px', borderRadius: 8, border: 'none',
-                background: '#c97b3a', color: '#fff', cursor: 'pointer',
-                fontSize: '0.85rem', fontWeight: 600,
-              }}>
-              <Printer size={16} /> Imprimir / Guardar PDF
-            </button>
+            {showPrintButton && (
+              <button onClick={handlePrint}
+                className="no-print"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '8px 16px', borderRadius: 8, border: 'none',
+                  background: '#c97b3a', color: '#fff', cursor: 'pointer',
+                  fontSize: '0.85rem', fontWeight: 600,
+                }}>
+                <Printer size={16} /> Imprimir / Guardar PDF
+              </button>
+            )}
             <button onClick={onClose}
               className="no-print"
               style={{

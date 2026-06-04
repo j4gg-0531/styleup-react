@@ -1,9 +1,12 @@
 // src/pages/barbero/OfertasBarbero.jsx
 import { useState } from 'react';
 import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, BriefcaseBusiness, Wallet, Users, Target, Wrench, Calendar, Building2, X, Check, Sparkles, Frown, Hourglass, GraduationCap, Lightbulb, ArrowLeft, ArrowRight, Bell, FileText } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 import { ofertasService } from '../../services/ofertasService.js';
+import { cvService } from '../../services/cvService.js';
+import CVPreviewModal from '../../components/cv/CVPreviewModal.jsx';
 import {
   labelContratacion,
   labelExperiencia,
@@ -84,52 +87,22 @@ function SelectorTags({ opciones, seleccionados, onChange, max = 6 }) {
 }
 
 // ── Modal de detalle + aplicación ────────────────────────────
-function ModalOferta({ oferta, onCerrar, onAplicar, yaAplic, estadoApp }) {
-  const [paso, setPaso]         = useState(1); // 1=detalle, 2=aplicar
+function ModalOferta({ oferta, cvData, onCerrar, onAplicar, yaAplic, estadoApp }) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [paso, setPaso]         = useState(1);
   const [mensaje, setMensaje]   = useState('');
-  const [hdv, setHdv]           = useState({
-    presentacion:        '',
-    nivel:               '',
-    especialidades:      [],
-    disponibilidad:      '',
-    modalidad:           '',
-    herramientasPropias: false,
-    experiencia:         '',
-    certificados:        [{ nombre: '', institucion: '', anio: '' }],
-  });
   const [enviado, setEnviado]   = useState(false);
-  const [errHdv, setErrHdv]     = useState({});
+  const [showPreview, setShowPreview] = useState(false);
 
-  const setHdvField = (campo, valor) =>
-    setHdv((prev) => ({ ...prev, [campo]: valor }));
-
-  const setCertificado = (i, campo, valor) => {
-    const certs = [...hdv.certificados];
-    certs[i] = { ...certs[i], [campo]: valor };
-    setHdv((prev) => ({ ...prev, certificados: certs }));
-  };
-
-  const agregarCertificado = () => {
-    setHdv((prev) => ({
-      ...prev,
-      certificados: [...prev.certificados, { nombre: '', institucion: '', anio: '' }],
-    }));
-  };
-
-  const validarHdv = () => {
-    const e = {};
-    if (!hdv.presentacion.trim()) e.presentacion = 'Escribe una breve presentación.';
-    if (!hdv.nivel)               e.nivel         = 'Selecciona tu nivel profesional.';
-    if (hdv.especialidades.length === 0) e.especialidades = 'Selecciona al menos una especialidad.';
-    if (!hdv.disponibilidad)      e.disponibilidad = 'Indica tu disponibilidad.';
-    if (!hdv.modalidad)           e.modalidad      = 'Indica la modalidad preferida.';
-    setErrHdv(e);
-    return Object.keys(e).length === 0;
-  };
+  const tieneCV = cvData?.presentacion?.trim() && cvData?.nivel;
 
   const handleEnviar = () => {
-    if (!validarHdv()) return;
-    onAplicar(oferta.id, hdv, mensaje);
+    if (!tieneCV) return;
+    onAplicar(oferta.id, {
+      ...cvData,
+      experiencia: cvData.anosExperiencia || '',
+    }, mensaje);
     setEnviado(true);
   };
 
@@ -329,279 +302,76 @@ function ModalOferta({ oferta, onCerrar, onAplicar, yaAplic, estadoApp }) {
             </div>
           )}
 
-          {/* ── PESTAÑA 2: Hoja de vida + mensaje ── */}
+          {/* ── PESTAÑA 2: Aplicar con CV guardado ── */}
           {!yaAplic && !enviado && paso === 2 && (
             <div>
-              <div className="alert alert-info" style={{ marginBottom: 20, fontSize: '0.82rem' }}>
-                <Lightbulb size={14} /> Esta información se enviará directamente a <strong>{oferta.barberiaNombre}</strong>.
-                Complétala con cuidado — es tu carta de presentación.
-              </div>
-
-              {/* Sección 1 — Presentación */}
-              <div style={{
-                fontSize: '0.72rem', color: 'var(--gold)', fontWeight: 600,
-                textTransform: 'uppercase', letterSpacing: '0.08em',
-                marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8,
-              }}>
-                1 · Presentación
-                <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Presentación profesional *</label>
-                <textarea
-                  className="form-control"
-                  rows={3}
-                  placeholder="Ej: Barbero con 3 años de experiencia especializado en fades y cortes urbanos..."
-                  value={hdv.presentacion}
-                  onChange={(e) => setHdvField('presentacion', e.target.value)}
-                  style={{ resize: 'vertical' }}
-                />
-                {errHdv.presentacion && (
-                  <div style={{ color: 'var(--cobre-light)', fontSize: '0.75rem', marginTop: 4 }}>
-                    {errHdv.presentacion}
-                  </div>
-                )}
-              </div>
-
-              <div className="grid-2">
-                <div className="form-group">
-                  <label className="form-label">Nivel profesional *</label>
-                  <select
-                    className="form-control"
-                    value={hdv.nivel}
-                    onChange={(e) => setHdvField('nivel', e.target.value)}
-                  >
-                    <option value="">Selecciona...</option>
-                    {NIVEL_PROFESIONAL.map((n) => (
-                      <option key={n.value} value={n.label}>{n.label}</option>
-                    ))}
-                  </select>
-                  {errHdv.nivel && (
-                    <div style={{ color: 'var(--cobre-light)', fontSize: '0.75rem', marginTop: 4 }}>
-                      {errHdv.nivel}
+              {tieneCV ? (
+                <>
+                  <div style={{
+                    background: 'rgba(230,184,106,0.08)',
+                    border: '1px solid rgba(230,184,106,0.25)',
+                    borderRadius: 10, padding: '14px 16px', marginBottom: 20,
+                  }}>
+                    <div style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Check size={16} style={{ color: '#3fb950' }} /> Tu hoja de vida está lista
                     </div>
-                  )}
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Años de experiencia</label>
-                  <input
-                    className="form-control"
-                    placeholder="Ej: 3 años en BarberShop X"
-                    value={hdv.experiencia}
-                    onChange={(e) => setHdvField('experiencia', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              {/* Sección 2 — Especialidades */}
-              <div style={{
-                fontSize: '0.72rem', color: 'var(--gold)', fontWeight: 600,
-                textTransform: 'uppercase', letterSpacing: '0.08em',
-                marginBottom: 12, marginTop: 8,
-                display: 'flex', alignItems: 'center', gap: 8,
-              }}>
-                2 · Especialidades
-                <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">
-                  Mis especialidades *
-                  <span style={{ color: 'var(--muted)', fontWeight: 400, textTransform: 'none', fontSize: '0.75rem', marginLeft: 6 }}>
-                    (máx. 6)
-                  </span>
-                </label>
-                <SelectorTags
-                  opciones={ESPECIALIDADES_TAGS}
-                  seleccionados={hdv.especialidades}
-                  onChange={(v) => setHdvField('especialidades', v)}
-                />
-                {errHdv.especialidades && (
-                  <div style={{ color: 'var(--cobre-light)', fontSize: '0.75rem', marginTop: 6 }}>
-                    {errHdv.especialidades}
-                  </div>
-                )}
-              </div>
-
-              {/* Sección 3 — Disponibilidad */}
-              <div style={{
-                fontSize: '0.72rem', color: 'var(--gold)', fontWeight: 600,
-                textTransform: 'uppercase', letterSpacing: '0.08em',
-                marginBottom: 12, marginTop: 8,
-                display: 'flex', alignItems: 'center', gap: 8,
-              }}>
-                3 · Disponibilidad y condiciones
-                <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
-              </div>
-
-              <div className="grid-2">
-                <div className="form-group">
-                  <label className="form-label">Disponibilidad *</label>
-                  <select
-                    className="form-control"
-                    value={hdv.disponibilidad}
-                    onChange={(e) => setHdvField('disponibilidad', e.target.value)}
-                  >
-                    <option value="">Selecciona...</option>
-                    {DISPONIBILIDAD_OPCIONES.map((o) => (
-                      <option key={o.value} value={o.label}>{o.label}</option>
-                    ))}
-                  </select>
-                  {errHdv.disponibilidad && (
-                    <div style={{ color: 'var(--cobre-light)', fontSize: '0.75rem', marginTop: 4 }}>
-                      {errHdv.disponibilidad}
+                    <div style={{ fontSize: '0.82rem', color: 'var(--muted)', marginBottom: 8, lineHeight: 1.5 }}>
+                      {cvData.nivel && `${cvData.nivel}`}
+                      {cvData.anosExperiencia && ` · ${cvData.anosExperiencia}`}
+                      {cvData.especialidades?.length > 0 && ` · ${cvData.especialidades.slice(0, 3).join(', ')}${cvData.especialidades.length > 3 ? '...' : ''}`}
                     </div>
-                  )}
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Modalidad preferida *</label>
-                  <select
-                    className="form-control"
-                    value={hdv.modalidad}
-                    onChange={(e) => setHdvField('modalidad', e.target.value)}
-                  >
-                    <option value="">Selecciona...</option>
-                    {MODALIDAD_OPCIONES.map((o) => (
-                      <option key={o.value} value={o.label}>{o.label}</option>
-                    ))}
-                  </select>
-                  {errHdv.modalidad && (
-                    <div style={{ color: 'var(--cobre-light)', fontSize: '0.75rem', marginTop: 4 }}>
-                      {errHdv.modalidad}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Herramientas propias */}
-              <div
-                onClick={() => setHdvField('herramientasPropias', !hdv.herramientasPropias)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 12,
-                  padding: '12px 16px', marginBottom: 20,
-                  background: hdv.herramientasPropias ? 'rgba(230,184,106,0.08)' : 'var(--surface2)',
-                  border: '1.5px solid',
-                  borderColor: hdv.herramientasPropias ? 'var(--gold)' : 'var(--border)',
-                  borderRadius: 8, cursor: 'pointer', transition: 'all 0.2s',
-                }}
-              >
-                <div style={{
-                  width: 20, height: 20, borderRadius: 4, border: '2px solid',
-                  borderColor: hdv.herramientasPropias ? 'var(--gold)' : 'var(--border)',
-                  background: hdv.herramientasPropias ? 'var(--gold)' : 'transparent',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '0.7rem', color: '#000', flexShrink: 0, transition: 'all 0.2s',
-                }}>
-                  {hdv.herramientasPropias ? <Check size={10} /> : ''}
-                </div>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>
-                      <Wrench size={14} /> Tengo mis propias herramientas
+                    <button className="btn btn-ghost btn-sm"
+                      onClick={() => setShowPreview(true)}
+                      style={{ color: 'var(--gold)', fontWeight: 600 }}>
+                      <FileText size={14} /> Ver CV completo
+                    </button>
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: 2 }}>
-                    Máquina, tijeras, kit completo
-                  </div>
-                </div>
-              </div>
 
-              {/* Sección 4 — Certificados */}
-              <div style={{
-                fontSize: '0.72rem', color: 'var(--gold)', fontWeight: 600,
-                textTransform: 'uppercase', letterSpacing: '0.08em',
-                marginBottom: 12,
-                display: 'flex', alignItems: 'center', gap: 8,
-              }}>
-                4 · Certificados y cursos
-                <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
-              </div>
-
-              {hdv.certificados.map((cert, i) => (
-                <div
-                  key={i}
-                  style={{
-                    background: 'var(--surface2)', borderRadius: 10,
-                    padding: '14px 16px', marginBottom: 10,
-                  }}
-                >
-                  <div style={{ fontSize: '0.72rem', color: 'var(--muted)', marginBottom: 10 }}>
-                    <GraduationCap size={14} /> Certificado {i + 1}
-                  </div>
-                  <div className="grid-2" style={{ gap: 10 }}>
-                    <div className="form-group" style={{ marginBottom: 8 }}>
-                      <label className="form-label">Nombre del curso</label>
-                      <input
-                        className="form-control"
-                        placeholder="Ej: Curso de barbería profesional"
-                        value={cert.nombre}
-                        onChange={(e) => setCertificado(i, 'nombre', e.target.value)}
-                      />
-                    </div>
-                    <div className="form-group" style={{ marginBottom: 8 }}>
-                      <label className="form-label">Institución</label>
-                      <input
-                        className="form-control"
-                        placeholder="Ej: SENA"
-                        value={cert.institucion}
-                        onChange={(e) => setCertificado(i, 'institucion', e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label className="form-label">Año</label>
-                    <input
-                      className="form-control"
-                      placeholder="Ej: 2024"
-                      value={cert.anio}
-                      onChange={(e) => setCertificado(i, 'anio', e.target.value)}
+                  <div className="form-group">
+                    <label className="form-label">Mensaje para {oferta.barberiaNombre}</label>
+                    <textarea
+                      className="form-control" rows={3}
+                      placeholder="Escribe algo adicional que quieras que la barbería sepa sobre ti..."
+                      value={mensaje}
+                      onChange={(e) => setMensaje(e.target.value)}
+                      style={{ resize: 'vertical' }}
                     />
                   </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
+                    <button className="btn btn-outline" onClick={() => setPaso(1)}>
+                      <ArrowLeft size={16} /> Ver oferta
+                    </button>
+                    <button className="btn btn-success btn-lg" onClick={handleEnviar}>
+                      <Check size={16} /> Enviar aplicación
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '32px 16px' }}>
+                  <FileText size={40} style={{ color: 'var(--muted)', marginBottom: 16 }} />
+                  <div style={{ fontWeight: 600, fontSize: '1rem', marginBottom: 8 }}>
+                    No has creado tu hoja de vida
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--muted)', marginBottom: 20, lineHeight: 1.5 }}>
+                    Crea tu hoja de vida profesional para poder postularte a las ofertas de trabajo.
+                    Solo la llenas una vez y la usas en todas tus aplicaciones.
+                  </div>
+                  <button className="btn btn-primary"
+                    onClick={() => navigate('/barbero/hoja-de-vida')}>
+                    <FileText size={16} /> Crear hoja de vida
+                  </button>
                 </div>
-              ))}
+              )}
 
-              <button
-                type="button"
-                className="btn btn-outline btn-sm"
-                onClick={agregarCertificado}
-                style={{ marginBottom: 20 }}
-              >
-                + Agregar otro certificado
-              </button>
-
-              {/* Sección 5 — Mensaje adicional */}
-              <div style={{
-                fontSize: '0.72rem', color: 'var(--gold)', fontWeight: 600,
-                textTransform: 'uppercase', letterSpacing: '0.08em',
-                marginBottom: 12,
-                display: 'flex', alignItems: 'center', gap: 8,
-              }}>
-                5 · Mensaje para la barbería
-                <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Mensaje opcional</label>
-                <textarea
-                  className="form-control"
-                  rows={3}
-                  placeholder="Escribe algo adicional que quieras que la barbería sepa sobre ti..."
-                  value={mensaje}
-                  onChange={(e) => setMensaje(e.target.value)}
-                  style={{ resize: 'vertical' }}
+              {showPreview && (
+                <CVPreviewModal
+                  cv={cvData}
+                  nombre={user?.nombre}
+                  onClose={() => setShowPreview(false)}
+                  showPrintButton={false}
                 />
-              </div>
-
-              {/* Botones */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
-                <button className="btn btn-outline" onClick={() => setPaso(1)}>
-                  <ArrowLeft size={16} /> Ver oferta
-                </button>
-                <button className="btn btn-success btn-lg" onClick={handleEnviar}>
-                  <Check size={16} /> Enviar aplicación
-                </button>
-              </div>
+              )}
             </div>
           )}
         </div>
@@ -626,6 +396,7 @@ export default function OfertasBarbero() {
       : []
   );
 
+  const cvData = cvService.getCV(user?.nombre);
   const [ofertaModal, setOfertaModal] = useState(null);
   const [filtro, setFiltro]           = useState('');
 
@@ -782,6 +553,7 @@ export default function OfertasBarbero() {
       {ofertaModal && (
         <ModalOferta
           oferta={ofertaModal}
+          cvData={cvData}
           onCerrar={() => setOfertaModal(null)}
           onAplicar={handleAplicar}
           yaAplic={yaAplic(ofertaModal.id)}
