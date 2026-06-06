@@ -1,8 +1,9 @@
 // src/pages/barberia/Ofertas.jsx
 import { useState } from 'react';
-import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2, BriefcaseBusiness, Wallet, Users, Target, Wrench, Calendar, X, Check, FileText, GraduationCap, Trophy, ArrowLeft, Circle, ChevronDown, ArrowRight, CheckCircle, Bell } from 'lucide-react';
+import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2, BriefcaseBusiness, Wallet, Users, Target, Wrench, Calendar, X, Check, FileText, GraduationCap, Trophy, ArrowLeft, Circle, ChevronDown, ArrowRight, CheckCircle, Bell, Printer } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { ofertasService } from '../../services/ofertasService.js';
+import CVPreviewModal from '../../components/cv/CVPreviewModal.jsx';
 import {
   TIPOS_CONTRATACION,
   EXPERIENCIA_OPCIONES,
@@ -323,6 +324,8 @@ function TablaAplicaciones({ aplicaciones }) {
 
 // ── Vista resumida de la hoja de vida ────────────────────────
 function VistaHojaDeVida({ hdv }) {
+  const [lightboxImg, setLightboxImg] = useState(null);
+  const [showPrintPdf, setShowPrintPdf] = useState(false);
   if (!hdv) return null;
 
   const filas = [
@@ -334,6 +337,21 @@ function VistaHojaDeVida({ hdv }) {
     ['Experiencia',    hdv.experiencia],
   ].filter(([, v]) => v);
 
+  const sectionLabel = (txt) => (
+    <div style={{
+      fontSize: '0.68rem', color: 'var(--muted)', textTransform: 'uppercase',
+      letterSpacing: '0.05em', marginBottom: 6,
+    }}>
+      {txt}
+    </div>
+  );
+
+  const thumbStyle = {
+    width: 80, height: 80, borderRadius: 6, cursor: 'pointer',
+    objectFit: 'cover', border: '1px solid var(--border)',
+    background: 'var(--surface)',
+  };
+
   return (
     <div style={{
       width: '100%',
@@ -344,10 +362,24 @@ function VistaHojaDeVida({ hdv }) {
       padding: '14px 18px',
     }}>
       <div style={{
-        fontFamily: "'Playfair Display', serif",
-        fontWeight: 700, fontSize: '0.95rem', marginBottom: 12,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        marginBottom: 12,
       }}>
-        <FileText size={18} /> Hoja de vida — {hdv.nombreCompleto || 'Barbero'}
+        <div style={{
+          fontFamily: "'Playfair Display', serif",
+          fontWeight: 700, fontSize: '0.95rem',
+        }}>
+          <FileText size={18} /> Hoja de vida — {hdv.nombreCompleto || 'Barbero'}
+        </div>
+        <button onClick={() => setShowPrintPdf(true)}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '5px 12px', borderRadius: 8, border: '1px solid var(--border)',
+            background: 'var(--surface)', color: 'var(--text)',
+            cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600,
+          }}>
+          <Printer size={14} /> PDF
+        </button>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
@@ -360,10 +392,8 @@ function VistaHojaDeVida({ hdv }) {
       </div>
 
       {hdv.especialidades?.length > 0 && (
-        <div style={{ marginBottom: 8 }}>
-          <div style={{ fontSize: '0.68rem', color: 'var(--muted)', textTransform: 'uppercase', marginBottom: 6 }}>
-            Especialidades
-          </div>
+        <div style={{ marginBottom: 12 }}>
+          {sectionLabel('Especialidades')}
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {hdv.especialidades.map((e) => (
               <span key={e} className="badge badge-gold">{e}</span>
@@ -372,16 +402,129 @@ function VistaHojaDeVida({ hdv }) {
         </div>
       )}
 
+      {hdv.experienciaLaboral?.length > 0 && (
+        <div style={{ marginBottom: 12 }}>
+          {sectionLabel(<><BriefcaseBusiness size={14} /> Experiencia laboral</>)}
+          {hdv.experienciaLaboral.map((exp, i) => (
+            <div key={i} style={{
+              background: 'var(--surface)', borderRadius: 8,
+              padding: '10px 12px', marginBottom: 8,
+              border: '1px solid var(--border)',
+            }}>
+              <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>{exp.cargo}</div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--gold)', marginTop: 2 }}>
+                {exp.lugar} · {exp.desde}{exp.hasta ? ` - ${exp.hasta}` : ' - presente'}
+              </div>
+              {exp.descripcion && (
+                <div style={{ fontSize: '0.78rem', color: 'var(--muted)', marginTop: 6, lineHeight: 1.4 }}>
+                  {exp.descripcion}
+        </div>
+      )}
+
+      {showPrintPdf && (
+        <CVPreviewModal
+          cv={{ ...hdv, anosExperiencia: hdv.experiencia }}
+          nombre={hdv.nombreCompleto || 'Barbero'}
+          onClose={() => setShowPrintPdf(false)}
+          showPrintButton={true}
+        />
+      )}
+    </div>
+          ))}
+        </div>
+      )}
+
       {hdv.certificados?.length > 0 && (
-        <div>
-          <div style={{ fontSize: '0.68rem', color: 'var(--muted)', textTransform: 'uppercase', marginBottom: 6 }}>
-            Certificados y cursos
-          </div>
+        <div style={{ marginBottom: 12 }}>
+          {sectionLabel(<><GraduationCap size={14} /> Certificados y cursos</>)}
           {hdv.certificados.map((c, i) => (
-            <div key={i} style={{ fontSize: '0.82rem', color: 'var(--text)', marginBottom: 4 }}>
-              <GraduationCap size={14} /> {c.nombre} — {c.institucion} ({c.anio})
+            <div key={i} style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              marginBottom: 8,
+            }}>
+              {c.imagen && (
+                <img src={c.imagen} style={thumbStyle}
+                  onClick={() => setLightboxImg(c.imagen)}
+                  alt={c.nombre}
+                />
+              )}
+              <div style={{ fontSize: '0.82rem', color: 'var(--text)', lineHeight: 1.3 }}>
+                {c.nombre} — {c.institucion} ({c.anio})
+              </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {hdv.reconocimientos?.length > 0 && (
+        <div style={{ marginBottom: 12 }}>
+          {sectionLabel(<><Trophy size={14} /> Reconocimientos</>)}
+          {hdv.reconocimientos.map((r, i) => (
+            <div key={i} style={{
+              background: 'var(--surface)', borderRadius: 8,
+              padding: '10px 12px', marginBottom: 8,
+              border: '1px solid var(--border)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                {r.imagen && (
+                  <img src={r.imagen} style={thumbStyle}
+                    onClick={() => setLightboxImg(r.imagen)}
+                    alt={r.titulo}
+                  />
+                )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>{r.titulo}</div>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--gold)', marginTop: 2 }}>
+                    {r.institucion}{r.fecha ? ` (${r.fecha})` : ''}
+                  </div>
+                  {r.descripcion && (
+                    <div style={{ fontSize: '0.78rem', color: 'var(--muted)', marginTop: 4, lineHeight: 1.4 }}>
+                      {r.descripcion}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {hdv.mensaje && (
+        <div style={{
+          borderLeft: '3px solid var(--gold)',
+          paddingLeft: 12, marginTop: 4,
+        }}>
+          <div style={{ fontSize: '0.68rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
+            Mensaje para la barbería
+          </div>
+          <div style={{ fontSize: '0.85rem', fontStyle: 'italic', color: 'var(--text)', lineHeight: 1.4 }}>
+            &ldquo;{hdv.mensaje}&rdquo;
+          </div>
+        </div>
+      )}
+
+      {lightboxImg && (
+        <div onClick={() => setLightboxImg(null)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 9999,
+            background: 'rgba(0,0,0,0.8)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer',
+          }}>
+          <div style={{ position: 'relative' }}>
+            <button onClick={() => setLightboxImg(null)}
+              style={{
+                position: 'absolute', top: -40, right: 0,
+                background: 'none', border: 'none', color: '#fff',
+                cursor: 'pointer', fontSize: '1.5rem',
+              }}>
+              <X size={24} />
+            </button>
+            <img src={lightboxImg} style={{
+              maxWidth: '90vw', maxHeight: '85vh',
+              borderRadius: 8, display: 'block',
+            }} />
+          </div>
         </div>
       )}
     </div>
