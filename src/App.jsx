@@ -34,7 +34,6 @@ import ServiciosBarberia from './pages/barberia/ServiciosBarberia';
 import OfertasBarbero from './pages/barbero/OfertasBarbero';
 import MiHojaDeVida from './pages/barbero/MiHojaDeVida';
 import ChatFlotante from './components/chat/ChatFlotante.jsx';
-import ThemeToggle from './components/ui/ThemeToggle.jsx';
 import PerfilBarberoAdmin from './pages/barberia/PerfilBarberoAdmin';
 import Notificaciones from './pages/Notificaciones';
 
@@ -144,7 +143,6 @@ export default function App() {
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
               <ChatFlotante />
-              <ThemeToggle />
               <ToastContainer />
             </BrowserRouter>
             </ChatFlotanteProvider>

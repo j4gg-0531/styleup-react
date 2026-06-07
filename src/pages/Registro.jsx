@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { User, Scissors, Building2, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useAuth } from '../context/useAuth.js'
 import SelectorUbicacion from '../components/SelectorUbicacion.jsx';
+import ThemeToggle from '../components/ui/ThemeToggle.jsx';
 import 'leaflet/dist/leaflet.css';
 
 export default function Registro() {
@@ -25,6 +26,7 @@ export default function Registro() {
 
   return (
     <div className="registro-page">
+      <ThemeToggle variant="floating" />
       <div className="reg-wrap">
         <div className="reg-header">
           <div className="reg-logo" style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'center' }}><Scissors size={22} /> Style<span style={{ color: 'var(--cobre-light)' }}>Up</span></div>

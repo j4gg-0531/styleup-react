@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Scissors, Calendar, User, Building2, Clock } from 'lucide-react';
+import ThemeToggle from '../components/ui/ThemeToggle.jsx';
 
 function RolSection({ titulo, desc, imagen, children, invertido }) {
   return (
@@ -52,6 +53,7 @@ export default function Landing() {
           <Scissors size={20} /> Style<span style={{ color: 'var(--cobre-light)' }}>Up</span>
         </div>
         <div className="navbar-links">
+          <ThemeToggle variant="navbar" />
           <Link to="/login" className="btn btn-outline btn-sm">Iniciar sesión</Link>
           <Link to="/registro" className="btn btn-primary btn-sm">Crear cuenta</Link>
         </div>

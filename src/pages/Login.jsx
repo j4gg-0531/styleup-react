@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Scissors, Building2, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../context/useAuth.js'
+import ThemeToggle from '../components/ui/ThemeToggle.jsx';
 
 export default function Login() {
   const [rol, setRol] = useState('cliente');
@@ -29,6 +30,7 @@ export default function Login() {
 
   return (
     <div className="login-page">
+      <ThemeToggle variant="floating" />
       <div className="login-wrap">
         <div className="login-panel-right">
           <div className="login-brand" style={{ textAlign: 'center', marginBottom: 10 }}>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LogOut } from 'lucide-react';
+import { LogOut, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../../context/useAuth.js';
 import { useNotificaciones } from '../../context/useNotificaciones.js';
 
@@ -11,6 +11,15 @@ export default function Sidebar({ avatar, badge, badgeClass = 'badge-cobre', nav
   const navigate = useNavigate();
   const location = useLocation();
   const [expandido, setExpandido] = useState(_expandido);
+
+  const [tema, setTema] = useState(() => localStorage.getItem('styleup_theme') || 'dark');
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', tema);
+    localStorage.setItem('styleup_theme', tema);
+  }, [tema]);
+
+  const toggleTema = () => setTema((prev) => (prev === 'dark' ? 'light' : 'dark'));
 
   const { notificaciones, noLeidas, cargarNotificaciones } = useNotificaciones();
 
@@ -70,6 +79,10 @@ export default function Sidebar({ avatar, badge, badgeClass = 'badge-cobre', nav
       </nav>
 
       <div className="sidebar-footer">
+        <button className="btn btn-ghost btn-sm btn-block" onClick={toggleTema}>
+          {tema === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          <span>{tema === 'dark' ? 'Modo claro' : 'Modo oscuro'}</span>
+        </button>
         <button className="btn btn-ghost btn-sm btn-block" onClick={() => {_expandido = false; logout();}}>
           <LogOut size={16} />
           <span>Cerrar sesión</span>
