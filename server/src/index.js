@@ -59,6 +59,9 @@ app.use('/api/notificaciones', notificacionesRoutes)
 const propuestasRoutes = require('./routes/propuestas')
 app.use('/api/propuestas', propuestasRoutes)
 
+const calificacionesRoutes = require('./routes/calificaciones')
+app.use('/api/calificaciones', calificacionesRoutes)
+
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`)
 })
