@@ -47,6 +47,9 @@ app.use('/api/ofertas', ofertasRoutes)
 const aplicacionesRoutes = require('./routes/aplicaciones')
 app.use('/api/aplicaciones', aplicacionesRoutes)
 
+const cvRoutes = require('./routes/cv')
+app.use('/api/cv', cvRoutes)
+
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`)
 })
