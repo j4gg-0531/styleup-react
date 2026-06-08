@@ -35,6 +35,12 @@ app.use('/api/horarios', horariosRoutes)
 const preciosRoutes = require('./routes/precios')
 app.use('/api/precios', preciosRoutes)
 
+const barberiasRoutes = require('./routes/barberias')
+app.use('/api/barberias', barberiasRoutes)
+
+const barberiaBarberosRoutes = require('./routes/barberia-barberos')
+app.use('/api/barberia-barberos', barberiaBarberosRoutes)
+
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`)
 })
