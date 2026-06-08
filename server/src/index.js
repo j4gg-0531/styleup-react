@@ -41,6 +41,12 @@ app.use('/api/barberias', barberiasRoutes)
 const barberiaBarberosRoutes = require('./routes/barberia-barberos')
 app.use('/api/barberia-barberos', barberiaBarberosRoutes)
 
+const ofertasRoutes = require('./routes/ofertas')
+app.use('/api/ofertas', ofertasRoutes)
+
+const aplicacionesRoutes = require('./routes/aplicaciones')
+app.use('/api/aplicaciones', aplicacionesRoutes)
+
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`)
 })
