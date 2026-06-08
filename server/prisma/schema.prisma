@@ -9,36 +9,35 @@ datasource db {
 }
 
 model barberos {
-  cedula_barbero   String            @id @db.VarChar(10)
-  nombre           String            @db.VarChar(100)
-  apellido         String            @db.VarChar(100)
-  telefono         String?           @db.VarChar(20)
-  correo           String            @unique @db.VarChar(150)
-  contrasena       String            @db.VarChar(255)
-  id_especialidad  Int?
-  fecha_registro   DateTime?         @default(now()) @db.Timestamp(6)
-  direccion        String?           @db.VarChar(200)
-  ciudad           String?           @db.VarChar(100)
-  telegram_chat_id String?           @db.VarChar(50)
-  especialidades   especialidades?   @relation(fields: [id_especialidad], references: [id_especialidad], onDelete: NoAction, onUpdate: NoAction)
-  citas            citas[]
-  horario_barbero  horario_barbero[]
-  precios_barbero  precios_barbero[]
-}
+  cedula_barbero      String                    @id @db.VarChar(10)
+  nombre              String                    @db.VarChar(100)
+  apellido            String                    @db.VarChar(100)
+  telefono            String?                   @db.VarChar(20)
+  correo              String                    @unique @db.VarChar(150)
+  contrasena          String                    @db.VarChar(255)
+  id_especialidad     Int?
+  fecha_registro      DateTime?                 @default(now()) @db.Timestamp(6)
+  direccion           String?                   @db.VarChar(200)
+  ciudad              String?                   @db.VarChar(100)
+  telegram_chat_id    String?                   @db.VarChar(50)
+  calificacion        Decimal?                  @db.Decimal(3, 2)
+  total_calificaciones Int?                     @default(0)
+  avatar_url          String?                   @db.VarChar(500)
+  instagram           String?                   @db.VarChar(100)
+  tiktok              String?                   @db.VarChar(100)
+  lat                 Decimal?                  @db.Decimal(10, 7)
+  lng                 Decimal?                  @db.Decimal(10, 7)
+  disponible_hoy      Boolean?                  @default(true)
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model citas {
-  id_cita         String            @id @db.VarChar(15)
-  cedula_cliente  String            @db.VarChar(10)
-  cedula_barbero  String            @db.VarChar(10)
-  fecha           DateTime          @db.Date
-  hora            DateTime          @db.Time(6)
-  id_especialidad Int
-  estado          String            @default("Pendiente") @db.VarChar(20)
-  barberos        barberos          @relation(fields: [cedula_barbero], references: [cedula_barbero], onDelete: NoAction, onUpdate: NoAction)
-  clientes        clientes          @relation(fields: [cedula_cliente], references: [cedula_cliente], onDelete: NoAction, onUpdate: NoAction)
-  especialidades  especialidades    @relation(fields: [id_especialidad], references: [id_especialidad], onDelete: NoAction, onUpdate: NoAction)
-  historial_citas historial_citas[]
+  especialidades      especialidades?           @relation(fields: [id_especialidad], references: [id_especialidad], onDelete: NoAction, onUpdate: NoAction)
+  citas               citas[]
+  horario_barbero     horario_barbero[]
+  precios_barbero     precios_barbero[]
+  barberia_barberos   barberia_barberos[]
+  hojas_de_vida       hojas_de_vida?
+  aplicaciones        aplicaciones[]
+  propuestas_horario  propuestas_horario[]
+  calificaciones_recibidas calificaciones[] @relation("calificaciones_barbero")
 }
 
 model clientes {
@@ -50,14 +49,35 @@ model clientes {
   contrasena       String            @db.VarChar(255)
   fecha_registro   DateTime?         @default(now()) @db.Timestamp(6)
   telegram_chat_id String?           @db.VarChar(50)
+  avatar_url       String?           @db.VarChar(500)
+
   citas            citas[]
   historial_citas  historial_citas[]
+  calificaciones   calificaciones[]
+}
+
+model citas {
+  id_cita         String            @id @db.VarChar(15)
+  cedula_cliente  String            @db.VarChar(10)
+  cedula_barbero  String            @db.VarChar(10)
+  fecha           DateTime          @db.Date
+  hora            DateTime          @db.Time(6)
+  hora_fin        DateTime?         @db.Time(6)
+  id_especialidad Int
+  estado          String            @default("Pendiente") @db.VarChar(20)
+
+  barberos        barberos          @relation(fields: [cedula_barbero], references: [cedula_barbero], onDelete: NoAction, onUpdate: NoAction)
+  clientes        clientes          @relation(fields: [cedula_cliente], references: [cedula_cliente], onDelete: NoAction, onUpdate: NoAction)
+  especialidades  especialidades    @relation(fields: [id_especialidad], references: [id_especialidad], onDelete: NoAction, onUpdate: NoAction)
+  historial_citas historial_citas[]
+  calificaciones  calificaciones[]
 }
 
 model especialidades {
   id_especialidad Int               @id @default(autoincrement())
   especialidad    String            @db.VarChar(100)
   tiempo_estimado Int
+
   barberos        barberos[]
   citas           citas[]
   precios_barbero precios_barbero[]
@@ -66,6 +86,7 @@ model especialidades {
 model estados {
   id_estado       Int               @id @default(autoincrement())
   estado          String            @db.VarChar(50)
+
   horario_barbero horario_barbero[]
 }
 
@@ -74,6 +95,7 @@ model historial_citas {
   id_cita        String    @db.VarChar(15)
   cedula_cliente String    @db.VarChar(10)
   fecha          DateTime? @default(now()) @db.Timestamp(6)
+
   clientes       clientes  @relation(fields: [cedula_cliente], references: [cedula_cliente], onDelete: NoAction, onUpdate: NoAction)
   citas          citas     @relation(fields: [id_cita], references: [id_cita], onDelete: NoAction, onUpdate: NoAction)
 }
@@ -84,6 +106,7 @@ model horario_barbero {
   hora_inicio    DateTime @db.Time(6)
   hora_fin       DateTime @db.Time(6)
   fecha          DateTime @db.Date
+
   barberos       barberos @relation(fields: [cedula_barbero], references: [cedula_barbero], onDelete: NoAction, onUpdate: NoAction)
   estados        estados  @relation(fields: [id_estado], references: [id_estado], onDelete: NoAction, onUpdate: NoAction)
 
@@ -95,9 +118,173 @@ model precios_barbero {
   id_especialidad     Int
   precio              Decimal        @db.Decimal(10, 2)
   moneda              String         @default("COP") @db.VarChar(5)
+  duracion            Int?
+  activo              Boolean?       @default(true)
   fecha_actualizacion DateTime?      @default(now()) @db.Timestamp(6)
+
   barberos            barberos       @relation(fields: [cedula_barbero], references: [cedula_barbero], onDelete: NoAction, onUpdate: NoAction)
   especialidades      especialidades @relation(fields: [id_especialidad], references: [id_especialidad], onDelete: NoAction, onUpdate: NoAction)
 
   @@id([cedula_barbero, id_especialidad])
+}
+
+// ────────── NUEVAS TABLAS ──────────
+
+model barberias {
+  id                 Int                    @id @default(autoincrement())
+  nombre             String                 @db.VarChar(150)
+  nombre_dueno       String?                @db.VarChar(100)
+  direccion          String?                @db.VarChar(200)
+  ciudad             String?                @db.VarChar(100)
+  telefono           String?                @db.VarChar(20)
+  descripcion        String?                @db.Text
+  calificacion       Decimal?               @db.Decimal(3, 2)
+  total_calificaciones Int?                 @default(0)
+  lat                Decimal?               @db.Decimal(10, 7)
+  lng                Decimal?               @db.Decimal(10, 7)
+  logo_url           String?                @db.VarChar(500)
+  nit                String?                @db.VarChar(20)
+  correo             String?                @unique @db.VarChar(150)
+  num_trabajadores   Int?                   @default(1)
+  fecha_registro     DateTime?              @default(now()) @db.Timestamp(6)
+
+  barberia_barberos  barberia_barberos[]
+  ofertas_trabajo    ofertas_trabajo[]
+  propuestas_horario propuestas_horario[]
+  calificaciones     calificaciones[]
+}
+
+model barberia_barberos {
+  id             Int       @id @default(autoincrement())
+  barberia_id    Int
+  cedula_barbero String    @db.VarChar(10)
+  fecha_ingreso  DateTime? @default(now()) @db.Timestamp(6)
+  activo         Boolean?  @default(true)
+
+  barberia       barberias @relation(fields: [barberia_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  barbero        barberos  @relation(fields: [cedula_barbero], references: [cedula_barbero], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([barberia_id, cedula_barbero])
+}
+
+model ofertas_trabajo {
+  id                      Int           @id @default(autoincrement())
+  barberia_id             Int
+  titulo                  String        @db.VarChar(200)
+  descripcion             String?       @db.Text
+  tipo_contratacion       String?       @db.VarChar(50)
+  condicion_economica     String?       @db.VarChar(200)
+  horario                 String?       @db.VarChar(200)
+  vacantes                Int?          @default(1)
+  especialidades_buscadas Json?
+  experiencia_requerida   String?       @db.VarChar(50)
+  herramientas_propias    Boolean?      @default(false)
+  fecha_limite            DateTime?     @db.Date
+  estado                  String?       @default("activa") @db.VarChar(20)
+  fecha_creacion          DateTime?     @default(now()) @db.Timestamp(6)
+
+  barberia                barberias     @relation(fields: [barberia_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  aplicaciones            aplicaciones[]
+}
+
+model aplicaciones {
+  id             Int              @id @default(autoincrement())
+  oferta_id      Int
+  cedula_barbero String           @db.VarChar(10)
+  hoja_de_vida   Json?
+  estado         String?          @default("pendiente") @db.VarChar(20)
+  fecha_creacion DateTime?        @default(now()) @db.Timestamp(6)
+
+  oferta         ofertas_trabajo  @relation(fields: [oferta_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  barbero        barberos         @relation(fields: [cedula_barbero], references: [cedula_barbero], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([oferta_id, cedula_barbero])
+}
+
+model hojas_de_vida {
+  id                  Int       @id @default(autoincrement())
+  cedula_barbero      String    @unique @db.VarChar(10)
+  presentacion        String?   @db.Text
+  nivel               String?   @db.VarChar(50)
+  anos_experiencia    String?   @db.VarChar(20)
+  especialidades      Json?
+  disponibilidad      String?   @db.VarChar(50)
+  modalidad           String?   @db.VarChar(50)
+  herramientas_propias Boolean? @default(false)
+  experiencia_laboral Json?
+  certificados        Json?
+  reconocimientos     Json?
+  mensaje             String?   @db.Text
+  fecha_actualizacion DateTime? @default(now()) @db.Timestamp(6)
+
+  barbero             barberos  @relation(fields: [cedula_barbero], references: [cedula_barbero], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model mensajes {
+  id              Int       @id @default(autoincrement())
+  conversacion_id String    @db.VarChar(100)
+  remitente       String    @db.VarChar(100)
+  destinatario    String    @db.VarChar(100)
+  texto           String?   @db.Text
+  imagen_url      String?   @db.VarChar(500)
+  leido           Boolean?  @default(false)
+  timestamp       DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([conversacion_id])
+  @@index([remitente])
+  @@index([destinatario])
+}
+
+model notificaciones {
+  id             Int       @id @default(autoincrement())
+  tipo           String    @db.VarChar(50)
+  para_rol       String    @db.VarChar(20)
+  para_nombre    String    @db.VarChar(100)
+  de_rol         String?   @db.VarChar(20)
+  de_nombre      String?   @db.VarChar(100)
+  mensaje        String?   @db.Text
+  leida          Boolean?  @default(false)
+  fecha_creacion DateTime? @default(now()) @db.Timestamp(6)
+  metadata       Json?
+
+  @@index([para_rol, para_nombre])
+  @@index([leida])
+}
+
+model propuestas_horario {
+  id                Int       @id @default(autoincrement())
+  origen            String    @db.VarChar(20)
+  cedula_barbero    String    @db.VarChar(10)
+  barberia_id       Int?
+  dias              Json?
+  hora_inicio       String?   @db.VarChar(10)
+  hora_fin          String?   @db.VarChar(10)
+  estado_propuesta  String?   @default("pendiente") @db.VarChar(20)
+  fecha_creacion    DateTime? @default(now()) @db.Timestamp(6)
+  fecha_respuesta   DateTime? @db.Timestamp(6)
+
+  barbero           barberos  @relation(fields: [cedula_barbero], references: [cedula_barbero], onDelete: Cascade, onUpdate: NoAction)
+  barberia          barberias? @relation(fields: [barberia_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  @@index([cedula_barbero])
+  @@index([barberia_id])
+}
+
+model calificaciones {
+  id              Int       @id @default(autoincrement())
+  cedula_cliente  String    @db.VarChar(10)
+  cedula_barbero  String?   @db.VarChar(10)
+  barberia_id     Int?
+  id_cita         String?   @db.VarChar(15)
+  puntaje         Int
+  comentario      String?   @db.Text
+  fecha_creacion  DateTime? @default(now()) @db.Timestamp(6)
+
+  cliente         clientes               @relation(fields: [cedula_cliente], references: [cedula_cliente], onDelete: NoAction, onUpdate: NoAction)
+  barbero         barberos?              @relation("calificaciones_barbero", fields: [cedula_barbero], references: [cedula_barbero], onDelete: SetNull, onUpdate: NoAction)
+  barberia        barberias?             @relation(fields: [barberia_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  cita            citas?                 @relation(fields: [id_cita], references: [id_cita], onDelete: SetNull, onUpdate: NoAction)
+
+  @@index([cedula_barbero])
+  @@index([barberia_id])
 }
