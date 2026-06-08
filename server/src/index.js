@@ -56,6 +56,9 @@ app.use('/api/chat', chatRoutes)
 const notificacionesRoutes = require('./routes/notificaciones')
 app.use('/api/notificaciones', notificacionesRoutes)
 
+const propuestasRoutes = require('./routes/propuestas')
+app.use('/api/propuestas', propuestasRoutes)
+
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`)
 })
