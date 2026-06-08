@@ -53,6 +53,9 @@ app.use('/api/cv', cvRoutes)
 const chatRoutes = require('./routes/chat')
 app.use('/api/chat', chatRoutes)
 
+const notificacionesRoutes = require('./routes/notificaciones')
+app.use('/api/notificaciones', notificacionesRoutes)
+
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`)
 })
