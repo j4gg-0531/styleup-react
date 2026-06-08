@@ -312,7 +312,7 @@ export default function Landing() {
         <div className="footer-brand" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <Scissors size={18} /> StyleUp
         </div>
-        <div>Sistema de Gestión de Barbería · Prototipo Web 2025</div>
+        <div>© 2026 StyleUp</div>
       </footer>
     </>
   );
