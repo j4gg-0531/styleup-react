@@ -1,4 +1,4 @@
-    const express = require('express')
+const express = require('express')
 const router = express.Router()
 const precioService = require('../services/precios.service')
 const authMiddleware = require('../middleware/auth')
@@ -29,9 +29,22 @@ router.put('/:cedula_barbero/:id_especialidad', authMiddleware, async (req, res)
     const precio = await precioService.actualizar(
       req.params.cedula_barbero,
       req.params.id_especialidad,
-      req.body.precio
+      req.body
     )
     res.json({ mensaje: 'Precio actualizado', precio })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+// Guardar configuración completa de servicios (protegido)
+router.put('/:cedula_barbero/config', authMiddleware, async (req, res) => {
+  try {
+    const result = await precioService.guardarConfigServicios(
+      req.params.cedula_barbero,
+      req.body.servicios
+    )
+    res.json({ mensaje: 'Configuración guardada', precios: result })
   } catch (error) {
     res.status(500).json({ error: error.message })
   }

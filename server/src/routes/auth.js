@@ -39,4 +39,22 @@ router.post('/registro/barbero', async (req, res) => {
   }
 })
 
+router.post('/login/barberia', async (req, res) => {
+  try {
+    const result = await authService.loginBarberia(req.body.correo, req.body.contrasena)
+    res.json(result)
+  } catch (error) {
+    res.status(401).json({ error: error.message })
+  }
+})
+
+router.post('/registro/barberia', async (req, res) => {
+  try {
+    const barberia = await authService.registrarBarberia(req.body)
+    res.status(201).json({ mensaje: 'Barbería registrada', id: barberia.id })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
 module.exports = router

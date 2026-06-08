@@ -1,7 +1,27 @@
 const prisma = require('../lib/prisma')
 
+const SELECT_SIN_CONTRASENA = {
+  id: true,
+  nombre: true,
+  nombre_dueno: true,
+  direccion: true,
+  ciudad: true,
+  telefono: true,
+  descripcion: true,
+  calificacion: true,
+  total_calificaciones: true,
+  lat: true,
+  lng: true,
+  logo_url: true,
+  nit: true,
+  correo: true,
+  num_trabajadores: true,
+  fecha_registro: true,
+}
+
 const obtenerTodas = async () => {
   return await prisma.barberias.findMany({
+    select: SELECT_SIN_CONTRASENA,
     include: {
       barberia_barberos: {
         where: { activo: true },
@@ -25,6 +45,7 @@ const obtenerTodas = async () => {
 const obtenerPorId = async (id) => {
   const barberia = await prisma.barberias.findUnique({
     where: { id: parseInt(id) },
+    select: SELECT_SIN_CONTRASENA,
     include: {
       barberia_barberos: {
         where: { activo: true },
@@ -54,6 +75,7 @@ const obtenerPorId = async (id) => {
 const obtenerPorNombreDueno = async (nombreDueno) => {
   const barberia = await prisma.barberias.findFirst({
     where: { nombre_dueno: nombreDueno },
+    select: SELECT_SIN_CONTRASENA,
     include: {
       barberia_barberos: {
         where: { activo: true },
@@ -81,6 +103,7 @@ const actualizar = async (id, data) => {
   return await prisma.barberias.update({
     where: { id: parseInt(id) },
     data,
+    select: SELECT_SIN_CONTRASENA,
   })
 }
 

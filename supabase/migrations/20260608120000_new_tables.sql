@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS barberias (
   id                  SERIAL PRIMARY KEY,
   nombre              VARCHAR(150) NOT NULL,
   nombre_dueno        VARCHAR(100),
+  contrasena          VARCHAR(255),
   direccion           VARCHAR(200),
   ciudad              VARCHAR(100),
   telefono            VARCHAR(20),

@@ -134,6 +134,7 @@ model barberias {
   id                 Int                    @id @default(autoincrement())
   nombre             String                 @db.VarChar(150)
   nombre_dueno       String?                @db.VarChar(100)
+  contrasena         String?                @db.VarChar(255)
   direccion          String?                @db.VarChar(200)
   ciudad             String?                @db.VarChar(100)
   telefono           String?                @db.VarChar(20)

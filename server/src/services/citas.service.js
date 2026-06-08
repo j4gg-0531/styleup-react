@@ -51,6 +51,7 @@ const crear = async (data) => {
       cedula_barbero: data.cedula_barbero,
       fecha: new Date(data.fecha),
       hora: data.hora,
+      hora_fin: data.hora_fin || null,
       id_especialidad: data.id_especialidad
     }
   })

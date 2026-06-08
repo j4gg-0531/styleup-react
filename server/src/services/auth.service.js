@@ -46,4 +46,37 @@ const registrarBarbero = async (data) => {
   })
 }
 
-module.exports = { loginCliente, loginBarbero, registrarCliente, registrarBarbero }
+const loginBarberia = async (correo, contrasena) => {
+  const barberia = await prisma.barberias.findUnique({ where: { correo } })
+  if (!barberia) throw new Error('Barbería no encontrada')
+
+  const valid = await bcrypt.compare(contrasena, barberia.contrasena)
+  if (!valid) throw new Error('Contraseña incorrecta')
+
+  const token = jwt.sign(
+    { id: barberia.id, tipo: 'barberia', nombre: barberia.nombre_dueno },
+    process.env.JWT_SECRET,
+    { expiresIn: '8h' }
+  )
+  return { token, nombre: barberia.nombre_dueno, tipo: 'barberia', barberiaId: barberia.id }
+}
+
+const registrarBarberia = async (data) => {
+  const hash = await bcrypt.hash(data.contrasena, 10)
+  return await prisma.barberias.create({
+    data: {
+      nombre: data.nombre,
+      nombre_dueno: data.nombre_dueno,
+      direccion: data.direccion,
+      ciudad: data.ciudad,
+      telefono: data.telefono,
+      descripcion: data.descripcion,
+      correo: data.correo,
+      nit: data.nit,
+      num_trabajadores: data.num_trabajadores || 1,
+      contrasena: hash,
+    }
+  })
+}
+
+module.exports = { loginCliente, loginBarbero, loginBarberia, registrarCliente, registrarBarbero, registrarBarberia }
