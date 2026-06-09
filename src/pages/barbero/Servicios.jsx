@@ -10,8 +10,8 @@
 //   los servicios los gestiona la barbería donde trabaja.
 // ─────────────────────────────────────────────────────────────
 
-import { useState } from 'react';
-import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, Building2, Check, Pencil, Save, CheckCircle, Bell, FileText } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, Building2, Check, Pencil, Save, CheckCircle, Bell, FileText, AlertTriangle } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 import {
@@ -73,9 +73,16 @@ export default function Servicios() {
   };
 
   const [servicios, setServicios] = useState(initState);
-  const [editando, setEditando]   = useState(null); // id del servicio en edición
+  const [editando, setEditando]   = useState(null);
   const [guardadoOk, setGuardadoOk]     = useState(false);
   const [guardadoError, setGuardadoError] = useState('');
+  const [esMobile, setEsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setEsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // ── Helpers de edición ────────────────────────────────────────────────
   const setField = (id, campo, valor) =>
@@ -102,6 +109,7 @@ export default function Servicios() {
     );
     if (invalidos.length > 0) {
       setGuardadoError('Hay precios por debajo del mínimo permitido.');
+      setTimeout(() => setGuardadoError(''), 3000);
       return;
     }
 
@@ -160,17 +168,6 @@ export default function Servicios() {
           </div>
         )}
 
-        {guardadoError && (
-          <div className="alert alert-error" style={{ marginBottom: 20 }}>
-            {guardadoError}
-          </div>
-        )}
-        {guardadoOk && (
-          <div className="alert alert-success" style={{ marginBottom: 20, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <CheckCircle size={16} /> Servicios guardados correctamente.
-          </div>
-        )}
-
         {/* ── Stats rápidas ── */}
         <div className="stats-grid" style={{ marginBottom: 28 }}>
           <div className="stat-card">
@@ -193,86 +190,54 @@ export default function Servicios() {
           </div>
         </div>
 
-        {/* ── Tabla de servicios ── */}
+        {/* ── Servicios en cards ── */}
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-
-          {/* Encabezado de columnas */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: '1fr 110px 150px 120px 44px',
-            gap: 0,
-            padding: '10px 20px',
-            background: 'var(--surface2)',
-            borderBottom: '1px solid var(--border)',
-            fontSize: '0.72rem', fontWeight: 600, color: 'var(--muted)',
-            textTransform: 'uppercase', letterSpacing: '0.06em',
+            gridTemplateColumns: esMobile ? '1fr' : 'repeat(2, 1fr)',
+            gap: 16,
+            alignItems: 'stretch',
+            padding: 16,
           }}>
-            <span>Servicio</span>
-            <span style={{ textAlign: 'center' }}>Duración</span>
-            <span style={{ textAlign: 'right' }}>Precio</span>
-            <span style={{ textAlign: 'center' }}>Estado</span>
-            <span />
-          </div>
-
-          {/* Filas */}
-          {Object.entries(NOMBRES_SERVICIOS).map(([id, nombre], idx, arr) => {
+          {Object.entries(NOMBRES_SERVICIOS).map(([id, nombre]) => {
             const s          = servicios[id];
             const esEditando = editando === id;
             const minimo     = PRECIOS_MINIMOS[id];
             const bajoDeMini = s.activo && Number(s.precio) < minimo;
-            const esUltimo   = idx === arr.length - 1;
-            const esDomicilio = id === 'E009';
 
             return (
-              <div key={id}>
-                {/* Separador visual antes del Domicilio */}
-                {esDomicilio && (
-                  <div style={{
-                    padding: '8px 20px',
-                    background: 'rgba(230,184,106,0.04)',
-                    borderTop: '1px solid var(--border)',
-                    borderBottom: '1px solid var(--border)',
-                    fontSize: '0.72rem', color: 'var(--gold)',
-                    fontWeight: 600, textTransform: 'uppercase',
-                    letterSpacing: '0.06em', display: 'flex',
-                    alignItems: 'center', gap: 6,
-                  }}>
-                    <Home size={14} /> Servicio especial
-                  </div>
-                )}
-
+              <div key={id} style={{
+                background: esEditando
+                  ? 'rgba(230,184,106,0.04)'
+                  : bajoDeMini ? 'rgba(192,57,43,0.04)' : 'var(--surface)',
+                border: '1px solid var(--border)',
+                borderRadius: 12,
+                padding: '16px 18px',
+                minHeight: 120,
+                opacity: s.activo ? 1 : 0.45,
+                transition: 'opacity 0.2s, background 0.2s',
+              }}>
                 <div style={{
-                  borderBottom: esUltimo ? 'none' : '1px solid var(--border)',
-                  opacity: s.activo ? 1 : 0.45,
-                  transition: 'opacity 0.2s, background 0.2s',
-                  background: esEditando
-                    ? 'rgba(230,184,106,0.04)'
-                    : bajoDeMini ? 'rgba(192,57,43,0.04)' : 'transparent',
+                  display: 'grid',
+                  gridTemplateColumns: '1fr auto 48px',
+                  gap: 12,
+                  alignItems: 'center',
                 }}>
-
-                  {/* Fila principal */}
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 110px 150px 120px 44px',
-                    gap: 0,
-                    padding: '14px 20px',
-                    alignItems: 'center',
-                  }}>
-
-                    {/* ── Nombre del servicio ── */}
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: '0.92rem' }}>{nombre}</div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--muted)', marginTop: 2 }}>
-                        min {fmtPrecio(minimo)}
-                      </div>
+                  {/* ── Izquierda: Nombre + min ── */}
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: '0.92rem' }}>{nombre}</div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--muted)', marginTop: 2 }}>
+                      min {fmtPrecio(minimo)}
                     </div>
+                  </div>
 
-                    {/* ── Duración ── */}
-                    <div style={{ textAlign: 'center' }}>
-                      {esEditando && !soloLectura ? (
+                  {/* ── Centro: Duración + Precio ── */}
+                  <div style={{ textAlign: 'right' }}>
+                    {esEditando && !soloLectura ? (
+                      <div>
                         <select
                           className="form-control"
-                          style={{ fontSize: '0.85rem', padding: '6px 8px', textAlign: 'center' }}
+                          style={{ fontSize: '0.85rem', padding: '6px 8px', textAlign: 'center', width: '100%' }}
                           value={s.duracion}
                           onChange={(e) => setField(id, 'duracion', Number(e.target.value))}
                         >
@@ -280,28 +245,13 @@ export default function Servicios() {
                             <option key={d} value={d}>{d} min</option>
                           ))}
                         </select>
-                      ) : (
-                        <span style={{
-                          display: 'inline-flex', alignItems: 'center', gap: 4,
-                          fontSize: '0.88rem', color: 'var(--text)',
-                          background: 'var(--surface2)',
-                          padding: '4px 10px', borderRadius: 6,
-                        }}>
-                          ⏱ {s.duracion} min
-                        </span>
-                      )}
-                    </div>
-
-                    {/* ── Precio ── */}
-                    <div style={{ textAlign: 'right' }}>
-                      {esEditando && !soloLectura ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'flex-end' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'flex-end', marginTop: 4 }}>
                           <span style={{ color: 'var(--gold)', fontWeight: 700, fontSize: '0.9rem' }}>$</span>
                           <input
                             type="number"
                             className="form-control"
                             style={{
-                              width: 110, textAlign: 'right',
+                              width: 100, textAlign: 'right',
                               fontFamily: "'Playfair Display', serif",
                               fontSize: '1rem', fontWeight: 700,
                               padding: '6px 10px',
@@ -313,95 +263,82 @@ export default function Servicios() {
                             onKeyDown={(e) => e.key === 'Enter' && setEditando(null)}
                           />
                         </div>
-                      ) : (
-                        <div>
-                          <div style={{
-                            fontFamily: "'Playfair Display', serif",
-                            fontSize: '1.1rem', fontWeight: 700,
-                            color: bajoDeMini ? 'var(--cobre-light)' : 'var(--gold)',
-                          }}>
-                            {fmtPrecio(s.precio)}
-                          </div>
-                          {bajoDeMini && (
-                            <div style={{ fontSize: '0.65rem', color: 'var(--cobre-light)' }}>
-                              <AlertTriangle size={12} /> Bajo el mínimo
-                            </div>
-                          )}
+                      </div>
+                    ) : (
+                      <div>
+                        <div style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 4,
+                          fontSize: '0.78rem', color: 'var(--muted)',
+                          background: 'var(--surface2)', padding: '3px 8px', borderRadius: 6,
+                          marginBottom: 4,
+                        }}>
+                          ⏱ {s.duracion} min
                         </div>
-                      )}
-                    </div>
-
-                    {/* ── Toggle activo ── */}
-                    <div style={{ textAlign: 'center' }}>
-                      <button
-                        onClick={() => toggleActivo(id)}
-                        disabled={soloLectura}
-                        title={s.activo ? 'Desactivar servicio' : 'Activar servicio'}
-                        style={{
-                          width: 46, height: 26,
-                          borderRadius: 13,
-                          border: 'none', cursor: soloLectura ? 'not-allowed' : 'pointer',
-                          background: s.activo
-                            ? 'linear-gradient(135deg, #2ea043, #3fb950)'
-                            : 'var(--surface2)',
-                          position: 'relative',
-                          transition: 'background 0.25s',
-                          boxShadow: s.activo ? '0 0 8px rgba(63,185,80,0.4)' : 'none',
-                        }}
-                      >
-                        <span style={{
-                          position: 'absolute', top: 3,
-                          left: s.activo ? 23 : 3,
-                          width: 20, height: 20, borderRadius: '50%',
-                          background: '#fff',
-                          transition: 'left 0.25s',
-                          boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
-                        }} />
-                      </button>
-                    </div>
-
-                    {/* ── Botón editar ── */}
-                    <div style={{ textAlign: 'center' }}>
-                      {!soloLectura && (
-                        <button
-                          onClick={() => setEditando(esEditando ? null : id)}
-                          className={esEditando ? 'btn btn-success btn-sm' : 'btn btn-ghost btn-sm'}
-                          style={{ padding: '5px 8px', fontSize: '0.8rem' }}
-                          title={esEditando ? 'Listo' : 'Editar'}
-                        >
-                          {esEditando ? <Check size={14} /> : <Pencil size={14} />}
-                        </button>
-                      )}
-                    </div>
+                        <div style={{
+                          fontFamily: "'Playfair Display', serif",
+                          fontSize: '1.1rem', fontWeight: 700,
+                          color: bajoDeMini ? 'var(--cobre-light)' : 'var(--gold)',
+                        }}>
+                          {fmtPrecio(s.precio)}
+                        </div>
+                        {bajoDeMini && (
+                          <div style={{ fontSize: '0.65rem', color: 'var(--cobre-light)' }}>
+                            <AlertTriangle size={12} /> Bajo el mínimo
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
-                  {/* Barra visual precio vs mínimo — solo en modo vista */}
-                  {!esEditando && s.activo && (
-                    <div style={{ padding: '0 20px 12px', marginTop: -4 }}>
-                      <div style={{
-                        height: 3, background: 'var(--border)', borderRadius: 4,
-                      }}>
-                        <div style={{
-                          height: '100%', borderRadius: 4,
-                          width: `${Math.min(((Number(s.precio) - minimo) / minimo) * 100 + 50, 100)}%`,
-                          background: bajoDeMini
-                            ? 'var(--cobre-light)'
-                            : 'linear-gradient(90deg, var(--gold-dim), var(--gold))',
-                          transition: 'width 0.4s ease',
-                        }} />
-                      </div>
-                    </div>
-                  )}
+                  {/* ── Derecha: Toggle + Editar ── */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                    <button
+                      onClick={() => toggleActivo(id)}
+                      disabled={soloLectura}
+                      title={s.activo ? 'Desactivar servicio' : 'Activar servicio'}
+                      style={{
+                        width: 46, height: 26,
+                        borderRadius: 13,
+                        border: 'none', cursor: soloLectura ? 'not-allowed' : 'pointer',
+                        background: s.activo
+                          ? 'linear-gradient(135deg, #2ea043, #3fb950)'
+                          : 'var(--surface2)',
+                        position: 'relative',
+                        transition: 'background 0.25s',
+                        boxShadow: s.activo ? '0 0 8px rgba(63,185,80,0.4)' : 'none',
+                      }}
+                    >
+                      <span style={{
+                        position: 'absolute', top: 3,
+                        left: s.activo ? 23 : 3,
+                        width: 20, height: 20, borderRadius: '50%',
+                        background: '#fff',
+                        transition: 'left 0.25s',
+                        boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+                      }} />
+                    </button>
+                    {!soloLectura && (
+                      <button
+                        onClick={() => setEditando(esEditando ? null : id)}
+                        className={esEditando ? 'btn btn-success btn-sm' : 'btn btn-ghost btn-sm'}
+                        style={{ padding: '5px 8px', fontSize: '0.8rem' }}
+                        title={esEditando ? 'Listo' : 'Editar'}
+                      >
+                        {esEditando ? <Check size={14} /> : <Pencil size={14} />}
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             );
           })}
         </div>
+        </div>
 
         {/* ── Pie de página ── */}
         {!soloLectura && (
           <div style={{
-            marginTop: 20, padding: '16px 20px',
+            marginTop: 12, padding: '16px 20px',
             background: 'var(--surface)', border: '1px solid var(--border)',
             borderRadius: 12, display: 'flex',
             alignItems: 'center', justifyContent: 'space-between', gap: 16,
@@ -414,6 +351,27 @@ export default function Servicios() {
             <button className="btn btn-primary" onClick={handleGuardar}>
               <Save size={16} /> Guardar cambios
             </button>
+          </div>
+        )}
+
+        {(guardadoOk || guardadoError) && (
+          <div style={{
+            position: 'fixed', bottom: 90, right: 24, zIndex: 9999,
+            padding: '12px 20px', borderRadius: 10,
+            background: guardadoOk
+              ? 'rgba(46,160,67,0.95)'
+              : 'rgba(192,57,43,0.95)',
+            color: '#fff', boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+            display: 'flex', alignItems: 'center', gap: 8,
+            fontSize: '0.9rem', fontWeight: 600,
+            animation: 'slideUp 0.25s ease',
+          }}>
+            {guardadoOk
+              ? <CheckCircle size={18} />
+              : <AlertTriangle size={18} />}
+            {guardadoOk
+              ? 'Servicios guardados correctamente.'
+              : guardadoError}
           </div>
         )}
       </main>

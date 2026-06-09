@@ -4,7 +4,7 @@
 // de todos los servicios que ofrece el negocio.
 // ─────────────────────────────────────────────────────────────
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2, Check, Pencil, Save, AlertTriangle, CheckCircle, Bell } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
@@ -41,6 +41,14 @@ export default function ServiciosBarberia() {
   const [editando, setEditando]       = useState(null);
   const [guardadoOk, setGuardadoOk]     = useState(false);
   const [guardadoError, setGuardadoError] = useState('');
+  const [esMobile, setEsMobile] = useState(window.innerWidth < 600);
+
+  useEffect(() => {
+    const actualizar = () => setEsMobile(window.innerWidth < 600);
+    window.addEventListener('resize', actualizar);
+    actualizar();
+    return () => window.removeEventListener('resize', actualizar);
+  }, []);
 
   const setField = (id, campo, valor) =>
     setServicios((prev) => ({
@@ -61,6 +69,7 @@ export default function ServiciosBarberia() {
     );
     if (invalidos.length > 0) {
       setGuardadoError('Hay precios por debajo del mínimo permitido.');
+      setTimeout(() => setGuardadoError(''), 4000);
       return;
     }
 
@@ -94,17 +103,6 @@ export default function ServiciosBarberia() {
           </div>
         </div>
 
-        {guardadoError && (
-          <div className="alert alert-error" style={{ marginBottom: 20 }}>
-            {guardadoError}
-          </div>
-        )}
-        {guardadoOk && (
-          <div className="alert alert-success" style={{ marginBottom: 20, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <CheckCircle size={16} /> Servicios guardados correctamente.
-          </div>
-        )}
-
         <div className="stats-grid" style={{ marginBottom: 28 }}>
           <div className="stat-card">
             <div className="stat-value" style={{ color: 'var(--gold)', fontSize: '1.4rem' }}>
@@ -126,70 +124,69 @@ export default function ServiciosBarberia() {
           </div>
         </div>
 
-        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div className="card" style={{ padding: '16px' }}>
           <div style={{
             display: 'grid',
-            gridTemplateColumns: '1fr 110px 150px 120px 44px',
-            gap: 0,
-            padding: '10px 20px',
-            background: 'var(--surface2)',
-            borderBottom: '1px solid var(--border)',
-            fontSize: '0.72rem', fontWeight: 600, color: 'var(--muted)',
-            textTransform: 'uppercase', letterSpacing: '0.06em',
+            gridTemplateColumns: esMobile ? '1fr' : '1fr 1fr',
+            gap: 16,
           }}>
-            <span>Servicio</span>
-            <span style={{ textAlign: 'center' }}>Duración</span>
-            <span style={{ textAlign: 'right' }}>Precio</span>
-            <span style={{ textAlign: 'center' }}>Estado</span>
-            <span />
-          </div>
+            {Object.entries(NOMBRES_SERVICIOS).map(([id, nombre], idx, arr) => {
+              const s = servicios[id];
+              const esEditando = editando === id;
+              const minimo = PRECIOS_MINIMOS[id];
+              const bajoDeMini = s.activo && Number(s.precio) < minimo;
+              const esDomicilio = id === 'E009';
 
-          {Object.entries(NOMBRES_SERVICIOS).map(([id, nombre], idx, arr) => {
-            const s = servicios[id];
-            const esEditando = editando === id;
-            const minimo = PRECIOS_MINIMOS[id];
-            const bajoDeMini = s.activo && Number(s.precio) < minimo;
-            const esUltimo = idx === arr.length - 1;
-            const esDomicilio = id === 'E009';
+              return (
+                <div
+                  key={id}
+                  className="card-hover"
+                  style={{
+                    padding: 16,
+                    border: '1px solid var(--border)',
+                    borderRadius: 12,
+                    background: esEditando
+                      ? 'rgba(230,184,106,0.04)'
+                      : bajoDeMini
+                        ? 'rgba(192,57,43,0.04)'
+                        : 'var(--surface)',
+                    transition: 'border-color 0.2s, box-shadow 0.2s, background 0.2s',
+                    opacity: s.activo ? 1 : 0.5,
+                  }}
+                >
+                  {esDomicilio && (
+                    <div style={{
+                      marginBottom: 8,
+                      fontSize: '0.72rem', color: 'var(--gold)',
+                      fontWeight: 600, textTransform: 'uppercase',
+                      letterSpacing: '0.06em', display: 'flex',
+                      alignItems: 'center', gap: 6,
+                    }}>
+                      <Home size={14} /> Servicio especial
+                    </div>
+                  )}
 
-            return (
-              <div key={id}>
-                {esDomicilio && (
-                  <div style={{
-                    padding: '8px 20px',
-                    background: 'rgba(230,184,106,0.04)',
-                    borderTop: '1px solid var(--border)',
-                    borderBottom: '1px solid var(--border)',
-                    fontSize: '0.72rem', color: 'var(--gold)',
-                    fontWeight: 600, textTransform: 'uppercase',
-                    letterSpacing: '0.06em', display: 'flex',
-                    alignItems: 'center', gap: 6,
-                  }}>
-                    <Home size={14} /> Servicio especial
-                  </div>
-                )}
-
-                <div style={{
-                  borderBottom: esUltimo ? 'none' : '1px solid var(--border)',
-                  opacity: s.activo ? 1 : 0.45,
-                  transition: 'opacity 0.2s, background 0.2s',
-                  background: esEditando
-                    ? 'rgba(230,184,106,0.04)'
-                    : bajoDeMini ? 'rgba(192,57,43,0.04)' : 'transparent',
-                }}>
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 110px 150px 120px 44px',
-                    gap: 0,
-                    padding: '14px 20px',
-                    alignItems: 'center',
-                  }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
                     <div>
                       <div style={{ fontWeight: 600, fontSize: '0.92rem' }}>{nombre}</div>
                       <div style={{ fontSize: '0.72rem', color: 'var(--muted)', marginTop: 2 }}>
                         min {fmtPrecio(minimo)}
                       </div>
                     </div>
+                    <button
+                      onClick={() => setEditando(esEditando ? null : id)}
+                      className={esEditando ? 'btn btn-success btn-sm' : 'btn btn-ghost btn-sm'}
+                      style={{ padding: '5px 8px', fontSize: '0.8rem', flexShrink: 0 }}
+                      title={esEditando ? 'Listo' : 'Editar'}
+                    >
+                      {esEditando ? <Check size={14} /> : <Pencil size={14} />}
+                    </button>
+                  </div>
+
+                  <div style={{
+                    display: 'flex', gap: 12, alignItems: 'center',
+                    flexWrap: 'wrap',
+                  }}>
 
                     <div style={{ textAlign: 'center' }}>
                       {esEditando ? (
@@ -215,9 +212,9 @@ export default function ServiciosBarberia() {
                       )}
                     </div>
 
-                    <div style={{ textAlign: 'right' }}>
+                    <div style={esMobile ? {} : { marginLeft: 'auto' }}>
                       {esEditando ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'flex-end' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                           <span style={{ color: 'var(--gold)', fontWeight: 700, fontSize: '0.9rem' }}>$</span>
                           <input
                             type="number"
@@ -253,7 +250,7 @@ export default function ServiciosBarberia() {
                       )}
                     </div>
 
-                    <div style={{ textAlign: 'center' }}>
+                    <div style={esMobile ? { marginLeft: 0 } : { marginLeft: 'auto' }}>
                       <button
                         onClick={() => toggleActivo(id)}
                         title={s.activo ? 'Desactivar servicio' : 'Activar servicio'}
@@ -280,38 +277,11 @@ export default function ServiciosBarberia() {
                       </button>
                     </div>
 
-                    <div style={{ textAlign: 'center' }}>
-                      <button
-                        onClick={() => setEditando(esEditando ? null : id)}
-                        className={esEditando ? 'btn btn-success btn-sm' : 'btn btn-ghost btn-sm'}
-                        style={{ padding: '5px 8px', fontSize: '0.8rem' }}
-                        title={esEditando ? 'Listo' : 'Editar'}
-                      >
-                        {esEditando ? <Check size={14} /> : <Pencil size={14} />}
-                      </button>
-                    </div>
                   </div>
-
-                  {!esEditando && s.activo && (
-                    <div style={{ padding: '0 20px 12px', marginTop: -4 }}>
-                      <div style={{
-                        height: 3, background: 'var(--border)', borderRadius: 4,
-                      }}>
-                        <div style={{
-                          height: '100%', borderRadius: 4,
-                          width: `${Math.min(((Number(s.precio) - minimo) / minimo) * 100 + 50, 100)}%`,
-                          background: bajoDeMini
-                            ? 'var(--cobre-light)'
-                            : 'linear-gradient(90deg, var(--gold-dim), var(--gold))',
-                          transition: 'width 0.4s ease',
-                        }} />
-                      </div>
-                    </div>
-                  )}
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
 
         <div style={{
@@ -329,6 +299,27 @@ export default function ServiciosBarberia() {
             <Save size={16} /> Guardar cambios
           </button>
         </div>
+
+        {(guardadoOk || guardadoError) && (
+          <div style={{
+            position: 'fixed', bottom: 90, right: 24, zIndex: 9999,
+            padding: '12px 20px', borderRadius: 10,
+            background: guardadoOk
+              ? 'rgba(46,160,67,0.95)'
+              : 'rgba(192,57,43,0.95)',
+            color: '#fff', boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+            display: 'flex', alignItems: 'center', gap: 8,
+            fontSize: '0.9rem', fontWeight: 600,
+            animation: 'slideUp 0.25s ease',
+          }}>
+            {guardadoOk
+              ? <CheckCircle size={18} />
+              : <AlertTriangle size={18} />}
+            {guardadoOk
+              ? 'Servicios guardados correctamente.'
+              : guardadoError}
+          </div>
+        )}
       </main>
     </div>
   );
