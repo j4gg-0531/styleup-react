@@ -11,6 +11,7 @@ import { notificacionesService } from '../../services/notificacionesService.js';
 import { horariosService } from '../../services/horariosService.js';
 import { useChatFlotante } from '../../context/useChatFlotante.js';
 import Estrellas from '../../components/Estrellas.jsx';
+import AvatarDisplay from '../../components/AvatarDisplay.jsx';
 
 const DIAS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
@@ -143,10 +144,10 @@ export default function PerfilBarberoAdmin() {
               width: 100, height: 100, borderRadius: '50%',
               background: 'linear-gradient(135deg, var(--cobre), var(--cobre-light))',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '2.8rem', flexShrink: 0,
+              flexShrink: 0, overflow: 'hidden',
               boxShadow: '0 0 0 4px rgba(192,57,43,0.2), var(--shadow-lg)',
             }}>
-              {barbero.avatar}
+              <AvatarDisplay src={barbero.avatar} size="2.8rem" />
             </div>
 
             {/* Info */}

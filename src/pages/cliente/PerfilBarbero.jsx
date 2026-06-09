@@ -15,6 +15,7 @@ import {
   generarSlots,
 } from '../../services/agendamientoService.js';
 import Estrellas from '../../components/Estrellas.jsx';
+import AvatarDisplay from '../../components/AvatarDisplay.jsx';
 import { Scissors, Building2, MapPin, Phone, MessageCircle, Wallet, Clock, Calendar, ArrowLeft, Smartphone, Circle, CheckCircle, AlertTriangle, Check } from 'lucide-react';
 import MapaMini, { SVG_SCISSORS, SVG_BUILDING2 } from '../../components/MapaMini.jsx';
 import { getDiasSemana, fmtFecha } from '../../services/semana.js';
@@ -166,10 +167,10 @@ export default function PerfilBarbero() {
               width: 100, height: 100, borderRadius: '50%',
               background: 'linear-gradient(135deg, var(--cobre), var(--cobre-light))',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '2.8rem', flexShrink: 0,
+              flexShrink: 0, overflow: 'hidden',
               boxShadow: '0 0 0 4px rgba(192,57,43,0.2), var(--shadow-lg)',
             }}>
-              {barbero.avatar}
+              <AvatarDisplay src={barbero.avatar} size="2.8rem" />
             </div>
 
             <div style={{ flex: 1 }}>

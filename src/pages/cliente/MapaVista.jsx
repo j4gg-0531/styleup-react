@@ -5,6 +5,7 @@ import L from 'leaflet';
 import { useNavigate } from 'react-router-dom';
 import { Scissors, MapPin, Phone, Building2, Circle, ArrowRight } from 'lucide-react';
 import Estrellas from '../../components/Estrellas.jsx';
+import AvatarDisplay from '../../components/AvatarDisplay.jsx';
 import { SVG_SCISSORS, SVG_BUILDING2 } from '../../components/MapaMini.jsx';
 
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -120,7 +121,7 @@ export default function MapaVista({ barberos, barberias = [], onVerBarberos, tod
                 padding: '4px 2px', minWidth: 210,
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                  <span style={{ fontSize: '1.4rem' }}>{b.avatar}</span>
+                  <AvatarDisplay src={b.avatar} size="1.4rem" />
                   <div>
                     <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#e6edf3' }}>
                       {b.nombre} {b.apellido}
