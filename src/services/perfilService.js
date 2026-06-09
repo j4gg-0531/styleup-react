@@ -138,4 +138,17 @@ export const perfilService = {
       reader.readAsDataURL(file);
     });
   },
+
+  async cambiarPassword(passwordActual, passwordNueva) {
+    await api.put('/auth/password', { passwordActual, passwordNueva });
+  },
+
+  async eliminarCuenta() {
+    const user = getUser();
+    if (user.tipo === 'cliente' || user.tipo === 'barbero') {
+      await api.delete(`/${user.tipo}s/${user.cedula}`);
+    } else if (user.tipo === 'barberia') {
+      await api.delete(`/barberias/${user.barberiaId}`);
+    }
+  },
 };
