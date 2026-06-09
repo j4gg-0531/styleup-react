@@ -15,7 +15,7 @@ import {
   generarSlots,
 } from '../../services/agendamientoService.js';
 import Estrellas from '../../components/Estrellas.jsx';
-import { Scissors, Building2, MapPin, Phone, MessageCircle, Wallet, Clock, Calendar, ArrowLeft, Smartphone, Circle, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Scissors, Building2, MapPin, Phone, MessageCircle, Wallet, Clock, Calendar, ArrowLeft, Smartphone, Circle, CheckCircle, AlertTriangle, Check } from 'lucide-react';
 import MapaMini, { SVG_SCISSORS, SVG_BUILDING2 } from '../../components/MapaMini.jsx';
 import { getDiasSemana, fmtFecha } from '../../services/semana.js';
 
