@@ -50,8 +50,10 @@ export default function PerfilBarberoAdmin() {
       }
       setBarbero(b);
       setActivo(b.disponibleHoy ?? false);
-      const nombreCompleto = `${b.nombre} ${b.apellido}`;
-      setHorarioEdit(horariosService.getHorarioAdmin(nombreCompleto));
+      try {
+        const h = await horariosService.getHorarioAdmin(b.id);
+        setHorarioEdit(h);
+      } catch { setHorarioEdit({}); }
       setLoading(false);
     };
     load();
