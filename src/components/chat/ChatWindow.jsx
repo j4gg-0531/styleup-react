@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { MessageCircle, ArrowLeft, X, User, Scissors, Send, Image } from 'lucide-react';
 import { chatService } from '../../services/chatService.js';
 import { barberosService } from '../../services/barberosService.js';
+import { barberiaService } from '../../services/barberiaService.js';
 import { perfilService } from '../../services/perfilService.js';
 
 export default function ChatWindow({ usuarioActual, rolActual, onClose, conversacionInicial, onConversacionAbierta }) {
@@ -28,13 +29,12 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
   useEffect(() => {
     const load = async () => {
       const todos = await barberosService.getTodos();
-      const filtrados = todos.filter((b) => {
-        if (rolActual === 'barberia') {
-          const barberosDeMiBarberia = ['Juan Pérez', 'Carlos López'];
-          return barberosDeMiBarberia.includes(`${b.nombre} ${b.apellido}`);
-        }
-        return true;
-      });
+      let filtrados = todos;
+      if (rolActual === 'barberia') {
+        const barberia = await barberiaService.getByNombre(usuarioActual);
+        const ids = barberia?.barberoIds || [];
+        filtrados = todos.filter((b) => ids.includes(b.id));
+      }
       setBarberos(filtrados);
     };
     load();
