@@ -1,50 +1,81 @@
-// src/pages/barberia/HorariosBarberia.jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2, Lightbulb, Bell } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 import { useToast } from '../../context/useToast.js';
 import { horariosService } from '../../services/horariosService.js';
+import { barberiaService } from '../../services/barberiaService.js';
+import { barberosService } from '../../services/barberosService.js';
 
-const BARBEROS = ['Juan Pérez', 'Carlos López', 'Miguel Torres'];
 const DIAS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-
-const HORARIOS_MOCK = {
-  'Juan Pérez':    { Lun:'09:00-18:00', Mar:'09:00-18:00', Mié:'09:00-18:00', Jue:'09:00-18:00', Vie:'09:00-18:00', Sáb:'09:00-14:00' },
-  'Carlos López':  { Lun:'12:00-20:00', Mar:'12:00-20:00', Mié:'Descanso',    Jue:'12:00-20:00', Vie:'12:00-20:00', Sáb:'10:00-16:00' },
-  'Miguel Torres': { Lun:'Descanso',    Mar:'10:00-18:00', Mié:'10:00-18:00', Jue:'10:00-18:00', Vie:'10:00-18:00', Sáb:'Descanso' },
-};
 
 export default function HorariosBarberia() {
   const { user } = useAuth();
   const toast = useToast();
   const [propuestas, setPropuestas] = useState([]);
+  const [barberos, setBarberos] = useState([]);
+  const [horariosPorBarbero, setHorariosPorBarbero] = useState({});
 
-  const cargarPropuestas = () => {
-    if (user?.nombre) {
-      setPropuestas(horariosService.getPropuestasByBarberia(user.nombre));
-    }
-  };
+  useEffect(() => {
+    if (!user?.barberiaId) return;
+    const load = async () => {
+      try {
+        const [props, empleados] = await Promise.all([
+          horariosService.getPropuestasByBarberia(user.barberiaId),
+          barberosService.getTodos(),
+        ]);
+        setPropuestas(props);
+
+        const barberia = await barberiaService.getByNombre(user.nombre);
+        const idsBarberos = barberia?.barberoIds || [];
+        const filtrados = empleados.filter((b) => idsBarberos.includes(b.id));
+        setBarberos(filtrados);
+
+        const map = {};
+        for (const b of filtrados) {
+          try {
+            const h = await horariosService.getHorarioAdmin(b.id);
+            map[b.id] = h;
+          } catch { map[b.id] = {}; }
+        }
+        setHorariosPorBarbero(map);
+      } catch { /* silent */ }
+    };
+    load();
+  }, [user]);
+
+  const cargarPropuestas = useCallback(async () => {
+    if (!user?.barberiaId) return;
+    try {
+      const props = await horariosService.getPropuestasByBarberia(user.barberiaId);
+      setPropuestas(props);
+    } catch { /* silent */ }
+  }, [user]);
 
   useEffect(() => {
     cargarPropuestas();
-  }, [user]);
+  }, [cargarPropuestas]);
 
-  const handleAceptar = (id) => {
-    const result = horariosService.aceptarPropuesta(id);
-    if (result) {
-      toast.success(`Horario aceptado — ${result.barberoNombre}`);
-      cargarPropuestas();
-    }
+  const handleAceptar = async (id) => {
+    try {
+      const result = await horariosService.aceptarPropuesta(id);
+      if (result) {
+        toast.success(`Horario aceptado — ${result.barberoNombre}`);
+        cargarPropuestas();
+      }
+    } catch { /* silent */ }
   };
 
-  const handleRechazar = (id) => {
-    const result = horariosService.rechazarPropuesta(id);
-    if (result) {
-      toast.info(`Propuesta rechazada — ${result.barberoNombre}`);
-      cargarPropuestas();
-    }
+  const handleRechazar = async (id) => {
+    try {
+      const result = await horariosService.rechazarPropuesta(id);
+      if (result) {
+        toast.info(`Propuesta rechazada — ${result.barberoNombre}`);
+        cargarPropuestas();
+      }
+    } catch { /* silent */ }
   };
+
   const navItems = [
     { icon: <Home size={18} />, label: 'Dashboard',  href: '/barberia' },
     { icon: <Scissors size={18} />, label: 'Barberos',   href: '/barberia/barberos' },
@@ -54,6 +85,20 @@ export default function HorariosBarberia() {
     { icon: <BarChart3 size={18} />, label: 'Reportes',   href: '/barberia/reportes' },
     { icon: <Bell size={18} />, label: 'Notificaciones', href: '/barberia/notificaciones', notificacionesBadge: true },
   ];
+
+  const getHorarioTexto = (barberoId, diaIdx) => {
+    const h = horariosPorBarbero[barberoId];
+    if (!h) return '—';
+    const diaNum = (() => {
+      const hoy = new Date();
+      const lunes = new Date(hoy);
+      lunes.setDate(hoy.getDate() - (hoy.getDay() === 0 ? 6 : hoy.getDay() - 1));
+      const dia = new Date(lunes);
+      dia.setDate(lunes.getDate() + diaIdx);
+      return dia.getDate();
+    })();
+    return h[diaNum] || '—';
+  };
 
   return (
     <div className="app-layout">
@@ -88,10 +133,10 @@ export default function HorariosBarberia() {
                     </span>
                   </div>
                   <button className="btn btn-primary btn-sm" onClick={() => handleAceptar(p.id)} style={{ background: '#2ecc71' }}>
-                    <CheckCircle size={14} /> Aceptar
+                    Aceptar
                   </button>
                   <button className="btn btn-outline btn-sm" onClick={() => handleRechazar(p.id)} style={{ borderColor: '#e74c3c', color: '#e74c3c' }}>
-                    <XCircle size={14} /> Rechazar
+                    Rechazar
                   </button>
                 </div>
               ))}
@@ -109,24 +154,32 @@ export default function HorariosBarberia() {
                 </tr>
               </thead>
               <tbody>
-                {BARBEROS.map((b) => (
-                  <tr key={b}>
-                    <td><strong>{b}</strong></td>
-                    {DIAS.map((d) => {
-                      const horario = HORARIOS_MOCK[b][d];
-                      return (
-                        <td key={d}>
-                          <span style={{
-                            color: horario === 'Descanso' ? 'var(--muted)' : 'var(--gold)',
-                            fontSize: '0.8rem'
-                          }}>
-                            {horario}
-                          </span>
-                        </td>
-                      );
-                    })}
+                {barberos.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} style={{ textAlign: 'center', color: 'var(--muted)', padding: 24 }}>
+                      No hay barberos registrados en tu barbería.
+                    </td>
                   </tr>
-                ))}
+                ) : (
+                  barberos.map((b) => (
+                    <tr key={b.id}>
+                      <td><strong>{b.nombre} {b.apellido}</strong></td>
+                      {DIAS.map((_, idx) => {
+                        const texto = getHorarioTexto(b.id, idx);
+                        return (
+                          <td key={idx}>
+                            <span style={{
+                              color: texto === '—' ? 'var(--muted)' : 'var(--gold)',
+                              fontSize: '0.8rem'
+                            }}>
+                              {texto}
+                            </span>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
