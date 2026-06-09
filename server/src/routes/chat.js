@@ -62,4 +62,28 @@ router.post('/marcar-leidos', authMiddleware, async (req, res) => {
   }
 })
 
+// Eliminar un mensaje (protegido — solo el remitente)
+router.delete('/mensajes/:id', authMiddleware, async (req, res) => {
+  try {
+    const { remitente } = req.query
+    if (!remitente) return res.status(400).json({ error: 'remitente es requerido' })
+    await chatService.eliminarMensaje(req.params.id, remitente)
+    res.json({ mensaje: 'Mensaje eliminado' })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+// Eliminar conversación completa (protegido)
+router.delete('/conversacion', authMiddleware, async (req, res) => {
+  try {
+    const { usuario1, usuario2 } = req.query
+    if (!usuario1 || !usuario2) return res.status(400).json({ error: 'usuario1 y usuario2 son requeridos' })
+    const count = await chatService.eliminarConversacion(usuario1, usuario2)
+    res.json({ mensaje: `${count.count} mensajes eliminados` })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
 module.exports = router
