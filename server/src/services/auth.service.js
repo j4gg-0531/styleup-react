@@ -34,16 +34,28 @@ const loginBarbero = async (correo, contrasena) => {
 
 const registrarCliente = async (data) => {
   const hash = await bcrypt.hash(data.contrasena, 10)
-  return await prisma.clientes.create({
+  const cliente = await prisma.clientes.create({
     data: { ...data, contrasena: hash }
   })
+  const token = jwt.sign(
+    { cedula: cliente.cedula_cliente, tipo: 'cliente' },
+    process.env.JWT_SECRET,
+    { expiresIn: '8h' }
+  )
+  return { token, nombre: cliente.nombre, tipo: 'cliente', cedula: cliente.cedula_cliente }
 }
 
 const registrarBarbero = async (data) => {
   const hash = await bcrypt.hash(data.contrasena, 10)
-  return await prisma.barberos.create({
+  const barbero = await prisma.barberos.create({
     data: { ...data, contrasena: hash }
   })
+  const token = jwt.sign(
+    { cedula: barbero.cedula_barbero, tipo: 'barbero' },
+    process.env.JWT_SECRET,
+    { expiresIn: '8h' }
+  )
+  return { token, nombre: barbero.nombre, tipo: 'barbero', cedula: barbero.cedula_barbero }
 }
 
 const loginBarberia = async (correo, contrasena) => {
@@ -63,7 +75,7 @@ const loginBarberia = async (correo, contrasena) => {
 
 const registrarBarberia = async (data) => {
   const hash = await bcrypt.hash(data.contrasena, 10)
-  return await prisma.barberias.create({
+  const barberia = await prisma.barberias.create({
     data: {
       nombre: data.nombre,
       nombre_dueno: data.nombre_dueno,
@@ -77,6 +89,12 @@ const registrarBarberia = async (data) => {
       contrasena: hash,
     }
   })
+  const token = jwt.sign(
+    { id: barberia.id, tipo: 'barberia', nombre: barberia.nombre_dueno },
+    process.env.JWT_SECRET,
+    { expiresIn: '8h' }
+  )
+  return { token, nombre: barberia.nombre_dueno, tipo: 'barberia', barberiaId: barberia.id }
 }
 
 const cambiarPassword = async (usuario, passwordActual, passwordNueva) => {

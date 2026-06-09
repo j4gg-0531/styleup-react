@@ -66,13 +66,17 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
 
   const handleEnviar = async () => {
     if ((!texto.trim() && !imagenParaEnviar) || !conversacionActiva) return;
-    await chatService.enviarMensaje(usuarioActual, conversacionActiva, texto.trim(), imagenParaEnviar);
-    const msgs = await chatService.getMensajes(usuarioActual, conversacionActiva);
-    setMensajes(msgs);
-    const convs = await chatService.getConversaciones(usuarioActual);
-    setConversaciones(convs);
-    setTexto('');
-    limpiarImagen();
+    try {
+      await chatService.enviarMensaje(usuarioActual, conversacionActiva, texto.trim(), imagenParaEnviar);
+      const msgs = await chatService.getMensajes(usuarioActual, conversacionActiva);
+      setMensajes(msgs);
+      const convs = await chatService.getConversaciones(usuarioActual);
+      setConversaciones(convs);
+      setTexto('');
+      limpiarImagen();
+    } catch (err) {
+      console.error('Error al enviar mensaje:', err);
+    }
   };
 
   const handleImageSelect = async (e) => {

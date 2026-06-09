@@ -54,9 +54,12 @@ export default function Registro() {
         payload.num_trabajadores = parseInt(form.capacidadBarberos, 10) || 1;
       }
 
-      await api.post(`/auth/registro/${rol}`, payload);
-
-      login(form.nombre, rol);
+      const data = await api.post(`/auth/registro/${rol}`, payload);
+      const extras = {};
+      if (data.token) extras.token = data.token;
+      if (data.cedula) extras.cedula = data.cedula;
+      if (data.barberiaId) extras.barberiaId = data.barberiaId;
+      login(data.nombre || form.nombre, rol, extras);
       setMsg({ tipo: 'success', texto: '¡Cuenta creada! Redirigiendo...' });
       setTimeout(() => navigate(rol === 'barbero' ? '/barbero' : rol === 'barberia' ? '/barberia' : '/cliente'), 800);
     } catch (err) {
