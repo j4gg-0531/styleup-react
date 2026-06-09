@@ -22,8 +22,11 @@ export default function ChatFlotante() {
     }
   }, [user]);
 
-  const debeAbrirse = chatPendiente && user && !abierto;
-  if (debeAbrirse) setAbierto(true);
+  useEffect(() => {
+    if (chatPendiente && user && !abierto) {
+      setAbierto(true);
+    }
+  }, [chatPendiente, user, abierto]);
 
   // Rutas donde el chat nunca aparece
   const rutasPublicas = ['/', '/login', '/registro'];
