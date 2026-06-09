@@ -85,4 +85,11 @@ const eliminarMensaje = async (id, remitente) => {
   return await prisma.mensajes.delete({ where: { id: parseInt(id) } })
 }
 
-module.exports = { obtenerMensajes, enviarMensaje, obtenerConversaciones, contarNoLeidos, marcarLeidos, eliminarMensaje }
+const eliminarConversacion = async (usuario1, usuario2) => {
+  const conversacionId = getConversacionId(usuario1, usuario2)
+  return await prisma.mensajes.deleteMany({
+    where: { conversacion_id: conversacionId }
+  })
+}
+
+module.exports = { obtenerMensajes, enviarMensaje, obtenerConversaciones, contarNoLeidos, marcarLeidos, eliminarMensaje, eliminarConversacion }
