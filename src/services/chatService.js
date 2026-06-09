@@ -99,4 +99,8 @@ export const chatService = {
     const convs = await chatService.getConversaciones(nombreUsuario);
     return convs.reduce((sum, c) => sum + (c.totalMensajes || 0), 0);
   },
+
+  async marcarLeidos(usuario1, usuario2) {
+    await api.post('/chat/marcar-leidos', { usuario1, usuario2 });
+  },
 };
