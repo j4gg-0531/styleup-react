@@ -14,7 +14,7 @@ const loginCliente = async (correo, contrasena) => {
     process.env.JWT_SECRET,
     { expiresIn: '8h' }
   )
-  return { token, nombre: cliente.nombre, tipo: 'cliente', cedula: cliente.cedula_cliente }
+  return { token, nombre: `${cliente.nombre} ${cliente.apellido}`.trim(), tipo: 'cliente', cedula: cliente.cedula_cliente }
 }
 
 const loginBarbero = async (correo, contrasena) => {
@@ -29,7 +29,7 @@ const loginBarbero = async (correo, contrasena) => {
     process.env.JWT_SECRET,
     { expiresIn: '8h' }
   )
-  return { token, nombre: barbero.nombre, tipo: 'barbero', cedula: barbero.cedula_barbero }
+  return { token, nombre: `${barbero.nombre} ${barbero.apellido}`.trim(), tipo: 'barbero', cedula: barbero.cedula_barbero }
 }
 
 const registrarCliente = async (data) => {
@@ -42,7 +42,7 @@ const registrarCliente = async (data) => {
     process.env.JWT_SECRET,
     { expiresIn: '8h' }
   )
-  return { token, nombre: cliente.nombre, tipo: 'cliente', cedula: cliente.cedula_cliente }
+  return { token, nombre: `${cliente.nombre} ${cliente.apellido}`.trim(), tipo: 'cliente', cedula: cliente.cedula_cliente }
 }
 
 const registrarBarbero = async (data) => {
@@ -55,7 +55,7 @@ const registrarBarbero = async (data) => {
     process.env.JWT_SECRET,
     { expiresIn: '8h' }
   )
-  return { token, nombre: barbero.nombre, tipo: 'barbero', cedula: barbero.cedula_barbero }
+  return { token, nombre: `${barbero.nombre} ${barbero.apellido}`.trim(), tipo: 'barbero', cedula: barbero.cedula_barbero }
 }
 
 const loginBarberia = async (correo, contrasena) => {
