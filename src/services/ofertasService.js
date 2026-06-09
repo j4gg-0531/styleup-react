@@ -77,12 +77,10 @@ export const ofertasService = {
     };
     const response = await api.post('/ofertas', body);
     const oferta = response?.oferta || response;
-    if (oferta) {
-      const cache = leer(OFERTAS_KEY);
-      guardar(OFERTAS_KEY, [...cache, oferta]);
-      return mapearOferta(oferta);
-    }
-    return mapearOferta(body);
+    if (!oferta) throw new Error('No se pudo crear la oferta');
+    const cache = leer(OFERTAS_KEY);
+    guardar(OFERTAS_KEY, [...cache, oferta]);
+    return mapearOferta(oferta);
   },
 
   async cerrarOferta(ofertaId) {
@@ -102,12 +100,11 @@ export const ofertasService = {
       cedulaBarbero: user.cedula || '',
       hojaDeVida,
     });
-    if (response) {
-      const cache = leer(APLICACIONES_KEY);
-      const aplicacion = response?.aplicacion || response;
-      guardar(APLICACIONES_KEY, [...cache, aplicacion]);
-    }
-    return mapearAplicacion({ id: Date.now(), oferta_id: parseInt(id), cedula_barbero: user.cedula, hoja_de_vida: hojaDeVida, estado: 'pendiente' });
+    if (!response) throw new Error('No se pudo aplicar a la oferta');
+    const cache = leer(APLICACIONES_KEY);
+    const aplicacion = response?.aplicacion || response;
+    guardar(APLICACIONES_KEY, [...cache, aplicacion]);
+    return mapearAplicacion(aplicacion);
   },
 
   async getAplicacionesByBarbero(cedulaBarbero) {
