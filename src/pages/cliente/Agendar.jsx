@@ -9,8 +9,8 @@ import { useCitas } from '../../context/useCitas.js';
 import { useHorarios } from '../../context/useHorarios.js';
 import { barberosService } from '../../services/barberosService.js';
 import { citasService } from '../../services/citasService.js';
+import { serviciosService } from '../../services/serviciosService.js';
 import {
-  DURACION_SERVICIOS,
   generarSlots,
   filtrarBarberosPorServicio,
 } from '../../services/agendamientoService.js';
@@ -19,12 +19,12 @@ import { preciosService } from '../../services/preciosService.js';
 
 // ── Catálogo de servicios ──────────────────────────────────────────────────
 const SERVICIOS = [
-  { id: 'E001', name: 'Corte a tijera',    dur: DURACION_SERVICIOS.E001 },
-  { id: 'E002', name: 'Degradado / Fade',   dur: DURACION_SERVICIOS.E002 },
-  { id: 'E006', name: 'Afeitado con navaja', dur: DURACION_SERVICIOS.E006 },
-  { id: 'E008', name: 'Corte + Barba',       dur: DURACION_SERVICIOS.E008 },
-  { id: 'E007', name: 'Diseño en cabello',   dur: DURACION_SERVICIOS.E007 },
-  { id: 'E004', name: 'Undercut',            dur: DURACION_SERVICIOS.E004 },
+  { id: 'E001', name: 'Corte a tijera',    dur: serviciosService.getDuracion('E001') },
+  { id: 'E002', name: 'Degradado / Fade',   dur: serviciosService.getDuracion('E002') },
+  { id: 'E006', name: 'Afeitado con navaja', dur: serviciosService.getDuracion('E006') },
+  { id: 'E008', name: 'Corte + Barba',       dur: serviciosService.getDuracion('E008') },
+  { id: 'E007', name: 'Diseño en cabello',   dur: serviciosService.getDuracion('E007') },
+  { id: 'E004', name: 'Undercut',            dur: serviciosService.getDuracion('E004') },
 ];
 
 // Fecha de HOY formateada para mostrar y para filtrar citas

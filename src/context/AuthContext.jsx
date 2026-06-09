@@ -1,11 +1,16 @@
 import { createContext, useState, useEffect } from 'react';
 import { api } from '../services/api.js';
+import { serviciosService } from '../services/serviciosService.js';
 
 export const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const stored = sessionStorage.getItem('su_user');
   const [user, setUser] = useState(stored ? JSON.parse(stored) : null);
+
+  useEffect(() => {
+    serviciosService.init();
+  }, []);
 
   useEffect(() => {
     const stored = sessionStorage.getItem('su_user');

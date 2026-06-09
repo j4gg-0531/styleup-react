@@ -10,23 +10,14 @@ import { citasService } from '../../services/citasService.js';
 import { preciosService, NOMBRES_SERVICIOS } from '../../services/preciosService.js';
 import { barberiaService } from '../../services/barberiaService.js';
 import { notificacionesService } from '../../services/notificacionesService.js';
+import { serviciosService } from '../../services/serviciosService.js';
 import {
-  DURACION_SERVICIOS,
   generarSlots,
 } from '../../services/agendamientoService.js';
 import Estrellas from '../../components/Estrellas.jsx';
 import { Scissors, Building2, MapPin, Phone, MessageCircle, Wallet, Clock, Calendar, ArrowLeft, Smartphone, Circle, CheckCircle, AlertTriangle, Check } from 'lucide-react';
 import MapaMini, { SVG_SCISSORS, SVG_BUILDING2 } from '../../components/MapaMini.jsx';
 import { getDiasSemana, fmtFecha } from '../../services/semana.js';
-
-const SERVICIOS_INFO = {
-  E001: { dur: DURACION_SERVICIOS.E001 },
-  E002: { dur: DURACION_SERVICIOS.E002 },
-  E006: { dur: DURACION_SERVICIOS.E006 },
-  E008: { dur: DURACION_SERVICIOS.E008 },
-  E007: { dur: DURACION_SERVICIOS.E007 },
-  E004: { dur: DURACION_SERVICIOS.E004 },
-};
 
 export default function PerfilBarbero() {
   const { id } = useParams();
@@ -120,7 +111,7 @@ export default function PerfilBarbero() {
   const slots = useMemo(() => {
     if (!servicioSel || !diaSeleccionado) return [];
 
-    const duracion = SERVICIOS_INFO[servicioSel.id]?.dur ?? 30;
+    const duracion = serviciosService.getDuracion(servicioSel.id);
 
     // Citas existentes del barbero en ese día (para detectar conflictos)
     const citasExistentes = citasService.getCitasBarberoEnDia(
@@ -146,7 +137,7 @@ export default function PerfilBarbero() {
     if (!diaSeleccionado || !servicioSel || !slotSel) return;
     agregarCita({
       clienteNombre: user.nombre,
-      servicio: { ...servicioSel, ...SERVICIOS_INFO[servicioSel.id] },
+      servicio: { ...servicioSel, dur: serviciosService.getDuracion(servicioSel.id) },
       barbero:  { id: barbero.id, name: nombreCompleto },
       fechaDia:  diaSeleccionado,
       fechaMes:  diasSemana.find((d) => d.num === diaSeleccionado)?.name || '',
@@ -286,14 +277,14 @@ export default function PerfilBarbero() {
             </div>
             <div style={{ padding: '8px 16px' }}>
               {Object.entries(NOMBRES_SERVICIOS).map(([sid, nombre]) => {
-                const info   = SERVICIOS_INFO[sid] || { dur: 30 };
+                const duracion = serviciosService.getDuracion(sid);
                 const precio = precios[sid] || preciosService.getPrecioServicio(nombreCompleto, sid);
                 const esSel  = servicioSel?.id === sid;
                 return (
                   <div
                     key={sid}
                     onClick={() => {
-                      setServicioSel({ id: sid, name: nombre, ...info });
+                      setServicioSel({ id: sid, name: nombre, dur: duracion });
                       setDiaSeleccionado(String(new Date().getDate()));
                       setSlotSel(null);
                     }}
