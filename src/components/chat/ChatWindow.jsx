@@ -116,7 +116,7 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
     onConversacionAbierta?.();
     const msgs = await chatService.getMensajes(usuarioActual, otroUsuario);
     setMensajes(msgs);
-    chatService.marcarLeidos(usuarioActual, otroUsuario).catch(() => {});
+    chatService.marcarLeidos(usuarioActual, otroUsuario);
   };
 
   return (
