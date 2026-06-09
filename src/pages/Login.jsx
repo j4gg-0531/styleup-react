@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Scissors, Building2, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../context/useAuth.js'
+import { api } from '../services/api.js';
 import ThemeToggle from '../components/ui/ThemeToggle.jsx';
 
 export default function Login() {
@@ -9,27 +10,39 @@ export default function Login() {
   const [correo, setCorreo] = useState('');
   const [password, setPassword] = useState('');
   const [msg, setMsg] = useState(null);
+  const [cargando, setCargando] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!correo || !password) {
       setMsg({ tipo: 'error', texto: 'Completa todos los campos.' });
       return;
     }
-    const nombre = correo.split('@')[0];
-    const extras = {};
-    if (rol === 'barberia') extras.barberiaId = 1;
-    if (rol === 'barbero') extras.cedula = nombre;
-    if (rol === 'cliente') extras.cedula = nombre;
-    login(nombre, rol, extras);
-    setMsg({ tipo: 'success', texto: '¡Bienvenido! Redirigiendo...' });
-    setTimeout(() => {
-      if (rol === 'barbero') navigate('/barbero');
-      else if (rol === 'barberia') navigate('/barberia');
-      else navigate('/cliente');
-    }, 700);
+    setCargando(true);
+    setMsg(null);
+
+    try {
+      const data = await api.post(`/auth/login/${rol}`, { correo, contrasena: password });
+
+      const extras = {};
+      if (data.token) extras.token = data.token;
+      if (data.barberiaId) extras.barberiaId = data.barberiaId;
+
+      login(data.nombre, rol, extras);
+
+      setMsg({ tipo: 'success', texto: '¡Bienvenido! Redirigiendo...' });
+      setTimeout(() => {
+        if (rol === 'barbero') navigate('/barbero');
+        else if (rol === 'barberia') navigate('/barberia');
+        else navigate('/cliente');
+      }, 700);
+    } catch (err) {
+      setMsg({ tipo: 'error', texto: 'Correo o contraseña incorrectos.' });
+    } finally {
+      setCargando(false);
+    }
   };
 
   return (
@@ -82,8 +95,8 @@ export default function Login() {
               </div>
             )}
 
-            <button type="submit" className="btn btn-primary btn-block btn-lg" style={{ marginTop: 8 }}>
-              Iniciar sesión
+            <button type="submit" className="btn btn-primary btn-block btn-lg" style={{ marginTop: 8 }} disabled={cargando}>
+              {cargando ? 'Ingresando…' : 'Iniciar sesión'}
             </button>
           </form>
 

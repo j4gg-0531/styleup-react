@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Scissors, Building2, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useAuth } from '../context/useAuth.js'
+import { api } from '../services/api.js';
 import SelectorUbicacion from '../components/SelectorUbicacion.jsx';
 import ThemeToggle from '../components/ui/ThemeToggle.jsx';
 import 'leaflet/dist/leaflet.css';
@@ -10,18 +11,61 @@ export default function Registro() {
   const [rol, setRol] = useState('cliente');
   const [form, setForm] = useState({ nombre:'', apellido:'', cedula:'', correo:'', telefono:'', password:'', password2:'', especialidad:'', direccion:'', ciudad:'', nombreBarberia:'', nit:'', descripcion:'', capacidadBarberos: '', lat: null, lng: null });
   const [msg, setMsg] = useState(null);
+  const [cargando, setCargando] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (form.password !== form.password2) { setMsg({ tipo: 'error', texto: 'Las contraseñas no coinciden.' }); return; }
     if (form.password.length < 6) { setMsg({ tipo: 'error', texto: 'La contraseña debe tener al menos 6 caracteres.' }); return; }
-    login(form.nombre, rol);
-    setMsg({ tipo: 'success', texto: '¡Cuenta creada! Redirigiendo...' });
-    setTimeout(() => navigate(rol === 'barbero' ? '/barbero' : '/cliente'), 800);
+    setCargando(true);
+    setMsg(null);
+
+    try {
+      const payload = {
+        correo: form.correo,
+        contrasena: form.password,
+      };
+
+      if (rol === 'cliente') {
+        payload.cedula_cliente = form.cedula;
+        payload.nombre = form.nombre;
+        payload.apellido = form.apellido;
+        payload.telefono = form.telefono;
+      } else if (rol === 'barbero') {
+        payload.cedula_barbero = form.cedula;
+        payload.nombre = form.nombre;
+        payload.apellido = form.apellido;
+        payload.telefono = form.telefono;
+        payload.direccion = form.direccion;
+        payload.ciudad = form.ciudad;
+        if (form.especialidad) payload.id_especialidad = parseInt(form.especialidad.replace('E', ''), 10);
+      } else if (rol === 'barberia') {
+        payload.nombre = form.nombreBarberia;
+        payload.nombre_dueno = form.nombre;
+        payload.direccion = form.direccion;
+        payload.ciudad = form.ciudad;
+        payload.telefono = form.telefono;
+        payload.nit = form.nit;
+        payload.descripcion = form.descripcion;
+        payload.num_trabajadores = parseInt(form.capacidadBarberos, 10) || 1;
+      }
+
+      await api.post(`/auth/registro/${rol}`, payload);
+
+      login(form.nombre, rol);
+      setMsg({ tipo: 'success', texto: '¡Cuenta creada! Redirigiendo...' });
+      setTimeout(() => navigate(rol === 'barbero' ? '/barbero' : rol === 'barberia' ? '/barberia' : '/cliente'), 800);
+    } catch (err) {
+      setMsg({ tipo: 'error', texto: err.message?.includes('Unique constraint')
+        ? 'El correo o cédula ya están registrados.'
+        : 'Error al crear la cuenta. Intenta de nuevo.' });
+    } finally {
+      setCargando(false);
+    }
   };
 
   return (
@@ -156,7 +200,9 @@ export default function Registro() {
             )}
 
             {msg && <div className={`alert alert-${msg.tipo === 'error' ? 'error' : 'success'}`} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>{msg.tipo === 'success' && <CheckCircle size={16} />}{msg.texto}</div>}
-            <button type="submit" className="btn btn-primary btn-block btn-lg" style={{ marginTop: 8 }}>Crear cuenta</button>
+            <button type="submit" className="btn btn-primary btn-block btn-lg" style={{ marginTop: 8 }} disabled={cargando}>
+              {cargando ? 'Creando cuenta…' : 'Crear cuenta'}
+            </button>
           </form>
         </div>
 
