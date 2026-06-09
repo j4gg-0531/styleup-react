@@ -124,7 +124,7 @@ export const ofertasService = {
   async getAplicacionesByOferta(ofertaId) {
     const id = ofertaId.replace(/^OF/, '');
     try {
-      const data = await api.get(`/aplicaciones?ofertaId=${id}`);
+      const data = await api.get(`/aplicaciones/oferta/${id}`);
       if (data) {
         guardar(APLICACIONES_KEY, data);
         return data.filter((a) => String(a.oferta_id) === id).map(mapearAplicacion);
