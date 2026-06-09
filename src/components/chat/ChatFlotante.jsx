@@ -1,5 +1,5 @@
 // src/components/chat/ChatFlotante.jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MessageCircle, X } from 'lucide-react';
 import { useAuth } from '../../context/useAuth.js';
 import { useChatFlotante } from '../../context/useChatFlotante.js';
@@ -14,13 +14,24 @@ export default function ChatFlotante() {
   const [noLeidos, setNoLeidos] = useState(0);
   const location = useLocation();
 
-  useEffect(() => {
+  const refrescarNoLeidos = useCallback(() => {
     if (user) {
       chatService.getMensajesNoLeidos(user.nombre).then(setNoLeidos);
     } else {
       setNoLeidos(0);
     }
   }, [user]);
+
+  useEffect(() => {
+    refrescarNoLeidos();
+  }, [refrescarNoLeidos]);
+
+  // Polling del badge cuando el chat está cerrado
+  useEffect(() => {
+    if (abierto) return;
+    const interval = setInterval(refrescarNoLeidos, 10000);
+    return () => clearInterval(interval);
+  }, [abierto, refrescarNoLeidos]);
 
   useEffect(() => {
     if (chatPendiente && user && !abierto) {
@@ -40,7 +51,7 @@ export default function ChatFlotante() {
           rolActual={user.rol}
           conversacionInicial={chatPendiente}
           onConversacionAbierta={limpiarChat}
-          onClose={() => setAbierto(false)}
+          onClose={() => { setAbierto(false); refrescarNoLeidos(); }}
         />
       )}
 
