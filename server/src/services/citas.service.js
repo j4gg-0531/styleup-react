@@ -71,4 +71,26 @@ const cancelar = async (id_cita) => {
   })
 }
 
-module.exports = { obtenerTodas, obtenerPorCliente, obtenerPorBarbero, crear, actualizarEstado, cancelar }
+const obtenerPorBarberia = async (barberiaId, mes, anio) => {
+  const where = {
+    barberos: {
+      barberia_barberos: { some: { barberia_id: parseInt(barberiaId) } }
+    }
+  }
+  if (mes && anio) {
+    const inicio = new Date(anio, mes - 1, 1)
+    const fin = new Date(anio, mes, 0, 23, 59, 59)
+    where.fecha = { gte: inicio, lte: fin }
+  }
+  return await prisma.citas.findMany({
+    where,
+    include: {
+      clientes: { select: { nombre: true, apellido: true, telefono: true } },
+      barberos: { select: { cedula_barbero: true, nombre: true, apellido: true } },
+      especialidades: { select: { especialidad: true, tiempo_estimado: true } },
+    },
+    orderBy: { fecha: 'desc' },
+  })
+}
+
+module.exports = { obtenerTodas, obtenerPorCliente, obtenerPorBarbero, crear, actualizarEstado, cancelar, obtenerPorBarberia }

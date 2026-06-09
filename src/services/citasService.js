@@ -117,4 +117,13 @@ export const citasService = {
         c.estado !== 'completada'
     );
   },
+
+  async getCitasByBarberia(barberiaId, mes, anio) {
+    const params = new URLSearchParams();
+    if (mes) params.set('mes', mes);
+    if (anio) params.set('anio', anio);
+    const qs = params.toString();
+    const data = await api.get(`/citas/barberia/${barberiaId}${qs ? '?' + qs : ''}`);
+    return data ? data.map(mapearCitaApi) : [];
+  },
 };

@@ -63,4 +63,14 @@ router.patch('/:id/cancelar', authMiddleware, async (req, res) => {
   }
 })
 
+// Obtener citas por barbería (protegido)
+router.get('/barberia/:id', authMiddleware, async (req, res) => {
+  try {
+    const citas = await citaService.obtenerPorBarberia(req.params.id, req.query.mes, req.query.anio)
+    res.json(citas)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
 module.exports = router
