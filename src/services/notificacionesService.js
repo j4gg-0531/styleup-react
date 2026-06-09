@@ -36,12 +36,10 @@ export const notificacionesService = {
       metadata: datos.metadata,
     });
     const notif = response?.notificacion || response;
-    if (notif) {
-      const cache = leer();
-      guardar([...cache, notif]);
-      return mapearNotif(notif);
-    }
-    return mapearNotif({ ...datos, id: Date.now(), leida: false, fecha_creacion: new Date().toISOString() });
+    if (!notif) throw new Error('No se pudo crear la notificación');
+    const cache = leer();
+    guardar([...cache, notif]);
+    return mapearNotif(notif);
   },
 
   async getByUsuario(rol, nombre) {

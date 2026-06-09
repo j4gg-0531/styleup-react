@@ -66,18 +66,9 @@ export const citasService = {
       id_especialidad: datosCita.servicio?.id,
     };
     const response = await api.post('/citas', body);
-    const nuevaCita = response?.cita
-      ? mapearCitaApi(response.cita)
-      : {
-          ...datosCita,
-          servicio: datosCita.servicio
-            ? { id: datosCita.servicio.id, name: datosCita.servicio.name, dur: datosCita.servicio.dur }
-            : datosCita.servicio,
-          horaInicio: datosCita.horaInicio || datosCita.hora,
-          id: Date.now().toString(),
-          estado: 'pendiente',
-          fechaCreacion: new Date().toISOString(),
-        };
+    const citaApi = response?.cita || response;
+    if (!citaApi) throw new Error('No se pudo crear la cita');
+    const nuevaCita = mapearCitaApi(citaApi);
     guardar([...leer(), nuevaCita]);
     return nuevaCita;
   },
