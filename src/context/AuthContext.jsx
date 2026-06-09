@@ -24,7 +24,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = (nombre, rol, extras = {}) => {
-    const u = { nombre, rol, token: extras.token || null, barberiaId: extras.barberiaId || null };
+    const u = { nombre, rol, token: extras.token || null, barberiaId: extras.barberiaId || null, cedula: extras.cedula || null };
     sessionStorage.setItem('su_user', JSON.stringify(u));
     setUser(u);
   };
