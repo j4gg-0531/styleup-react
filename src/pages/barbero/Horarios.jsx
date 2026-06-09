@@ -1,4 +1,3 @@
-// src/pages/barbero/Horarios.jsx
 import { useState, useEffect, useMemo } from 'react';
 import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, Building2, X, Save, ArrowLeft, ArrowRight, Bell, Check, FileText, X as XIcon } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
@@ -9,12 +8,9 @@ import { barberosService } from '../../services/barberosService.js';
 import { horariosService } from '../../services/horariosService.js';
 import { useToast } from '../../context/useToast.js';
 
-// ── Calcula los 6 días laborales (Lun–Sáb) de la semana indicada ──
-// offset = 0 (semana actual), -1 (semana pasada), 1 (próxima semana)…
 const getDiasSemana = (offset = 0) => {
   const hoy = new Date();
-  const diaSemana = hoy.getDay(); // 0=Dom, 1=Lun…
-  // Lunes de la semana actual
+  const diaSemana = hoy.getDay();
   const lunes = new Date(hoy);
   lunes.setDate(hoy.getDate() - (diaSemana === 0 ? 6 : diaSemana - 1) + offset * 7);
 
@@ -23,18 +19,15 @@ const getDiasSemana = (offset = 0) => {
     dia.setDate(lunes.getDate() + i);
     return {
       name: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][i],
-      // num como string para que coincida con lo que guarda horariosService
       num: String(dia.getDate()),
       fecha: dia,
     };
   });
 };
 
-// Formatea "19 May" a partir de un Date
 const fmtFecha = (d) =>
   d.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' });
 
-// Formatea "Mayo 2026"
 const fmtMesAnio = (d) =>
   d.toLocaleDateString('es-CO', { month: 'long', year: 'numeric' });
 
@@ -42,7 +35,6 @@ export default function Horarios() {
   const { user } = useAuth();
   const { horarios, cargarHorarios, agregarHorario, eliminarHorario } = useHorarios();
 
-  const [barberoActual, setBarberoActual] = useState(null);
   const [barberia, setBarberia] = useState(null);
   const [soloLectura, setSoloLectura] = useState(false);
 
@@ -53,7 +45,6 @@ export default function Horarios() {
       const found = todos.find(
         (b) => b.nombre?.toLowerCase() === user?.nombre?.toLowerCase()
       );
-      setBarberoActual(found || null);
       if (found) {
         const todas = await barberiaService.getTodas();
         const barb = todas.find(
@@ -67,7 +58,7 @@ export default function Horarios() {
   }, [user]);
 
   const [tab, setTab]               = useState('ver');
-  const [semanaOffset, setSemanaOffset] = useState(0); // 0 = semana actual
+  const [semanaOffset, setSemanaOffset] = useState(0);
   const [diasSel, setDiasSel]       = useState([]);
   const [estadoSel, setEstadoSel]   = useState('disponible');
   const [horaInicio, setHoraInicio] = useState('09:00');
@@ -76,18 +67,25 @@ export default function Horarios() {
   const [propuestasAdmin, setPropuestasAdmin] = useState([]);
   const toast = useToast();
 
-  // Recalcula los días cada vez que cambia la semana seleccionada
   const DIAS_SEMANA = useMemo(() => getDiasSemana(semanaOffset), [semanaOffset]);
 
   useEffect(() => {
-    if (user?.nombre) cargarHorarios(user.nombre);
+    if (user?.cedula) cargarHorarios(user.cedula);
   }, [user, cargarHorarios]);
 
   useEffect(() => {
-    if (user?.nombre) {
-      setPropuestas(horariosService.getPropuestasByBarbero(user.nombre));
-      setPropuestasAdmin(horariosService.getPropuestasAdminByBarbero(user.nombre));
-    }
+    if (!user?.cedula) return;
+    const load = async () => {
+      try {
+        const [props, admin] = await Promise.all([
+          horariosService.getPropuestasByBarbero(user.cedula),
+          Promise.resolve(horariosService.getPropuestasAdminByBarbero(user.nombre)),
+        ]);
+        setPropuestas(props);
+        setPropuestasAdmin(admin);
+      } catch { /* silent */ }
+    };
+    load();
   }, [user]);
 
   const navItems = [
@@ -106,13 +104,13 @@ export default function Horarios() {
       prev.includes(num) ? prev.filter((d) => d !== num) : [...prev, num]
     );
 
-  const handleEliminar = (id) => {
-    if (soloLectura) return;
-    eliminarHorario(id);
+  const handleEliminar = async (h) => {
+    if (soloLectura || !user?.cedula) return;
+    await eliminarHorario(user.cedula, h.dia);
     toast.info('Horario eliminado.');
   };
 
-  const handleGuardar = () => {
+  const handleGuardar = async () => {
     if (diasSel.length === 0) {
       toast.error('Selecciona al menos un día.');
       return;
@@ -123,36 +121,25 @@ export default function Horarios() {
     }
 
     if (soloLectura) {
-      const nombresDia = diasSel.map((diaNum) => {
-        const d = DIAS_SEMANA.find((x) => x.num === diaNum);
-        return d?.name || '';
-      });
-      horariosService.crearPropuesta({
-        barberoNombre: user.nombre,
+      if (!user?.cedula) return;
+      await horariosService.crearPropuesta({
         dias: diasSel,
-        nombresDia,
-        semanaOffset,
-        rango: `${horaInicio} — ${horaFin}`,
         horaInicio,
         horaFin,
-        estado: estadoSel,
-      });
+      }, user.cedula);
       toast.success('Propuesta enviada a la barbería. Espera su aprobación.');
-      setPropuestas(horariosService.getPropuestasByBarbero(user.nombre));
+      const props = await horariosService.getPropuestasByBarbero(user.cedula);
+      setPropuestas(props);
     } else {
-      diasSel.forEach((diaNum) => {
-        const diaInfo = DIAS_SEMANA.find((d) => d.num === diaNum);
-        agregarHorario({
-          barberoNombre: user.nombre,
+      if (!user?.cedula) return;
+      for (const diaNum of diasSel) {
+        await agregarHorario({
           dia: diaNum,
-          mes: diaInfo?.name || '',
-          semanaOffset,
-          rango: `${horaInicio} — ${horaFin}`,
           horaInicio,
           horaFin,
           estado: estadoSel,
-        });
-      });
+        }, user.cedula);
+      }
       toast.success('Horario guardado correctamente.');
     }
     setTab('ver');
@@ -179,19 +166,15 @@ export default function Horarios() {
   const badgeTxt   = { disponible: 'Disponible', descanso: 'Descanso' };
   const colorBorde = { disponible: '#2ecc71', descanso: 'var(--muted)' };
 
-  // Filtra los horarios de la semana visible en pantalla
-  const horariosDeEstaSemana = horarios.filter(
-    (h) => h.semanaOffset === semanaOffset
-  );
+  const diasEnSemana = useMemo(() => new Set(DIAS_SEMANA.map((d) => d.num)), [DIAS_SEMANA]);
+  const horariosDeEstaSemana = horarios.filter((h) => diasEnSemana.has(h.dia));
 
-  // Agrupa por número de día
   const horariosPorDia = DIAS_SEMANA.reduce((acc, dia) => {
     const bloques = horariosDeEstaSemana.filter((h) => h.dia === dia.num);
     if (bloques.length > 0) acc.push({ dia, bloques });
     return acc;
   }, []);
 
-  // Etiqueta de la semana que se muestra en pantalla
   const primerDia = DIAS_SEMANA[0].fecha;
   const ultimoDia = DIAS_SEMANA[5].fecha;
   const etiquetaSemana = `${fmtFecha(primerDia)} – ${fmtFecha(ultimoDia)}`;
@@ -209,19 +192,18 @@ export default function Horarios() {
           <h2 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Clock size={22} /> Mis horarios</h2>
           <p className="page-subtitle">
             {soloLectura
-              ? `Tus horarios los gestiona ${barberia.nombre}. Contacta a tu barbería para cambios.`
+              ? `Tus horarios los gestiona ${barberia?.nombre}. Contacta a tu barbería para cambios.`
               : 'Configura tu disponibilidad semanal'}
           </p>
         </div>
 
           {soloLectura && (
             <div className="alert alert-info" style={{ marginBottom: 20 }}>
-              <Building2 size={16} /> Trabajas en <strong>{barberia.nombre}</strong>. Puedes enviar propuestas
+              <Building2 size={16} /> Trabajas en <strong>{barberia?.nombre}</strong>. Puedes enviar propuestas
               de horario para que la barbería las apruebe.
             </div>
           )}
 
-        {/* ── Navegador de semana ── */}
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           background: 'var(--surface)', border: '1px solid var(--border)',
@@ -231,7 +213,7 @@ export default function Horarios() {
           <button
             className="btn btn-outline btn-sm"
             onClick={() => { setSemanaOffset((o) => o - 1);
-              setDiasSel([]); // ← limpia aquí directamente
+              setDiasSel([]);
             }}
           >
             <ArrowLeft size={16} /> Semana anterior
@@ -258,14 +240,13 @@ export default function Horarios() {
             className="btn btn-outline btn-sm"
             onClick={() => {
               setSemanaOffset((o) => o + 1);
-              setDiasSel([]); // ← limpia aquí directamente
+              setDiasSel([]);
             }}
           >
             Semana siguiente <ArrowRight size={16} />
           </button>
         </div>
 
-        {/* ── Tabs ── */}
         <div className="hor-tabs">
           <div className={`hor-tab ${tab === 'ver' ? 'active' : ''}`} onClick={() => setTab('ver')}>
             Ver horarios
@@ -276,10 +257,8 @@ export default function Horarios() {
           </div>
         </div>
 
-        {/* ── TAB: VER ── */}
         {tab === 'ver' && (
           <div>
-            {/* Mini-calendario de la semana (solo visual, no seleccionable) */}
             <div style={{
               display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)',
               gap: 8, marginBottom: 20,
@@ -312,7 +291,6 @@ export default function Horarios() {
                     }}>
                       {d.num}
                     </div>
-                    {/* Punto verde si tiene horario */}
                     <div style={{
                       width: 6, height: 6, borderRadius: '50%', margin: '4px auto 0',
                       background: tieneHorario ? '#2ecc71' : 'transparent',
@@ -374,7 +352,7 @@ export default function Horarios() {
                       </div>
                       <div className="horario-actions">
                         <span className={`badge ${badgeClase[h.estado]}`}>{badgeTxt[h.estado]}</span>
-                        {!soloLectura && <button className="btn btn-outline btn-sm" onClick={() => handleEliminar(h.id)}><X size={12} /></button>}
+                        {!soloLectura && <button className="btn btn-outline btn-sm" onClick={() => handleEliminar(h)}><X size={12} /></button>}
                       </div>
                     </div>
                   ))}
@@ -456,7 +434,6 @@ export default function Horarios() {
           </div>
         )}
 
-        {/* ── TAB: NUEVO ── */}
         {tab === 'nuevo' && (
           <div className="nuevo-card">
             <h3 style={{ fontFamily: "'Playfair Display',serif", fontSize: '1.1rem', marginBottom: 4 }}>
@@ -478,11 +455,9 @@ export default function Horarios() {
                   <div className="wday-num">{d.num}</div>
                 </div>
               ))}
-              {/* Domingo — siempre deshabilitado */}
               <div className="week-day" style={{ opacity: 0.3, cursor: 'not-allowed' }}>
                 <div className="wday-name">Dom</div>
                 <div className="wday-num">
-                  {/* Calcula el domingo de esta semana */}
                   {(() => {
                     const dom = new Date(DIAS_SEMANA[5].fecha);
                     dom.setDate(dom.getDate() + 1);

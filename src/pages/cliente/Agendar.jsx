@@ -101,7 +101,7 @@ export default function Agendar() {
     if (!sel.barbero) { setMsgs({ 2: true }); return; }
     setMsgs({});
     if (!horariosListos) {
-      cargarHorarios(`${sel.barbero.nombre} ${sel.barbero.apellido}`);
+      cargarHorarios(sel.barbero.id);
       setHorariosListos(true);
     }
     setPaso(3);

@@ -65,7 +65,7 @@ export default function PerfilBarbero() {
   const [quejaTexto, setQuejaTexto] = useState('');
   const [quejaEnviada, setQuejaEnviada] = useState(false);
   if (!horariosListos) {
-    cargarHorarios(nombreCompleto);
+    cargarHorarios(barbero.id);
     setHorariosListos(true);
   }
 
