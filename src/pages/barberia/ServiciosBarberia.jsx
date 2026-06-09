@@ -10,10 +10,8 @@ import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 import {
   barberiaServiciosService,
-  PRECIOS_MINIMOS,
-  NOMBRES_SERVICIOS,
-  DURACIONES_DEFAULT,
 } from '../../services/barberiaServiciosService.js';
+import { serviciosService } from '../../services/serviciosService.js';
 
 const OPCIONES_DURACION = Array.from({ length: 23 }, (_, i) => (i + 2) * 5);
 
@@ -36,8 +34,8 @@ export default function ServiciosBarberia() {
   const { user } = useAuth();
   const barberiaId = user?.barberiaId;
   const [servicios, setServicios] = useState(
-    Object.keys(NOMBRES_SERVICIOS).reduce((acc, id) => {
-      acc[id] = { precio: PRECIOS_MINIMOS[id], duracion: DURACIONES_DEFAULT[id], activo: true };
+    Object.entries(serviciosService.getAll()).reduce((acc, [id, svc]) => {
+      acc[id] = { precio: serviciosService.getPrecioMinimo(id), duracion: svc.duracion, activo: true };
       return acc;
     }, {})
   );
@@ -77,7 +75,7 @@ export default function ServiciosBarberia() {
 
   const handleGuardar = async () => {
     const invalidos = Object.entries(servicios).filter(
-      ([id, s]) => s.activo && Number(s.precio) < PRECIOS_MINIMOS[id]
+      ([id, s]) => s.activo && Number(s.precio) < serviciosService.getPrecioMinimo(id)
     );
     if (invalidos.length > 0) {
       setGuardadoError('Hay precios por debajo del mínimo permitido.');
@@ -142,10 +140,10 @@ export default function ServiciosBarberia() {
             gridTemplateColumns: esMobile ? '1fr' : '1fr 1fr',
             gap: 16,
           }}>
-            {Object.entries(NOMBRES_SERVICIOS).map(([id, nombre], idx, arr) => {
+            {Object.entries(serviciosService.getAll()).map(([id, svc], idx, arr) => {
               const s = servicios[id];
               const esEditando = editando === id;
-              const minimo = PRECIOS_MINIMOS[id];
+              const minimo = serviciosService.getPrecioMinimo(id);
               const bajoDeMini = s.activo && Number(s.precio) < minimo;
               const esDomicilio = id === 'E009';
 
@@ -180,7 +178,7 @@ export default function ServiciosBarberia() {
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: '0.92rem' }}>{nombre}</div>
+                      <div style={{ fontWeight: 600, fontSize: '0.92rem' }}>{svc.nombre}</div>
                       <div style={{ fontSize: '0.72rem', color: 'var(--muted)', marginTop: 2 }}>
                         min {fmtPrecio(minimo)}
                       </div>

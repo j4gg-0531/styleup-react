@@ -14,6 +14,11 @@ const DEFAULTS = {
   E009: { nombre: 'Domicilio', duracion: 60 },
 };
 
+const PRECIOS_MINIMOS = {
+  E001: 15000, E002: 12000, E006: 10000, E008: 25000,
+  E007: 20000, E004: 18000, E009: 30000,
+};
+
 const ID_A_SERVICIO = {
   1: 'E001', 2: 'E002', 3: 'E004', 4: 'E006',
   5: 'E007', 6: 'E008', 7: 'E009',
@@ -68,5 +73,18 @@ export const serviciosService = {
   getAll() {
     const cache = leer();
     return Object.keys(cache).length ? cache : DEFAULTS;
+  },
+
+  getPrecioMinimo(servicioId) {
+    return PRECIOS_MINIMOS[servicioId] ?? 0;
+  },
+
+  getCodeById(numericId) {
+    return ID_A_SERVICIO[numericId] ?? null;
+  },
+
+  getIdByCode(servicioCode) {
+    const entry = Object.entries(ID_A_SERVICIO).find(([, v]) => v === servicioCode);
+    return entry ? Number(entry[0]) : null;
   },
 };

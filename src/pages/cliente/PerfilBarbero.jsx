@@ -7,7 +7,7 @@ import { useHorarios } from '../../context/useHorarios.js';
 import { useChatFlotante } from '../../context/useChatFlotante.js';
 import { barberosService } from '../../services/barberosService.js';
 import { citasService } from '../../services/citasService.js';
-import { preciosService, NOMBRES_SERVICIOS } from '../../services/preciosService.js';
+import { preciosService } from '../../services/preciosService.js';
 import { barberiaService } from '../../services/barberiaService.js';
 import { notificacionesService } from '../../services/notificacionesService.js';
 import { serviciosService } from '../../services/serviciosService.js';
@@ -276,15 +276,15 @@ export default function PerfilBarbero() {
               )}
             </div>
             <div style={{ padding: '8px 16px' }}>
-              {Object.entries(NOMBRES_SERVICIOS).map(([sid, nombre]) => {
-                const duracion = serviciosService.getDuracion(sid);
+              {Object.entries(serviciosService.getAll()).map(([sid, svc]) => {
+                const duracion = svc.duracion;
                 const precio = precios[sid] || preciosService.getPrecioServicio(nombreCompleto, sid);
                 const esSel  = servicioSel?.id === sid;
                 return (
                   <div
                     key={sid}
                     onClick={() => {
-                      setServicioSel({ id: sid, name: nombre, dur: duracion });
+                      setServicioSel({ id: sid, name: svc.nombre, dur: duracion });
                       setDiaSeleccionado(String(new Date().getDate()));
                       setSlotSel(null);
                     }}

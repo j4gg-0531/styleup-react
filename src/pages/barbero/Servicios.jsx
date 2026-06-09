@@ -16,15 +16,12 @@ import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 import {
   preciosService,
-  PRECIOS_MINIMOS,
-  NOMBRES_SERVICIOS,
-  DURACIONES_DEFAULT,
 } from '../../services/preciosService.js';
+import { serviciosService } from '../../services/serviciosService.js';
 import { barberiaService } from '../../services/barberiaService.js';
 import { barberosService } from '../../services/barberosService.js';
 
-// Duraciones válidas (cada 5 min, de 10 a 120)
-const OPCIONES_DURACION = Array.from({ length: 23 }, (_, i) => (i + 2) * 5); // 10,15,...,120
+const OPCIONES_DURACION = Array.from({ length: 23 }, (_, i) => (i + 2) * 5);
 
 const navItems = [
   { icon: <Home size={18} />, label: 'Dashboard',     href: '/barbero' },
@@ -39,16 +36,10 @@ const navItems = [
 
 const extra = <div className="spec-badge" style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}><Scissors size={14} /> Corte a tijera</div>;
 
-// ── Formatos ──────────────────────────────────────────────────────────────
 const fmtPrecio = (n) =>
   new Intl.NumberFormat('es-CO', {
     style: 'currency', currency: 'COP', minimumFractionDigits: 0,
   }).format(n);
-
-const SERVICIOS_DEFAULTS = Object.keys(NOMBRES_SERVICIOS).reduce((acc, id) => {
-  acc[id] = { precio: PRECIOS_MINIMOS[id], duracion: DURACIONES_DEFAULT[id], activo: true };
-  return acc;
-}, {});
 
 export default function Servicios() {
   const { user } = useAuth();
@@ -76,7 +67,12 @@ export default function Servicios() {
   }, [user?.nombre]);
 
   // ── Estado inicial ────────────────────────────────────────────────────
-  const [servicios, setServicios] = useState(SERVICIOS_DEFAULTS);
+  const [servicios, setServicios] = useState(
+    Object.entries(serviciosService.getAll()).reduce((acc, [id, svc]) => {
+      acc[id] = { precio: serviciosService.getPrecioMinimo(id), duracion: svc.duracion, activo: true };
+      return acc;
+    }, {})
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -85,10 +81,10 @@ export default function Servicios() {
         preciosService.getConfigServicios(user?.nombre || ''),
       ]);
       setServicios(
-        Object.keys(NOMBRES_SERVICIOS).reduce((acc, id) => {
+        Object.entries(serviciosService.getAll()).reduce((acc, [id, svc]) => {
           acc[id] = {
-            precio: preciosGuardados[id] || PRECIOS_MINIMOS[id],
-            duracion: configGuardada[id]?.duracion ?? DURACIONES_DEFAULT[id],
+            precio: preciosGuardados[id] || serviciosService.getPrecioMinimo(id),
+            duracion: configGuardada[id]?.duracion ?? svc.duracion,
             activo: configGuardada[id]?.activo !== false,
           };
           return acc;
@@ -129,7 +125,7 @@ export default function Servicios() {
 
     // Validar precios mínimos solo en servicios activos
     const invalidos = Object.entries(servicios).filter(
-      ([id, s]) => s.activo && Number(s.precio) < PRECIOS_MINIMOS[id]
+      ([id, s]) => s.activo && Number(s.precio) < serviciosService.getPrecioMinimo(id)
     );
     if (invalidos.length > 0) {
       setGuardadoError('Hay precios por debajo del mínimo permitido.');
@@ -223,10 +219,10 @@ export default function Servicios() {
             alignItems: 'stretch',
             padding: 16,
           }}>
-          {Object.entries(NOMBRES_SERVICIOS).map(([id, nombre]) => {
+          {Object.entries(serviciosService.getAll()).map(([id, svc]) => {
             const s          = servicios[id];
             const esEditando = editando === id;
-            const minimo     = PRECIOS_MINIMOS[id];
+            const minimo     = serviciosService.getPrecioMinimo(id);
             const bajoDeMini = s.activo && Number(s.precio) < minimo;
 
             return (
@@ -249,7 +245,7 @@ export default function Servicios() {
                 }}>
                   {/* ── Izquierda: Nombre + min ── */}
                   <div>
-                    <div style={{ fontWeight: 600, fontSize: '0.92rem' }}>{nombre}</div>
+                    <div style={{ fontWeight: 600, fontSize: '0.92rem' }}>{svc.nombre}</div>
                     <div style={{ fontSize: '0.72rem', color: 'var(--muted)', marginTop: 2 }}>
                       min {fmtPrecio(minimo)}
                     </div>

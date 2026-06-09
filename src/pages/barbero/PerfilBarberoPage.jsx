@@ -9,7 +9,7 @@ import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 import { useToast } from '../../context/useToast.js';
 import { perfilService } from '../../services/perfilService.js';
-import { NOMBRES_SERVICIOS } from '../../services/preciosService.js';
+import { serviciosService } from '../../services/serviciosService.js';
 import { notificacionesService } from '../../services/notificacionesService.js';
 import { barberiaService } from '../../services/barberiaService.js';
 import { barberosService } from '../../services/barberosService.js';
@@ -237,7 +237,7 @@ export default function PerfilBarberoPage() {
                       border: '1px solid rgba(201,123,58,0.3)',
                       color: 'var(--cobre-light)', fontSize: '0.78rem',
                     }}>
-                      <Scissors size={12} /> {NOMBRES_SERVICIOS[cod] || cod}
+                      <Scissors size={12} /> {serviciosService.getNombre(cod)}
                     </span>
                   ))}
                   {!data.especialidades?.length && (
@@ -367,7 +367,7 @@ export default function PerfilBarberoPage() {
                 <label className="form-label">Especialidades</label>
                 {editMode ? (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
-                    {Object.entries(NOMBRES_SERVICIOS).map(([codigo, nombre]) => {
+                    {Object.entries(serviciosService.getAll()).map(([codigo, svc]) => {
                       const sel = (formData?.especialidades || []).includes(codigo);
                       return (
                         <button key={codigo} type="button"
@@ -380,7 +380,7 @@ export default function PerfilBarberoPage() {
                             cursor: 'pointer', fontSize: '0.85rem',
                             fontFamily: "'Inter', sans-serif",
                           }}>
-                          {nombre}
+                          {svc.nombre}
                         </button>
                       );
                     })}
@@ -388,7 +388,7 @@ export default function PerfilBarberoPage() {
                 ) : (
                   <div style={{ padding: '10px 0', fontSize: '0.95rem' }}>
                     {data.especialidades?.length
-                      ? data.especialidades.map((c) => NOMBRES_SERVICIOS[c] || c).join(', ')
+                      ? data.especialidades.map((c) => serviciosService.getNombre(c)).join(', ')
                       : '—'}
                   </div>
                 )}

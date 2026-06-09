@@ -4,7 +4,8 @@ import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, Bell, FileTe
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 import { useCitas } from '../../context/useCitas.js';
-import { preciosService, NOMBRES_SERVICIOS } from '../../services/preciosService.js';
+import { preciosService } from '../../services/preciosService.js';
+import { serviciosService } from '../../services/serviciosService.js';
 
 export default function Reportes() {
   const { user } = useAuth();
@@ -114,7 +115,7 @@ export default function Reportes() {
 
           <div className="card">
             <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Scissors size={18} /> Servicios del período</div>
-            {Object.entries(NOMBRES_SERVICIOS).map(([id, nombre]) => {
+            {Object.entries(serviciosService.getAll()).map(([id, svc]) => {
               const cantidad = citasReportes.filter(
                 (c) => c.servicio?.id === id && c.estado === 'completada'
               ).length;
@@ -123,7 +124,7 @@ export default function Reportes() {
               return (
                 <div key={id} style={{ marginBottom: 10 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: 4 }}>
-                    <span>{nombre}</span>
+                    <span>{svc.nombre}</span>
                     <span className="text-gold">{cantidad} citas · {formatPrecio(ganancia)}</span>
                   </div>
                   <div style={{ height: 6, background: 'var(--border)', borderRadius: 3 }}>

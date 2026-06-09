@@ -10,7 +10,7 @@ import { useAuth } from '../../context/useAuth.js';
 import { useCitas } from '../../context/useCitas.js';
 import { useToast } from '../../context/useToast.js';
 import { perfilService } from '../../services/perfilService.js';
-import { NOMBRES_SERVICIOS } from '../../services/preciosService.js';
+import { serviciosService } from '../../services/serviciosService.js';
 
 const navItems = [
   { icon: <Home size={18} />, label: 'Dashboard',   href: '/cliente' },
@@ -343,7 +343,7 @@ export default function Perfil() {
             <div className="card" style={{ maxWidth: 540, border: 'none', boxShadow: 'none', background: 'transparent', padding: 0 }}>
               <label className="form-label">Servicios favoritos {editMode ? '(máx. 3)' : ''}</label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
-                {Object.entries(NOMBRES_SERVICIOS).map(([codigo, nombre]) => {
+                {Object.entries(serviciosService.getAll()).map(([codigo, svc]) => {
                   const seleccionado = (data.serviciosFavoritos || []).includes(codigo);
                   return (
                     <button key={codigo}
@@ -357,7 +357,7 @@ export default function Perfil() {
                         fontSize: '0.85rem', transition: 'all 0.2s ease',
                         fontFamily: "'Inter', sans-serif",
                       }}>
-                      {nombre}
+                      {svc.nombre}
                     </button>
                   );
                 })}
