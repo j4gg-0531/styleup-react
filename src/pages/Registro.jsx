@@ -121,9 +121,9 @@ export default function Registro() {
                     <option value="">Selecciona una especialidad</option>
                     <option value="E001">Corte a tijera (30 min)</option>
                     <option value="E002">Degradado / Fade (25 min)</option>
-                    <option value="E004">Undercut (35 min)</option>
-                    <option value="E006">Afeitado con navaja (20 min)</option>
-                    <option value="E008">Corte + Barba (45 min)</option>
+                    <option value="E003">Undercut (35 min)</option>
+                    <option value="E004">Afeitado con navaja (20 min)</option>
+                    <option value="E006">Corte + Barba (45 min)</option>
                   </select>
                 </div>
                 <div className="grid-2">
