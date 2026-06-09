@@ -1,6 +1,6 @@
 // src/components/Chat/ChatWindow.jsx
 import { useState, useEffect, useRef } from 'react';
-import { MessageCircle, ArrowLeft, X, User, Scissors, Send, Image } from 'lucide-react';
+import { MessageCircle, ArrowLeft, X, User, Scissors, Send, Image, Trash2 } from 'lucide-react';
 import { chatService } from '../../services/chatService.js';
 import { barberosService } from '../../services/barberosService.js';
 import { barberiaService } from '../../services/barberiaService.js';
@@ -21,6 +21,7 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
   const [imagenPreview, setImagenPreview] = useState(null);
   const [imagenParaEnviar, setImagenParaEnviar] = useState(null);
   const [imagenAmpliada, setImagenAmpliada] = useState(null);
+  const [hoveredMsgId, setHoveredMsgId] = useState(null);
   const fileInputRef = useRef(null);
   const mensajesEndRef = useRef(null);
 
@@ -159,12 +160,32 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
             )}
           </div>
         </div>
-        <button
-          onClick={onClose}
-          style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '1.1rem' }}
-        >
-          <X size={18} />
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {vista === 'chat' && (
+            <button
+              onClick={() => {
+                if (confirm('¿Eliminar toda la conversación con ' + conversacionActiva + '?')) {
+                  chatService.eliminarConversacion(usuarioActual, conversacionActiva).then(() => {
+                    setVista('lista');
+                    setConversacionActiva(null);
+                    setMensajes([]);
+                    chatService.getConversaciones(usuarioActual).then(setConversaciones);
+                  });
+                }
+              }}
+              style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', padding: 4, display: 'flex' }}
+              title="Eliminar conversación"
+            >
+              <Trash2 size={15} />
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '1.1rem' }}
+          >
+            <X size={18} />
+          </button>
+        </div>
       </div>
 
       {/* VISTA: LISTA */}
@@ -211,8 +232,29 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
                       {conv.ultimoMensaje.imagen && !conv.ultimoMensaje.texto ? '📷 Imagen' : conv.ultimoMensaje.texto}
                     </div>
                   </div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--muted)', flexShrink: 0 }}>
-                    {conv.ultimoMensaje.hora}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>
+                      {conv.ultimoMensaje.hora}
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (confirm('¿Eliminar toda la conversación con ' + conv.otroUsuario + '?')) {
+                          chatService.eliminarConversacion(usuarioActual, conv.otroUsuario).then(() => {
+                            chatService.getConversaciones(usuarioActual).then(setConversaciones);
+                          });
+                        }
+                      }}
+                      style={{
+                        background: 'none', border: 'none', color: 'var(--muted)',
+                        cursor: 'pointer', padding: 4, display: 'flex', opacity: 0.5,
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                      onMouseLeave={(e) => e.currentTarget.style.opacity = '0.5'}
+                      title="Eliminar conversación"
+                    >
+                      <Trash2 size={14} />
+                    </button>
                   </div>
                 </div>
               ))}
@@ -293,8 +335,24 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
                 return (
                   <div
                     key={m.id}
-                    style={{ display: 'flex', justifyContent: esMio ? 'flex-end' : 'flex-start' }}
+                    style={{ display: 'flex', justifyContent: esMio ? 'flex-end' : 'flex-start', alignItems: 'flex-end', gap: 4 }}
+                    onMouseEnter={() => setHoveredMsgId(m.id)}
+                    onMouseLeave={() => setHoveredMsgId(null)}
                   >
+                    {esMio && hoveredMsgId === m.id && (
+                      <button
+                        onClick={() => chatService.eliminarMensaje(m.id, usuarioActual).then(() => {
+                          setMensajes((prev) => prev.filter((msg) => msg.id !== m.id));
+                        })}
+                        style={{
+                          background: 'none', border: 'none', color: 'var(--muted)',
+                          cursor: 'pointer', padding: 4, display: 'flex', flexShrink: 0,
+                        }}
+                        title="Eliminar mensaje"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    )}
                     <div style={{
                       maxWidth: '75%', padding: '8px 12px',
                       borderRadius: esMio ? '14px 14px 4px 14px' : '14px 14px 14px 4px',

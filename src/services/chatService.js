@@ -118,4 +118,32 @@ export const chatService = {
       console.warn('chatService.marcarLeidos: fallo', e);
     }
   },
+
+  async eliminarMensaje(id, remitente) {
+    try {
+      await api.delete(`/chat/mensajes/${id}?remitente=${encodeURIComponent(remitente)}`);
+      const cache = leer(MENSAJES_KEY);
+      for (const key of Object.keys(cache)) {
+        cache[key] = cache[key].filter((m) => m.id !== id);
+      }
+      guardar(MENSAJES_KEY, cache);
+    } catch (e) {
+      console.warn('chatService.eliminarMensaje: fallo', e);
+    }
+  },
+
+  async eliminarConversacion(usuario1, usuario2) {
+    try {
+      await api.delete(`/chat/conversacion?usuario1=${encodeURIComponent(usuario1)}&usuario2=${encodeURIComponent(usuario2)}`);
+      const key = convKey(usuario1, usuario2);
+      const cache = leer(MENSAJES_KEY);
+      delete cache[key];
+      guardar(MENSAJES_KEY, cache);
+      const convsCache = leer(CONVERSACIONES_KEY);
+      const filtradas = convsCache.filter((c) => c.otroUsuario !== usuario2 && c.otroUsuario !== usuario1);
+      guardar(CONVERSACIONES_KEY, filtradas);
+    } catch (e) {
+      console.warn('chatService.eliminarConversacion: fallo', e);
+    }
+  },
 };
