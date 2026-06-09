@@ -2,6 +2,7 @@ require('dotenv').config()
 const express = require('express')
 const router = express.Router()
 const authService = require('../services/auth.service')
+const authMiddleware = require('../middleware/auth')
 
 router.post('/login/cliente', async (req, res) => {
   try {
@@ -54,6 +55,15 @@ router.post('/registro/barberia', async (req, res) => {
     res.status(201).json({ mensaje: 'Barbería registrada', id: barberia.id })
   } catch (error) {
     res.status(500).json({ error: error.message })
+  }
+})
+
+router.put('/password', authMiddleware, async (req, res) => {
+  try {
+    await authService.cambiarPassword(req.usuario, req.body.passwordActual, req.body.passwordNueva)
+    res.json({ mensaje: 'Contraseña actualizada' })
+  } catch (error) {
+    res.status(400).json({ error: error.message })
   }
 })
 

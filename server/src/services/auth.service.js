@@ -79,4 +79,29 @@ const registrarBarberia = async (data) => {
   })
 }
 
-module.exports = { loginCliente, loginBarbero, loginBarberia, registrarCliente, registrarBarbero, registrarBarberia }
+const cambiarPassword = async (usuario, passwordActual, passwordNueva) => {
+  let record
+  if (usuario.tipo === 'cliente') {
+    record = await prisma.clientes.findUnique({ where: { cedula_cliente: usuario.cedula } })
+  } else if (usuario.tipo === 'barbero') {
+    record = await prisma.barberos.findUnique({ where: { cedula_barbero: usuario.cedula } })
+  } else if (usuario.tipo === 'barberia') {
+    record = await prisma.barberias.findUnique({ where: { id: usuario.id } })
+  }
+  if (!record) throw new Error('Usuario no encontrado')
+
+  const valid = await bcrypt.compare(passwordActual, record.contrasena)
+  if (!valid) throw new Error('Contraseña actual incorrecta')
+
+  const hash = await bcrypt.hash(passwordNueva, 10)
+
+  if (usuario.tipo === 'cliente') {
+    await prisma.clientes.update({ where: { cedula_cliente: usuario.cedula }, data: { contrasena: hash } })
+  } else if (usuario.tipo === 'barbero') {
+    await prisma.barberos.update({ where: { cedula_barbero: usuario.cedula }, data: { contrasena: hash } })
+  } else if (usuario.tipo === 'barberia') {
+    await prisma.barberias.update({ where: { id: usuario.id }, data: { contrasena: hash } })
+  }
+}
+
+module.exports = { loginCliente, loginBarbero, loginBarberia, registrarCliente, registrarBarbero, registrarBarberia, cambiarPassword }
