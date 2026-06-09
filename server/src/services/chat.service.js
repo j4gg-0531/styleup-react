@@ -78,4 +78,11 @@ const marcarLeidos = async (usuario1, usuario2) => {
   })
 }
 
-module.exports = { obtenerMensajes, enviarMensaje, obtenerConversaciones, contarNoLeidos, marcarLeidos }
+const eliminarMensaje = async (id, remitente) => {
+  const mensaje = await prisma.mensajes.findUnique({ where: { id: parseInt(id) } })
+  if (!mensaje) throw new Error('Mensaje no encontrado')
+  if (mensaje.remitente !== remitente) throw new Error('No puedes eliminar mensajes de otros')
+  return await prisma.mensajes.delete({ where: { id: parseInt(id) } })
+}
+
+module.exports = { obtenerMensajes, enviarMensaje, obtenerConversaciones, contarNoLeidos, marcarLeidos, eliminarMensaje }
