@@ -27,6 +27,12 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
   const [barberos, setBarberos] = useState([]);
 
   useEffect(() => {
+    if (conversacionInicial) {
+      onConversacionAbierta?.();
+    }
+  }, []);
+
+  useEffect(() => {
     const load = async () => {
       const todos = await barberosService.getTodos();
       let filtrados = todos;
@@ -97,6 +103,7 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
   const abrirConversacion = async (otroUsuario) => {
     setConversacionActiva(otroUsuario);
     setVista('chat');
+    onConversacionAbierta?.();
     const msgs = await chatService.getMensajes(usuarioActual, otroUsuario);
     setMensajes(msgs);
   };
