@@ -20,12 +20,12 @@ import { preciosService } from '../../services/preciosService.js';
 
 // ── Catálogo de servicios ──────────────────────────────────────────────────
 const SERVICIOS = [
-  { id: 'E001', name: 'Corte a tijera',    dur: serviciosService.getDuracion('E001') },
-  { id: 'E002', name: 'Degradado / Fade',   dur: serviciosService.getDuracion('E002') },
-  { id: 'E006', name: 'Afeitado con navaja', dur: serviciosService.getDuracion('E006') },
-  { id: 'E008', name: 'Corte + Barba',       dur: serviciosService.getDuracion('E008') },
-  { id: 'E007', name: 'Diseño en cabello',   dur: serviciosService.getDuracion('E007') },
-  { id: 'E004', name: 'Undercut',            dur: serviciosService.getDuracion('E004') },
+  { id: 'E001', name: 'Corte a tijera',       dur: serviciosService.getDuracion('E001') },
+  { id: 'E002', name: 'Degradado / Fade',      dur: serviciosService.getDuracion('E002') },
+  { id: 'E003', name: 'Undercut',              dur: serviciosService.getDuracion('E003') },
+  { id: 'E004', name: 'Afeitado con navaja',   dur: serviciosService.getDuracion('E004') },
+  { id: 'E005', name: 'Diseño en cabello',     dur: serviciosService.getDuracion('E005') },
+  { id: 'E006', name: 'Corte + Barba',         dur: serviciosService.getDuracion('E006') },
 ];
 
 // Fecha de HOY formateada para mostrar y para filtrar citas
