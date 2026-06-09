@@ -54,6 +54,7 @@ export default function PerfilBarberoPage() {
   const [formData, setFormData] = useState(null);
   const [tabActual, setTabActual] = useState('info');
 
+  const [passwordActual, setPasswordActual] = useState('');
   const [password, setPassword] = useState('');
   const [password2, setPassword2] = useState('');
   const [pwError, setPwError] = useState('');
@@ -139,28 +140,41 @@ export default function PerfilBarberoPage() {
     }
   };
 
-  const handleGuardarPassword = () => {
+  const handleGuardarPassword = async () => {
     setPwError('');
-    if (password || password2) {
-      if (password.length < 6) {
-        setPwError('La contraseña debe tener al menos 6 caracteres.');
-        return;
-      }
-      if (password !== password2) {
-        setPwError('Las contraseñas no coinciden.');
-        return;
-      }
+    if (!passwordActual) {
+      setPwError('Debes ingresar tu contraseña actual.');
+      return;
     }
-    setPwOk(true);
-    setTimeout(() => setPwOk(false), 3000);
-    setPassword('');
-    setPassword2('');
-    toast.success('Contraseña actualizada correctamente');
+    if (password.length < 6) {
+      setPwError('La contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+    if (password !== password2) {
+      setPwError('Las contraseñas no coinciden.');
+      return;
+    }
+    try {
+      await perfilService.cambiarPassword(passwordActual, password);
+      setPwOk(true);
+      setTimeout(() => setPwOk(false), 3000);
+      setPasswordActual('');
+      setPassword('');
+      setPassword2('');
+      toast.success('Contraseña actualizada correctamente');
+    } catch (e) {
+      setPwError(e.message);
+    }
   };
 
-  const handleEliminar = () => {
-    setEliminado(true);
-    setTimeout(() => { logout(); navigate('/login'); }, 2000);
+  const handleEliminar = async () => {
+    try {
+      await perfilService.eliminarCuenta();
+      setEliminado(true);
+      setTimeout(() => { logout(); navigate('/login'); }, 2000);
+    } catch {
+      toast.error('Error al eliminar la cuenta');
+    }
   };
 
   const avatarSrc = editMode ? formData?.avatar : perfil.avatar;
@@ -539,6 +553,12 @@ export default function PerfilBarberoPage() {
                   {pwError}
                 </div>
               )}
+
+              <div className="form-group" style={{ marginBottom: 12 }}>
+                <label className="form-label">Contraseña actual</label>
+                <input type="password" className="form-control" placeholder="Tu contraseña actual"
+                  value={passwordActual} onChange={(e) => setPasswordActual(e.target.value)} />
+              </div>
 
               <div className="grid-2">
                 <div className="form-group">
