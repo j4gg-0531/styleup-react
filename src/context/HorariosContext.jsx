@@ -1,4 +1,3 @@
-// src/context/HorariosContext.jsx
 import { createContext, useState, useCallback } from 'react';
 import { horariosService } from '../services/horariosService';
 
@@ -7,23 +6,27 @@ export const HorariosContext = createContext(null);
 export function HorariosProvider({ children }) {
   const [horarios, setHorarios] = useState([]);
 
-  // Carga los horarios de un barbero
-  const cargarHorarios = useCallback((barberoNombre) => {
-    const data = horariosService.getHorariosByBarbero(barberoNombre);
-    setHorarios(data);
+  const cargarHorarios = useCallback(async (cedula) => {
+    try {
+      const data = await horariosService.getHorariosByCedula(cedula);
+      setHorarios(data);
+    } catch {
+      setHorarios([]);
+    }
   }, []);
 
-  // Agrega un nuevo bloque de horario
-  const agregarHorario = (datos) => {
-    const nuevo = horariosService.agregarHorario(datos);
-    setHorarios((prev) => [...prev, nuevo]);
-    return nuevo;
+  const agregarHorario = async (datos, cedula) => {
+    try {
+      await horariosService.agregarHorario(datos, cedula);
+      await cargarHorarios(cedula);
+    } catch { /* silent */ }
   };
 
-  // Elimina un bloque de horario
-  const eliminarHorario = (id) => {
-    horariosService.eliminarHorario(id);
-    setHorarios((prev) => prev.filter((h) => h.id !== id));
+  const eliminarHorario = async (cedula, dia) => {
+    try {
+      await horariosService.eliminarHorario(cedula, dia);
+      setHorarios((prev) => prev.filter((h) => h.dia !== dia));
+    } catch { /* silent */ }
   };
 
   return (
