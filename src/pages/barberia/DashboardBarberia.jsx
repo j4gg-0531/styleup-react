@@ -1,17 +1,15 @@
-// src/pages/barberia/DashboardBarberia.jsx
-import {  useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2, Bell } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
-import { barberiaService } from '../../services/barberiaService.js';
+import { ofertasService } from '../../services/ofertasService.js';
 
 export default function DashboardBarberia() {
   const { user } = useAuth();
-  
-  const [ofertasActivas] = useState(
-  () => barberiaService.getOfertas('BAR001').filter((o) => o.estado === 'activa').length
-);
+  const barberiaId = user?.barberiaId;
+  const ofertas = ofertasService.getOfertasByBarberia(barberiaId);
+  const ofertasActivas = ofertas.filter((o) => o.estado === 'activa').length;
 
   const navItems = [
     { icon: <Home size={18} />, label: 'Dashboard',  href: '/barberia' },
@@ -80,7 +78,7 @@ export default function DashboardBarberia() {
 
           <div className="card">
             <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><ClipboardList size={18} /> Ofertas recientes</div>
-            {barberiaService.getOfertas('BAR001').slice(0, 2).map((o) => (
+            {ofertas.slice(0, 2).map((o) => (
               <div key={o.id} style={{ marginBottom: 14, paddingBottom: 14, borderBottom: '1px solid var(--border)' }}>
                 <div style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: 4 }}>{o.titulo}</div>
                 <div style={{ fontSize: '0.78rem', color: 'var(--muted)', marginBottom: 6 }}>{o.fecha}</div>
@@ -89,7 +87,7 @@ export default function DashboardBarberia() {
                 </span>
               </div>
             ))}
-            <Link to="/barberia/ofertas" className="btn btn-outline btn-sm" style={{ marginTop: 4 }}>
+            <Link to="/barberia/ofertas" className="btn btn-outline btn-sm" style={{ marginTop: 12 }}>
               Ver todas →
             </Link>
           </div>

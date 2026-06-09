@@ -33,4 +33,15 @@ const actualizar = async (cedula_barbero, fecha, data) => {
   })
 }
 
-module.exports = { obtenerPorBarbero, crear, actualizar }
+const eliminar = async (cedula_barbero, fecha) => {
+  return await prisma.horario_barbero.delete({
+    where: {
+      cedula_barbero_fecha: {
+        cedula_barbero,
+        fecha: new Date(fecha)
+      }
+    }
+  })
+}
+
+module.exports = { obtenerPorBarbero, crear, actualizar, eliminar }

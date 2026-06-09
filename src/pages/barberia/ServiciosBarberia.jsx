@@ -7,6 +7,7 @@
 import { useState } from 'react';
 import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2, Check, Pencil, Save, AlertTriangle, CheckCircle, Bell } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
+import { useAuth } from '../../context/useAuth.js';
 import {
   barberiaServiciosService,
   PRECIOS_MINIMOS,
@@ -32,8 +33,10 @@ const fmtPrecio = (n) =>
   }).format(n);
 
 export default function ServiciosBarberia() {
+  const { user } = useAuth();
+  const barberiaId = user?.barberiaId;
   const [servicios, setServicios] = useState(() =>
-    barberiaServiciosService.getServicios('BAR001')
+    barberiaServiciosService.getServicios(barberiaId)
   );
   const [editando, setEditando]       = useState(null);
   const [guardadoOk, setGuardadoOk]     = useState(false);
@@ -61,7 +64,7 @@ export default function ServiciosBarberia() {
       return;
     }
 
-    barberiaServiciosService.guardarServicios('BAR001', servicios);
+    barberiaServiciosService.guardarServicios(barberiaId, servicios);
     setGuardadoError('');
     setEditando(null);
     setGuardadoOk(true);

@@ -1,186 +1,154 @@
-// src/services/ofertasService.js
-// ─────────────────────────────────────────────────────────────
-// Maneja ofertas de trabajo y aplicaciones de barberos.
-// FUTURO: reemplazar con llamadas a /api/ofertas y /api/aplicaciones
-// ─────────────────────────────────────────────────────────────
+import { api } from './api.js';
 
-import { notificacionesService } from './notificacionesService.js';
+const OFERTAS_KEY = 'styleup_ofertas_cache';
+const APLICACIONES_KEY = 'styleup_aplicaciones_cache';
+const SYNCED_KEY = 'styleup_ofertas_synced';
 
-const KEY_OFERTAS      = 'styleup_ofertas';
-const KEY_APLICACIONES = 'styleup_aplicaciones';
+function getUser() {
+  try { return JSON.parse(sessionStorage.getItem('su_user') || '{}'); } catch { return {}; }
+}
 
-// ── Ofertas mock iniciales ────────────────────────────────────
-const OFERTAS_INICIALES = [
-  {
-    id: 'OF001',
-    barberiaId: 'BAR001',
-    barberiaNombre: 'BarberShop Style',
-    titulo: 'Barbero especialista en degradados',
-    descripcion: 'Buscamos barbero con experiencia en degradados y fade. Buen ambiente laboral, clientela fija.',
-    tipoContratacion: 'comision',
-    condicionEconomica: '60% para el barbero',
-    horario: 'Lunes a sábado, 9am – 7pm',
-    vacantes: 2,
-    especialidadesBuscadas: ['Fade', 'Degradado'],
-    experienciaRequerida: '2_anos',
-    herramientasPropias: true,
-    fechaLimite: '2026-06-30',
-    estado: 'activa',
-    fecha: '2026-05-20',
-  },
-  {
-    id: 'OF002',
-    barberiaId: 'BAR001',
-    barberiaNombre: 'BarberShop Style',
-    titulo: 'Barbero para turno de tarde',
-    descripcion: 'Necesitamos barbero para cubrir turno de 2pm a 8pm de lunes a sábado.',
-    tipoContratacion: 'salario_fijo',
-    condicionEconomica: '$1.800.000 mensual',
-    horario: 'Lunes a sábado, 2pm – 8pm',
-    vacantes: 1,
-    especialidadesBuscadas: ['Corte clásico', 'Tijera'],
-    experienciaRequerida: '1_ano',
-    herramientasPropias: false,
-    fechaLimite: '2026-06-15',
-    estado: 'activa',
-    fecha: '2026-05-18',
-  },
-];
+const mapearOferta = (o) => ({
+  id: `OF${String(o.id).padStart(3, '0')}`,
+  barberiaId: o.barberia_id ?? o.barberiaId,
+  barberiaNombre: o.barberia?.nombre || o.barberiaNombre,
+  titulo: o.titulo,
+  descripcion: o.descripcion,
+  tipoContratacion: o.tipo_contratacion || o.tipoContratacion,
+  condicionEconomica: o.condicion_economica || o.condicionEconomica,
+  horario: o.horario,
+  vacantes: o.vacantes,
+  especialidadesBuscadas: o.especialidades_buscadas || o.especialidadesBuscadas || [],
+  experienciaRequerida: o.experiencia_requerida || o.experienciaRequerida,
+  herramientasPropias: o.herramientas_propias ?? o.herramientasPropias,
+  fechaLimite: (o.fecha_limite || o.fechaLimite || '').split('T')[0],
+  estado: o.estado,
+  fecha: (o.fecha_creacion || '').split('T')[0],
+});
 
-// ── Helpers internos ──────────────────────────────────────────
+const mapearAplicacion = (a) => ({
+  id: `AP${String(a.id).padStart(3, '0')}`,
+  ofertaId: a.oferta_id,
+  barberoNombre: `${a.barbero?.nombre || ''} ${a.barbero?.apellido || ''}`.trim(),
+  barberoCedula: a.cedula_barbero,
+  hojaDeVida: a.hoja_de_vida,
+  estado: a.estado,
+  fecha: a.fecha_creacion?.split('T')[0],
+});
 
-const leerOfertas = () => {
-  const data = sessionStorage.getItem(KEY_OFERTAS);
-  // Si no hay nada guardado aún, usamos los mocks
-  return data ? JSON.parse(data) : OFERTAS_INICIALES;
-};
+function leer(key) {
+  const d = sessionStorage.getItem(key);
+  return d ? JSON.parse(d) : [];
+}
 
-const guardarOfertas = (ofertas) => {
-  sessionStorage.setItem(KEY_OFERTAS, JSON.stringify(ofertas));
-};
+function guardar(key, data) {
+  sessionStorage.setItem(key, JSON.stringify(data));
+}
 
-const leerAplicaciones = () => {
-  const data = sessionStorage.getItem(KEY_APLICACIONES);
-  return data ? JSON.parse(data) : [];
-};
+async function syncOfertas() {
+  try {
+    const data = await api.get('/ofertas?estado=activa');
+    if (data) guardar(OFERTAS_KEY, data);
+    const synced = JSON.parse(sessionStorage.getItem(SYNCED_KEY) || '{}');
+    synced.ofertas = Date.now();
+    sessionStorage.setItem(SYNCED_KEY, JSON.stringify(synced));
+  } catch { /* silent */ }
+}
 
-const guardarAplicaciones = (aplicaciones) => {
-  sessionStorage.setItem(KEY_APLICACIONES, JSON.stringify(aplicaciones));
-};
-
-// ── Servicio exportado ────────────────────────────────────────
+async function syncAplicaciones(cedula) {
+  try {
+    const data = await api.get(`/aplicaciones/barbero/${cedula}`);
+    if (data) guardar(APLICACIONES_KEY, data);
+    const synced = JSON.parse(sessionStorage.getItem(SYNCED_KEY) || '{}');
+    synced.aplicaciones = Date.now();
+    sessionStorage.setItem(SYNCED_KEY, JSON.stringify(synced));
+  } catch { /* silent */ }
+}
 
 export const ofertasService = {
 
-  // Obtener todas las ofertas activas (para barberos)
-  // FUTURO: GET /api/ofertas?estado=activa
-  getOfertasActivas: () => {
-    return leerOfertas().filter((o) => o.estado === 'activa');
+  getOfertasActivas() {
+    const synced = JSON.parse(sessionStorage.getItem(SYNCED_KEY) || '{}');
+    if (!synced.ofertas) syncOfertas();
+    return leer(OFERTAS_KEY).map(mapearOferta);
   },
 
-  // Obtener ofertas de una barbería específica
-  // FUTURO: GET /api/ofertas?barberiaId=X
-  getOfertasByBarberia: (barberiaId) => {
-    return leerOfertas().filter((o) => o.barberiaId === barberiaId);
+  getOfertasByBarberia(barberiaId) {
+    const todas = ofertasService.getOfertasActivas();
+    return todas.filter((o) => o.barberiaId === barberiaId);
   },
 
-  // Crear nueva oferta
-  // FUTURO: POST /api/ofertas
-  crearOferta: (datos) => {
-    const ofertas = leerOfertas();
-    const nueva = {
-      ...datos,
-      id: `OF${Date.now()}`,
-      estado: 'activa',
-      fecha: new Date().toISOString().split('T')[0],
+  crearOferta(datos) {
+    const body = {
+      barberiaId: datos.barberiaId, titulo: datos.titulo,
+      descripcion: datos.descripcion, tipoContratacion: datos.tipoContratacion,
+      condicionEconomica: datos.condicionEconomica, horario: datos.horario,
+      vacantes: datos.vacantes, especialidadesBuscadas: datos.especialidadesBuscadas,
+      experienciaRequerida: datos.experienciaRequerida,
+      herramientasPropias: datos.herramientasPropias, fechaLimite: datos.fechaLimite,
     };
-    guardarOfertas([...ofertas, nueva]);
-    return nueva;
+    api.post('/ofertas', body).then((result) => {
+      const oferta = result?.oferta || result;
+      if (oferta) {
+        const cache = leer(OFERTAS_KEY);
+        guardar(OFERTAS_KEY, [...cache, oferta]);
+      }
+    }).catch(() => {});
+    const temp = { ...body, id: Date.now(), estado: 'activa' };
+    return mapearOferta(temp);
   },
 
-  // Cerrar una oferta
-  // FUTURO: PATCH /api/ofertas/:id { estado: 'cerrada' }
-  cerrarOferta: (ofertaId) => {
-    const ofertas = leerOfertas().map((o) =>
-      o.id === ofertaId ? { ...o, estado: 'cerrada' } : o
-    );
-    guardarOfertas(ofertas);
+  cerrarOferta(ofertaId) {
+    const id = ofertaId.replace(/^OF/, '');
+    const cache = leer(OFERTAS_KEY);
+    guardar(OFERTAS_KEY, cache.map((o) =>
+      String(o.id) === id ? { ...o, estado: 'cerrada' } : o
+    ));
+    api.patch(`/ofertas/${id}/cerrar`).catch(() => {});
   },
 
-  // ── Aplicaciones ─────────────────────────────────────────────
-
-  // Barbero aplica a una oferta (adjunta su hoja de vida)
-  // FUTURO: POST /api/aplicaciones
-  aplicar: (ofertaId, barberoNombre, hojaDeVida) => {
-    const aplicaciones = leerAplicaciones();
-
-    // Evita aplicaciones duplicadas
-    const yaAplicó = aplicaciones.some(
-      (a) => a.ofertaId === ofertaId && a.barberoNombre === barberoNombre
-    );
-    if (yaAplicó) return null;
-
-    const nueva = {
-      id: `AP${Date.now()}`,
-      ofertaId,
-      barberoNombre,
-      hojaDeVida,   // objeto completo con todas las secciones
-      estado: 'pendiente',  // pendiente | aceptada | rechazada
-      fecha: new Date().toISOString().split('T')[0],
+  aplicar(ofertaId, barberoNombre, hojaDeVida) {
+    const id = ofertaId.replace(/^OF/, '');
+    const user = getUser();
+    api.post('/aplicaciones', {
+      ofertaId: id, cedulaBarbero: user.cedula || '', hojaDeVida,
+    }).then((result) => {
+      if (result) {
+        const cache = leer(APLICACIONES_KEY);
+        guardar(APLICACIONES_KEY, [...cache, result?.aplicacion || result]);
+      }
+    }).catch(() => {});
+    const temp = {
+      id: Date.now(), oferta_id: parseInt(id), cedula_barbero: user.cedula,
+      hoja_de_vida: hojaDeVida, estado: 'pendiente',
     };
-    guardarAplicaciones([...aplicaciones, nueva]);
-
-    const oferta = leerOfertas().find((o) => o.id === ofertaId);
-    if (oferta) {
-      notificacionesService.crear({
-        tipo: 'aplicacion_nueva',
-        paraRol: 'barberia',
-        paraNombre: oferta.barberiaNombre,
-        deRol: 'barbero',
-        deNombre: barberoNombre,
-        mensaje: `${barberoNombre} aplicó a tu oferta "${oferta.titulo}"`,
-        metadata: { ofertaId, aplicacionId: nueva.id },
-      });
-    }
-
-    return nueva;
+    return mapearAplicacion(temp);
   },
 
-  // Obtener aplicaciones de un barbero (para que vea el estado)
-  // FUTURO: GET /api/aplicaciones?barbero=X
-  getAplicacionesByBarbero: (barberoNombre) => {
-    return leerAplicaciones().filter((a) => a.barberoNombre === barberoNombre);
+  getAplicacionesByBarbero(cedulaBarbero) {
+    const synced = JSON.parse(sessionStorage.getItem(SYNCED_KEY) || '{}');
+    if (!synced.aplicaciones) syncAplicaciones(cedulaBarbero);
+    const todas = leer(APLICACIONES_KEY);
+    return todas
+      .filter((a) => a.cedula_barbero === cedulaBarbero)
+      .map(mapearAplicacion);
   },
 
-  // Obtener aplicaciones recibidas para una oferta (para la barbería)
-  // FUTURO: GET /api/aplicaciones?ofertaId=X
-  getAplicacionesByOferta: (ofertaId) => {
-    return leerAplicaciones().filter((a) => a.ofertaId === ofertaId);
+  getAplicacionesByOferta(ofertaId) {
+    const id = ofertaId.replace(/^OF/, '');
+    const synced = JSON.parse(sessionStorage.getItem(SYNCED_KEY) || '{}');
+    if (!synced.aplicaciones) syncAplicaciones(getUser().cedula);
+    return leer(APLICACIONES_KEY)
+      .filter((a) => String(a.oferta_id) === id)
+      .map(mapearAplicacion);
   },
 
-  // Cambiar estado de una aplicación (barbería acepta o rechaza)
-  // FUTURO: PATCH /api/aplicaciones/:id { estado }
-  cambiarEstadoAplicacion: (aplicacionId, nuevoEstado) => {
-    const aplicaciones = leerAplicaciones().map((a) =>
-      a.id === aplicacionId ? { ...a, estado: nuevoEstado } : a
-    );
-    guardarAplicaciones(aplicaciones);
-
-    const aplicacion = leerAplicaciones().find((a) => a.id === aplicacionId);
-    if (aplicacion) {
-      const oferta = leerOfertas().find((o) => o.id === aplicacion.ofertaId);
-      const veredicto = nuevoEstado === 'aceptada' ? 'aceptada' : 'rechazada';
-      notificacionesService.crear({
-        tipo: nuevoEstado === 'aceptada' ? 'aplicacion_aceptada' : 'aplicacion_rechazada',
-        paraRol: 'barbero',
-        paraNombre: aplicacion.barberoNombre,
-        deRol: 'barberia',
-        deNombre: oferta?.barberiaNombre || 'Barbería',
-        mensaje: nuevoEstado === 'aceptada'
-          ? `¡Felicidades! Tu aplicación para "${oferta?.titulo || 'la oferta'}" fue ACEPTADA`
-          : `Tu aplicación para "${oferta?.titulo || 'la oferta'}" fue RECHAZADA`,
-        metadata: { ofertaId: aplicacion.ofertaId, aplicacionId },
-      });
-    }
+  cambiarEstadoAplicacion(aplicacionId, nuevoEstado) {
+    const id = aplicacionId.replace(/^AP/, '');
+    const cache = leer(APLICACIONES_KEY);
+    guardar(APLICACIONES_KEY, cache.map((a) =>
+      String(a.id) === id ? { ...a, estado: nuevoEstado } : a
+    ));
+    api.patch(`/aplicaciones/${id}/estado`, { estado: nuevoEstado }).catch(() => {});
   },
 };

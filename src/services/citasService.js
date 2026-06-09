@@ -1,41 +1,93 @@
-// src/services/citasService.js
-// ─────────────────────────────────────────────────────────────
-// CAPA DE DATOS — Hoy usa sessionStorage para simular la base
-// de datos. Cuando conectes el backend, solo cambias las
-// funciones de aquí; los componentes no se tocan.
-//
-// CAMBIOS v2:
-// - agregarCita ahora guarda horaFin además de horaInicio
-// - nuevo método: getSlotsBloqueados (para validación de conflictos)
-// ─────────────────────────────────────────────────────────────
-import { notificacionesService } from './notificacionesService.js';
+import { api } from './api.js';
 
 const STORAGE_KEY = 'styleup_citas';
+const SYNCED_KEY = 'styleup_citas_synced';
 
-const leerCitas = () => {
-  const data = sessionStorage.getItem(STORAGE_KEY);
-  return data ? JSON.parse(data) : [];
-};
+function leer() {
+  const d = sessionStorage.getItem(STORAGE_KEY);
+  return d ? JSON.parse(d) : [];
+}
 
-const guardarCitas = (citas) => {
+function guardar(citas) {
   sessionStorage.setItem(STORAGE_KEY, JSON.stringify(citas));
-};
+}
+
+function getUser() {
+  try { return JSON.parse(sessionStorage.getItem('su_user') || '{}'); } catch { return {}; }
+}
+
+function mapearCitaApi(c) {
+  return {
+    id: c.id_cita,
+    cedulaCliente: c.cedula_cliente,
+    cedulaBarbero: c.cedula_barbero,
+    clienteNombre: `${c.clientes?.nombre || ''} ${c.clientes?.apellido || ''}`.trim(),
+    barbero: c.barberos ? { name: `${c.barberos.nombre} ${c.barberos.apellido}`.trim() } : undefined,
+    servicio: c.especialidades ? {
+      id: c.id_especialidad,
+      name: c.especialidades.especialidad,
+      dur: c.especialidades.tiempo_estimado,
+    } : undefined,
+    fecha: c.fecha?.split('T')[0],
+    hora: c.hora?.split(':').slice(0, 2).join(':'),
+    horaInicio: c.hora?.split(':').slice(0, 2).join(':'),
+    horaFin: c.hora_fin?.split(':').slice(0, 2).join(':'),
+    fechaDia: c.fecha ? new Date(c.fecha).getDate().toString() : undefined,
+    fechaMes: c.fecha ? new Date(c.fecha).toLocaleDateString('es-CO', { month: 'short' }) : undefined,
+    fechaAnio: c.fecha ? new Date(c.fecha).getFullYear().toString() : undefined,
+    estado: c.estado?.toLowerCase(),
+    fechaCreacion: c.fecha_creacion,
+  };
+}
+
+async function syncCitasFromApi() {
+  const user = getUser();
+  if (!user.cedula) return;
+  try {
+    const data = user.tipo === 'barbero'
+      ? await api.get(`/citas/barbero/${user.cedula}`)
+      : await api.get(`/citas/cliente/${user.cedula}`);
+    if (!data) return;
+    const mapped = data.map(mapearCitaApi);
+    const localIds = new Set(leer().map((c) => c.id));
+    const newCitas = mapped.filter((c) => !localIds.has(c.id));
+    if (newCitas.length) {
+      guardar([...leer(), ...newCitas]);
+    }
+    const synced = JSON.parse(sessionStorage.getItem(SYNCED_KEY) || '{}');
+    synced[user.cedula] = Date.now();
+    sessionStorage.setItem(SYNCED_KEY, JSON.stringify(synced));
+  } catch { /* silent */ }
+}
+
+async function syncCitaToApi(datosCita) {
+  const user = getUser();
+  if (!user.cedula) return;
+  try {
+    const body = {
+      cedula_cliente: user.cedula,
+      cedula_barbero: datosCita.barberoCedula || datosCita.cedulaBarbero,
+      fecha: datosCita.fecha || new Date().toISOString().split('T')[0],
+      hora: datosCita.horaInicio || datosCita.hora,
+      hora_fin: datosCita.horaFin || datosCita.horaFin,
+      id_especialidad: datosCita.servicio?.id,
+    };
+    await api.post('/citas', body);
+  } catch { /* silent */ }
+}
 
 export const citasService = {
 
-  // Obtener citas de un cliente específico
-  // FUTURO: return await fetch(`/api/citas?cliente=${nombre}`)
-  getCitasByCliente: (clienteNombre) => {
-    const citas = leerCitas();
-    return citas.filter((c) => c.clienteNombre === clienteNombre);
+  getCitasByCliente(clienteNombre) {
+    const synced = JSON.parse(sessionStorage.getItem(SYNCED_KEY) || '{}');
+    const user = getUser();
+    if (user.cedula && !synced[user.cedula]) {
+      syncCitasFromApi();
+    }
+    return leer().filter((c) => c.clienteNombre === clienteNombre);
   },
 
-  // Agregar una nueva cita
-  // Ahora guarda horaInicio y horaFin para validación de conflictos
-  // FUTURO: return await fetch('/api/citas', { method: 'POST', body: ... })
-  //   La BD guarda: fecha (DATE), hora_inicio (TIME), hora_fin (TIME)
-  agregarCita: (datosCita) => {
-    const citas = leerCitas();
+  agregarCita(datosCita) {
     const { servicio, ...resto } = datosCita;
     const nuevaCita = {
       ...resto,
@@ -47,61 +99,44 @@ export const citasService = {
       estado: 'pendiente',
       fechaCreacion: new Date().toISOString(),
     };
-    guardarCitas([...citas, nuevaCita]);
+    guardar([...leer(), nuevaCita]);
+    syncCitaToApi(datosCita);
     return nuevaCita;
   },
 
-  // Cancelar una cita (solo cambia el estado)
-  // FUTURO: return await fetch(`/api/citas/${id}/cancelar`, { method: 'PATCH' })
-  cancelarCita: (citaId) => {
-    const citas = leerCitas();
-    const cita = citas.find((c) => c.id === citaId);
+  cancelarCita(citaId) {
+    const citas = leer();
     const actualizadas = citas.map((c) =>
       c.id === citaId ? { ...c, estado: 'cancelada' } : c
     );
-    guardarCitas(actualizadas);
-
-    if (cita?.barbero?.name) {
-      notificacionesService.crear({
-        tipo: 'cita_cancelada',
-        paraRol: 'barbero',
-        paraNombre: cita.barbero.name,
-        deRol: 'cliente',
-        deNombre: cita.clienteNombre,
-        mensaje: `El cliente ${cita.clienteNombre} canceló su cita del ${cita.fechaDia} ${cita.fechaMes} a las ${cita.hora}`,
-        metadata: { citaId },
-      });
-    }
-
+    guardar(actualizadas);
+    api.patch(`/citas/${citaId}/cancelar`).catch(() => {});
     return actualizadas;
   },
 
-  // Completar una cita
-  // FUTURO: return await fetch(`/api/citas/${id}/completar`, { method: 'PATCH' })
-  completarCita: (citaId) => {
-    const citas = leerCitas();
+  completarCita(citaId) {
+    const citas = leer();
     const actualizadas = citas.map((c) =>
       c.id === citaId ? { ...c, estado: 'completada' } : c
     );
-    guardarCitas(actualizadas);
+    guardar(actualizadas);
+    api.patch(`/citas/${citaId}/estado`, { estado: 'Completada' }).catch(() => {});
     return actualizadas;
   },
 
-  // Obtener citas asignadas a un barbero específico
-  // FUTURO: return await fetch(`/api/citas?barbero=${nombre}`)
-  getCitasByBarbero: (barberoNombre) => {
-    const citas = leerCitas();
-    return citas.filter((c) => c.barbero?.name === barberoNombre);
+  getCitasByBarbero(barberoNombre) {
+    const synced = JSON.parse(sessionStorage.getItem(SYNCED_KEY) || '{}');
+    const user = getUser();
+    if (user.cedula && !synced[user.cedula]) {
+      syncCitasFromApi();
+    }
+    return leer().filter((c) => c.barbero?.name === barberoNombre);
   },
 
-  // Obtener citas de un barbero en un día específico
-  // Usado para validar conflictos antes de mostrar los slots
-  // FUTURO: return await fetch(`/api/citas?barbero=${nombre}&dia=${dia}`)
-  getCitasBarberoEnDia: (barberoNombre, diaNum) => {
-    const citas = leerCitas();
+  getCitasBarberoEnDia(barberoNombre, diaNum) {
+    const citas = citasService.getCitasByBarbero(barberoNombre);
     return citas.filter(
       (c) =>
-        c.barbero?.name === barberoNombre &&
         c.fechaDia === diaNum &&
         c.estado !== 'cancelada' &&
         c.estado !== 'completada'

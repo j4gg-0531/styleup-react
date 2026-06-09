@@ -1,15 +1,4 @@
-// src/services/barberiaServiciosService.js
-// ─────────────────────────────────────────────────────────────
-// Gestiona los precios y duraciones globales de los servicios
-// que ofrece la barbería (sobreescribe los valores por defecto).
-// FUTURO: los datos vendrán de /api/barberias/:id/servicios
-// ─────────────────────────────────────────────────────────────
-import { notificacionesService } from './notificacionesService.js';
-import { barberosService } from './barberosService.js';
-import { barberiaService } from './barberiaService.js';
-
-const STORAGE_KEY = 'styleup_barberia_servicios';
-
+import { api } from './api.js';
 import {
   PRECIOS_MINIMOS,
   NOMBRES_SERVICIOS,
@@ -17,72 +6,105 @@ import {
   ICONOS_SERVICIOS,
 } from './preciosService.js';
 
-const leerConfig = () => {
-  const data = sessionStorage.getItem(STORAGE_KEY);
-  return data ? JSON.parse(data) : {};
+const STORAGE_KEY = 'styleup_barberia_servicios';
+const SYNCED_KEY = 'styleup_barberia_serv_synced';
+
+const SERVICIO_A_ID = { E001: 1, E002: 2, E004: 3, E006: 4, E007: 5, E008: 6, E009: 7 };
+
+const leer = () => {
+  const d = sessionStorage.getItem(STORAGE_KEY);
+  return d ? JSON.parse(d) : {};
 };
 
-const guardarConfig = (config) => {
-  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+const guardar = (data) => {
+  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 };
+
+const getBarberiaId = async () => {
+  try {
+    const user = JSON.parse(sessionStorage.getItem('su_user') || '{}');
+    const nombre = user.nombre || '';
+    if (nombre) {
+      const data = await api.get(`/barberias/owner/${encodeURIComponent(nombre)}`);
+      return data?.id;
+    }
+  } catch { /* silent */ }
+  return null;
+};
+
+async function syncFromApi(barberiaId) {
+  try {
+    const data = await api.get(`/precios/barberia/${barberiaId}`);
+    if (!data || !data.length) return;
+    const ID_A_SERVICIO = { 1: 'E001', 2: 'E002', 3: 'E004', 4: 'E006', 5: 'E007', 6: 'E008', 7: 'E009' };
+    const result = {};
+    for (const p of data) {
+      const key = ID_A_SERVICIO[p.id_especialidad];
+      if (key) {
+        result[key] = {
+          precio: Number(p.precio),
+          duracion: p.duracion || DURACIONES_DEFAULT[key],
+          activo: p.activo !== false,
+        };
+      }
+    }
+    const config = leer();
+    config[barberiaId] = result;
+    guardar(config);
+    const synced = JSON.parse(sessionStorage.getItem(SYNCED_KEY) || '{}');
+    synced[barberiaId] = Date.now();
+    sessionStorage.setItem(SYNCED_KEY, JSON.stringify(synced));
+  } catch { /* silent */ }
+}
+
+function syncToApi(barberiaId, servicios) {
+  api.put(`/precios/barberia/${barberiaId}`, {
+    servicios: Object.fromEntries(
+      Object.entries(servicios).map(([sId, s]) => [
+        SERVICIO_A_ID[sId],
+        { precio: Number(s.precio), duracion: Number(s.duracion), activo: s.activo },
+      ])
+    ),
+  }).catch(() => {});
+}
 
 export const barberiaServiciosService = {
 
-  // Obtener la config de servicios de una barbería
-  // FUTURO: return await fetch(`/api/barberias/${barberiaId}/servicios`)
-  getServicios: (barberiaId) => {
-    const config = leerConfig();
+  getServicios(barberiaId) {
+    const synced = JSON.parse(sessionStorage.getItem(SYNCED_KEY) || '{}');
+    if (!synced[barberiaId]) {
+      getBarberiaId().then((bid) => {
+        if (bid) syncFromApi(bid);
+      });
+    }
+    const config = leer();
     const data = config[barberiaId] || {};
-
     return Object.keys(NOMBRES_SERVICIOS).reduce((acc, id) => {
       acc[id] = {
-        precio:   data[id]?.precio   ?? PRECIOS_MINIMOS[id],
+        precio: data[id]?.precio ?? PRECIOS_MINIMOS[id],
         duracion: data[id]?.duracion ?? DURACIONES_DEFAULT[id],
-        activo:   data[id]?.activo   !== false,
+        activo: data[id]?.activo !== false,
       };
       return acc;
     }, {});
   },
 
-  // Guardar la config de servicios de una barbería
-  // FUTURO: PUT /api/barberias/:id/servicios { servicios }
-  guardarServicios: (barberiaId, servicios) => {
-    const config = leerConfig();
+  guardarServicios(barberiaId, servicios) {
+    const config = leer();
     const data = {};
     Object.entries(servicios).forEach(([id, s]) => {
-      data[id] = {
-        precio:   Number(s.precio),
-        duracion: Number(s.duracion),
-        activo:   s.activo,
-      };
+      data[id] = { precio: Number(s.precio), duracion: Number(s.duracion), activo: s.activo };
     });
     config[barberiaId] = data;
-    guardarConfig(config);
+    guardar(config);
 
-    const barberia = barberiaService.getById(barberiaId);
-    if (barberia?.barberoIds?.length) {
-      barberia.barberoIds.forEach((bid) => {
-        const barbero = barberosService.getById(bid);
-        if (barbero) {
-          notificacionesService.crear({
-            tipo: 'servicios_modificados',
-            paraRol: 'barbero',
-            paraNombre: `${barbero.nombre} ${barbero.apellido}`,
-            deRol: 'barberia',
-            deNombre: barberia.nombre,
-            mensaje: `${barberia.nombre} actualizó los precios y servicios`,
-            metadata: { barberiaId },
-          });
-        }
-      });
-    }
-
+    getBarberiaId().then((bid) => {
+      if (bid) syncToApi(bid, data);
+    });
     return data;
   },
 
-  // Obtener la configuración de un servicio específico
-  // FUTURO: GET /api/barberias/:id/servicios/:servicioId
-  getServicio: (barberiaId, servicioId) => {
+  getServicio(barberiaId, servicioId) {
     const servicios = barberiaServiciosService.getServicios(barberiaId);
     return servicios[servicioId] || null;
   },

@@ -37,4 +37,14 @@ router.put('/:cedula_barbero/:fecha', authMiddleware, async (req, res) => {
   }
 })
 
+// Eliminar horario (protegido)
+router.delete('/:cedula_barbero/:fecha', authMiddleware, async (req, res) => {
+  try {
+    await horarioService.eliminar(req.params.cedula_barbero, req.params.fecha)
+    res.json({ mensaje: 'Horario eliminado correctamente' })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
 module.exports = router

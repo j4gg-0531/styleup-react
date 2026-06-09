@@ -50,4 +50,27 @@ router.put('/:cedula_barbero/config', authMiddleware, async (req, res) => {
   }
 })
 
+// Obtener precios por barbería (público)
+router.get('/barberia/:barberiaId', async (req, res) => {
+  try {
+    const precios = await precioService.obtenerPorBarberia(req.params.barberiaId)
+    res.json(precios)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+// Guardar configuración de servicios para toda la barbería (protegido)
+router.put('/barberia/:barberiaId', authMiddleware, async (req, res) => {
+  try {
+    const result = await precioService.guardarConfigBarberia(
+      req.params.barberiaId,
+      req.body.servicios
+    )
+    res.json({ mensaje: 'Configuración de barbería guardada', precios: result })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
 module.exports = router

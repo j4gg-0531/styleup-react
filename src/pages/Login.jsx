@@ -19,7 +19,11 @@ export default function Login() {
       return;
     }
     const nombre = correo.split('@')[0];
-    login(nombre, rol);
+    const extras = {};
+    if (rol === 'barberia') extras.barberiaId = 1;
+    if (rol === 'barbero') extras.cedula = nombre;
+    if (rol === 'cliente') extras.cedula = nombre;
+    login(nombre, rol, extras);
     setMsg({ tipo: 'success', texto: '¡Bienvenido! Redirigiendo...' });
     setTimeout(() => {
       if (rol === 'barbero') navigate('/barbero');

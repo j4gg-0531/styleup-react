@@ -1,152 +1,163 @@
-// src/services/preciosService.js
-// ─────────────────────────────────────────────────────────────
-// Maneja los servicios que cada barbero presta: precio, duración
-// y si está activo o no.
-// FUTURO: los mínimos y el catálogo vendrán de la API.
-// ─────────────────────────────────────────────────────────────
+import { api } from './api.js';
 
-const STORAGE_KEY        = 'styleup_precios';
-const STORAGE_KEY_CONFIG = 'styleup_servicios_config'; // duración + activo por barbero
-
-// ── Catálogo base del sistema ─────────────────────────────────────────────
-// FUTURO: vendrá de GET /api/servicios (tabla servicios en BD)
 export const PRECIOS_MINIMOS = {
-  E001: 15000,
-  E002: 12000,
-  E006: 10000,
-  E008: 25000,
-  E007: 20000,
-  E004: 18000,
-  E009: 30000, // Domicilio — mínimo más alto por el desplazamiento
+  E001: 15000, E002: 12000, E006: 10000, E008: 25000,
+  E007: 20000, E004: 18000, E009: 30000,
 };
 
 export const NOMBRES_SERVICIOS = {
-  E001: 'Corte a tijera',
-  E002: 'Degradado / Fade',
-  E006: 'Afeitado con navaja',
-  E008: 'Corte + Barba',
-  E007: 'Diseño en cabello',
-  E004: 'Undercut',
-  E009: 'Domicilio',
+  E001: 'Corte a tijera', E002: 'Degradado / Fade', E006: 'Afeitado con navaja',
+  E008: 'Corte + Barba', E007: 'Diseño en cabello', E004: 'Undercut', E009: 'Domicilio',
 };
 
-// Duración por defecto del sistema para cada servicio (en minutos)
-// El barbero puede ajustar su propio valor desde la pantalla de Mis Servicios
-// FUTURO: duracion_min en tabla servicios; override en tabla barbero_servicios
 export const DURACIONES_DEFAULT = {
-  E001: 30,
-  E002: 25,
-  E006: 20,
-  E008: 45,
-  E007: 40,
-  E004: 35,
-  E009: 60, // Domicilio — más tiempo por traslado
+  E001: 30, E002: 25, E006: 20, E008: 45, E007: 40, E004: 35, E009: 60,
 };
 
 export const ICONOS_SERVICIOS = {
-  E001: '✂',
-  E002: '💈',
-  E006: '🪒',
-  E008: '🧔',
-  E007: '🎨',
-  E004: '⚡',
-  E009: '🏠',
+  E001: '✂', E002: '💈', E006: '🪒', E008: '🧔', E007: '🎨', E004: '⚡', E009: '🏠',
 };
 
-// ── Helpers de almacenamiento ─────────────────────────────────────────────
+const PRECIOS_KEY = 'styleup_precios';
+const CONFIG_KEY = 'styleup_servicios_config';
+const SYNCED_KEY = 'styleup_precios_synced';
 
-const leerPrecios = () => {
-  const data = sessionStorage.getItem(STORAGE_KEY);
-  return data ? JSON.parse(data) : {};
-};
+const ID_A_SERVICIO = { 1: 'E001', 2: 'E002', 3: 'E004', 4: 'E006', 5: 'E007', 6: 'E008', 7: 'E009' };
+const SERVICIO_A_ID = Object.fromEntries(Object.entries(ID_A_SERVICIO).map(([k, v]) => [v, Number(k)]));
 
-const guardarPrecios = (precios) => {
-  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(precios));
-};
+function leer(key) {
+  const d = sessionStorage.getItem(key);
+  return d ? JSON.parse(d) : {};
+}
 
-// La "config" guarda duración personalizada y si está activo, por barbero
-// Estructura: { "Juan Pérez": { E001: { duracion: 30, activo: true }, ... } }
-const leerConfig = () => {
-  const data = sessionStorage.getItem(STORAGE_KEY_CONFIG);
-  return data ? JSON.parse(data) : {};
-};
+function guardar(key, data) {
+  sessionStorage.setItem(key, JSON.stringify(data));
+}
 
-const guardarConfig = (config) => {
-  sessionStorage.setItem(STORAGE_KEY_CONFIG, JSON.stringify(config));
-};
+function getUser() {
+  try { return JSON.parse(sessionStorage.getItem('su_user') || '{}'); } catch { return {}; }
+}
 
-// ── Servicio exportado ────────────────────────────────────────────────────
+async function syncPreciosFromApi(cedula) {
+  try {
+    const data = await api.get(`/precios/${cedula}`);
+    if (!data || !data.length) return;
+    const result = {};
+    const configResult = {};
+    for (const p of data) {
+      const key = ID_A_SERVICIO[p.id_especialidad];
+      if (key) {
+        result[key] = Number(p.precio);
+        configResult[key] = {
+          duracion: p.duracion || DURACIONES_DEFAULT[key],
+          activo: p.activo !== false,
+        };
+      }
+    }
+    const todosPrecios = leer(PRECIOS_KEY);
+    todosPrecios[cedula] = result;
+    guardar(PRECIOS_KEY, todosPrecios);
+
+    const todasConfig = leer(CONFIG_KEY);
+    todasConfig[cedula] = configResult;
+    guardar(CONFIG_KEY, todasConfig);
+
+    const synced = leer(SYNCED_KEY);
+    synced[cedula] = Date.now();
+    guardar(SYNCED_KEY, synced);
+  } catch { /* silent */ }
+}
+
+function syncPreciosToApi(cedula, precios, config) {
+  api.put(`/precios/${cedula}/config`, {
+    servicios: Object.fromEntries(
+      Object.entries({ ...precios, ...config }).map(([sId, val]) => {
+        const id = SERVICIO_A_ID[sId];
+        if (!id) return [sId, {}];
+        const cfg = config[sId] || {};
+        const precio = typeof val === 'object' ? val.precio : (precios[sId] || PRECIOS_MINIMOS[sId]);
+        return [
+          id,
+          { precio, duracion: cfg.duracion || DURACIONES_DEFAULT[sId], activo: cfg.activo !== false },
+        ];
+      })
+    ),
+  }).catch(() => {});
+}
 
 export const preciosService = {
 
-  // Obtener precios configurados por un barbero
-  // FUTURO: return await fetch(`/api/precios?barbero=${nombre}`)
-  getPreciosByBarbero: (barberoNombre) => {
-    const todos = leerPrecios();
-    return todos[barberoNombre] || {};
+  getPreciosByBarbero(barberoNombre) {
+    const user = getUser();
+    const cedula = user.cedula || barberoNombre;
+    const synced = leer(SYNCED_KEY);
+    if (cedula && !synced[cedula]) {
+      syncPreciosFromApi(cedula);
+    }
+    const todos = leer(PRECIOS_KEY);
+    return todos[cedula] || todos[barberoNombre] || {};
   },
 
-  // Guardar precios de un barbero (valida mínimos)
-  // FUTURO: PUT /api/precios { barbero, precios }
-  guardarPreciosBarbero: (barberoNombre, precios) => {
-    const todos = leerPrecios();
+  guardarPreciosBarbero(barberoNombre, precios) {
+    const user = getUser();
+    const cedula = user.cedula || barberoNombre;
     const preciosValidados = {};
     Object.entries(precios).forEach(([servicioId, precio]) => {
       const minimo = PRECIOS_MINIMOS[servicioId] || 0;
       preciosValidados[servicioId] = Math.max(Number(precio), minimo);
     });
-    todos[barberoNombre] = preciosValidados;
-    guardarPrecios(todos);
+    const todos = leer(PRECIOS_KEY);
+    todos[cedula] = preciosValidados;
+    guardar(PRECIOS_KEY, todos);
+
+    const config = leer(CONFIG_KEY);
+    syncPreciosToApi(cedula, preciosValidados, config[cedula] || {});
     return preciosValidados;
   },
 
-  // Obtener precio de un servicio para un barbero
-  // Si no lo ha configurado, usa el mínimo del sistema
-  getPrecioServicio: (barberoNombre, servicioId) => {
-    const precios       = leerPrecios();
-    const preciosBarbero = precios[barberoNombre] || {};
-    return preciosBarbero[servicioId] || PRECIOS_MINIMOS[servicioId] || 0;
+  getPrecioServicio(barberoNombre, servicioId) {
+    const precios = preciosService.getPreciosByBarbero(barberoNombre);
+    return precios[servicioId] || PRECIOS_MINIMOS[servicioId] || 0;
   },
 
-  // ── Configuración de servicios (duración + activo) ────────────────────
-
-  // Obtener la config completa de servicios de un barbero
-  // FUTURO: GET /api/barbero-servicios?barbero=${nombre}
-  getConfigServicios: (barberoNombre) => {
-    const config = leerConfig();
-    return config[barberoNombre] || {};
+  getConfigServicios(barberoNombre) {
+    const user = getUser();
+    const cedula = user.cedula || barberoNombre;
+    const config = leer(CONFIG_KEY);
+    const result = config[cedula] || config[barberoNombre] || {};
+    if (Object.keys(result).length === 0) {
+      return Object.keys(NOMBRES_SERVICIOS).reduce((acc, id) => {
+        acc[id] = { duracion: DURACIONES_DEFAULT[id], activo: true };
+        return acc;
+      }, {});
+    }
+    return result;
   },
 
-  // Guardar la config completa de servicios de un barbero
-  // FUTURO: PUT /api/barbero-servicios { barbero, config }
-  guardarConfigServicios: (barberoNombre, configServicios) => {
-    const config = leerConfig();
-    config[barberoNombre] = configServicios;
-    guardarConfig(config);
+  guardarConfigServicios(barberoNombre, configServicios) {
+    const user = getUser();
+    const cedula = user.cedula || barberoNombre;
+    const config = leer(CONFIG_KEY);
+    config[cedula] = configServicios;
+    guardar(CONFIG_KEY, config);
+
+    const precios = leer(PRECIOS_KEY);
+    syncPreciosToApi(cedula, precios[cedula] || {}, configServicios);
     return configServicios;
   },
 
-  // Obtener la duración real de un servicio para un barbero
-  // Primero busca la personalizada, si no existe usa la del sistema
-  // FUTURO: SELECT duracion FROM barbero_servicios WHERE barbero_id=? AND servicio_id=?
-  getDuracionServicio: (barberoNombre, servicioId) => {
-    const config        = leerConfig();
-    const configBarbero = config[barberoNombre] || {};
-    return configBarbero[servicioId]?.duracion ?? DURACIONES_DEFAULT[servicioId] ?? 30;
+  getDuracionServicio(barberoNombre, servicioId) {
+    const config = preciosService.getConfigServicios(barberoNombre);
+    return config[servicioId]?.duracion ?? DURACIONES_DEFAULT[servicioId] ?? 30;
   },
 
-  // ¿El barbero tiene activo este servicio?
-  // FUTURO: SELECT activo FROM barbero_servicios WHERE barbero_id=? AND servicio_id=?
-  servicioActivo: (barberoNombre, servicioId) => {
-    const config        = leerConfig();
-    const configBarbero = config[barberoNombre] || {};
-    // Si no hay config guardada, todos los servicios están activos por defecto
-    if (!configBarbero[servicioId]) return true;
-    return configBarbero[servicioId].activo !== false;
+  servicioActivo(barberoNombre, servicioId) {
+    const config = preciosService.getConfigServicios(barberoNombre);
+    if (!config[servicioId]) return true;
+    return config[servicioId].activo !== false;
   },
 
-  // Obtener solo los IDs de servicios activos de un barbero
-  getServiciosActivos: (barberoNombre) => {
+  getServiciosActivos(barberoNombre) {
     return Object.keys(NOMBRES_SERVICIOS).filter(
       (id) => preciosService.servicioActivo(barberoNombre, id)
     );

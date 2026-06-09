@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2, BriefcaseBusiness, Wallet, Users, Target, Wrench, Calendar, X, Check, FileText, GraduationCap, Trophy, ArrowLeft, Circle, ChevronDown, ArrowRight, CheckCircle, Bell, Printer } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
+import { useAuth } from '../../context/useAuth.js';
 import { ofertasService } from '../../services/ofertasService.js';
 import CVPreviewModal from '../../components/cv/CVPreviewModal.jsx';
 import {
@@ -533,8 +534,10 @@ function VistaHojaDeVida({ hdv }) {
 
 // ── Componente principal ──────────────────────────────────────
 export default function Ofertas() {
+  const { user } = useAuth();
+  const barberiaId = user?.barberiaId;
   const [ofertas, setOfertas] = useState(() =>
-    ofertasService.getOfertasByBarberia('BAR001')
+    ofertasService.getOfertasByBarberia(barberiaId)
   );
 
   const [aplicaciones] = useState(() =>
@@ -590,8 +593,8 @@ export default function Ofertas() {
     const nueva = ofertasService.crearOferta({
       ...form,
       horario: horarioTexto,
-      barberiaId: 'BAR001',
-      barberiaNombre: 'BarberShop Style',
+      barberiaId: barberiaId,
+      barberiaNombre: user?.nombre || 'Mi Barbería',
     });
     setOfertas((prev) => [...prev, nueva]);
     setPublicadaOk(true);

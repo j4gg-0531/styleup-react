@@ -1,27 +1,14 @@
 const prisma = require('../lib/prisma')
 
-const SELECT_SIN_CONTRASENA = {
-  id: true,
-  nombre: true,
-  nombre_dueno: true,
-  direccion: true,
-  ciudad: true,
-  telefono: true,
-  descripcion: true,
-  calificacion: true,
-  total_calificaciones: true,
-  lat: true,
-  lng: true,
-  logo_url: true,
-  nit: true,
-  correo: true,
-  num_trabajadores: true,
-  fecha_registro: true,
+const excluirContrasena = (data) => {
+  if (!data) return data
+  if (Array.isArray(data)) return data.map((item) => excluirContrasena(item))
+  const { contrasena, ...rest } = data
+  return rest
 }
 
 const obtenerTodas = async () => {
-  return await prisma.barberias.findMany({
-    select: SELECT_SIN_CONTRASENA,
+  const barberias = await prisma.barberias.findMany({
     include: {
       barberia_barberos: {
         where: { activo: true },
@@ -40,12 +27,12 @@ const obtenerTodas = async () => {
       },
     },
   })
+  return excluirContrasena(barberias)
 }
 
 const obtenerPorId = async (id) => {
   const barberia = await prisma.barberias.findUnique({
     where: { id: parseInt(id) },
-    select: SELECT_SIN_CONTRASENA,
     include: {
       barberia_barberos: {
         where: { activo: true },
@@ -69,13 +56,12 @@ const obtenerPorId = async (id) => {
     },
   })
   if (!barberia) throw new Error('Barbería no encontrada')
-  return barberia
+  return excluirContrasena(barberia)
 }
 
 const obtenerPorNombreDueno = async (nombreDueno) => {
   const barberia = await prisma.barberias.findFirst({
     where: { nombre_dueno: nombreDueno },
-    select: SELECT_SIN_CONTRASENA,
     include: {
       barberia_barberos: {
         where: { activo: true },
@@ -92,19 +78,21 @@ const obtenerPorNombreDueno = async (nombreDueno) => {
       },
     },
   })
-  return barberia
+  if (!barberia) return null
+  return excluirContrasena(barberia)
 }
 
 const crear = async (data) => {
-  return await prisma.barberias.create({ data })
+  const barberia = await prisma.barberias.create({ data })
+  return excluirContrasena(barberia)
 }
 
 const actualizar = async (id, data) => {
-  return await prisma.barberias.update({
+  const barberia = await prisma.barberias.update({
     where: { id: parseInt(id) },
     data,
-    select: SELECT_SIN_CONTRASENA,
   })
+  return excluirContrasena(barberia)
 }
 
 const eliminar = async (id) => {

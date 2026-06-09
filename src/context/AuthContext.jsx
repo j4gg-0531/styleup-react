@@ -8,8 +8,8 @@ export function AuthProvider({ children }) {
   const stored = sessionStorage.getItem('su_user');
   const [user, setUser] = useState(stored ? JSON.parse(stored) : null);
 
-  const login = (nombre, rol) => {
-    const u = { nombre, rol };
+  const login = (nombre, rol, extras = {}) => {
+    const u = { nombre, rol, token: extras.token || null, barberiaId: extras.barberiaId || null };
     sessionStorage.setItem('su_user', JSON.stringify(u));
     setUser(u);
   };
