@@ -5,6 +5,7 @@ import { Home, Scissors, BookOpen, Smartphone, User, MapPin, Phone, Building2, X
 import Sidebar from '../../components/layout/Sidebar';
 import { barberosService } from '../../services/barberosService.js';
 import Estrellas from '../../components/Estrellas.jsx';
+import AvatarDisplay from '../../components/AvatarDisplay.jsx';
 import MapaVista from './MapaVista.jsx';
 import { barberiaService } from '../../services/barberiaService.js';
 
@@ -175,8 +176,8 @@ export default function Barberos() {
                   onClick={() => navigate(`/cliente/barberos/${b.id}`)}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-                    <div className="barbero-avatar" style={{ fontSize: '1.8rem', flexShrink: 0 }}>
-                      {b.avatar}
+                    <div className="barbero-avatar" style={{ flexShrink: 0 }}>
+                      <AvatarDisplay src={b.avatar} size="1.8rem" />
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
@@ -272,7 +273,9 @@ export default function Barberos() {
                       onClick={() => { setBarberiaModal(null); navigate(`/cliente/barberos/${b.id}`); }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                        <div style={{ fontSize: '1.6rem', flexShrink: 0 }}>{b.avatar}</div>
+                        <div style={{ flexShrink: 0, width: 48, height: 48, borderRadius: '50%', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, var(--cobre), var(--cobre-light))' }}>
+                          <AvatarDisplay src={b.avatar} size="1.6rem" />
+                        </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
                             {b.nombre} {b.apellido}

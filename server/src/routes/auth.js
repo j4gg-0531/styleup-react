@@ -7,7 +7,7 @@ const authMiddleware = require('../middleware/auth')
 router.post('/login/cliente', async (req, res) => {
   try {
     const result = await authService.loginCliente(req.body.correo, req.body.contrasena)
-    res.json(result)
+    res.json({ ...result, cedula: result.cedula || null })
   } catch (error) {
     res.status(401).json({ error: error.message })
   }
@@ -16,7 +16,7 @@ router.post('/login/cliente', async (req, res) => {
 router.post('/login/barbero', async (req, res) => {
   try {
     const result = await authService.loginBarbero(req.body.correo, req.body.contrasena)
-    res.json(result)
+    res.json({ ...result, cedula: result.cedula || null })
   } catch (error) {
     res.status(401).json({ error: error.message })
   }

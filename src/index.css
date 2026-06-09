@@ -806,7 +806,7 @@ footer {
   background: linear-gradient(135deg, var(--cobre), var(--cobre-light));
   display: flex; align-items: center; justify-content: center;
   font-size: 1.5rem; margin: 0 auto 10px;
-  box-shadow: var(--shadow-red);
+  box-shadow: var(--shadow-red); overflow: hidden;
 }
 .barbero-name { font-weight: 600; font-size: 0.9rem; }
 .barbero-spec { font-size: 0.75rem; color: var(--muted); }

@@ -14,7 +14,7 @@ const loginCliente = async (correo, contrasena) => {
     process.env.JWT_SECRET,
     { expiresIn: '8h' }
   )
-  return { token, nombre: cliente.nombre, tipo: 'cliente' }
+  return { token, nombre: cliente.nombre, tipo: 'cliente', cedula: cliente.cedula_cliente }
 }
 
 const loginBarbero = async (correo, contrasena) => {
@@ -29,7 +29,7 @@ const loginBarbero = async (correo, contrasena) => {
     process.env.JWT_SECRET,
     { expiresIn: '8h' }
   )
-  return { token, nombre: barbero.nombre, tipo: 'barbero' }
+  return { token, nombre: barbero.nombre, tipo: 'barbero', cedula: barbero.cedula_barbero }
 }
 
 const registrarCliente = async (data) => {

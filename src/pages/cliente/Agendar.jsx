@@ -8,6 +8,7 @@ import { useAuth } from '../../context/useAuth.js';
 import { useCitas } from '../../context/useCitas.js';
 import { useHorarios } from '../../context/useHorarios.js';
 import { barberosService } from '../../services/barberosService.js';
+import AvatarDisplay from '../../components/AvatarDisplay.jsx';
 import { citasService } from '../../services/citasService.js';
 import { serviciosService } from '../../services/serviciosService.js';
 import {
@@ -257,7 +258,7 @@ export default function Agendar() {
                       className={`barbero-card ${esSel ? 'selected' : ''}`}
                       onClick={() => setSel({ ...sel, barbero: b, slot: null })}
                     >
-                      <div className="barbero-avatar">{b.avatar}</div>
+                      <div className="barbero-avatar"><AvatarDisplay src={b.avatar} size="1.5rem" /></div>
                       <div className="barbero-name">{nombre}</div>
                       <div className="barbero-spec"><Scissors size={12} /> {b.especialidad}</div>
                       {/* Precio para este servicio */}

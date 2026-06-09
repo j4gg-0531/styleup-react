@@ -29,6 +29,7 @@ export default function Login() {
       const extras = {};
       if (data.token) extras.token = data.token;
       if (data.barberiaId) extras.barberiaId = data.barberiaId;
+      if (data.cedula) extras.cedula = data.cedula;
 
       login(data.nombre, rol, extras);
 
