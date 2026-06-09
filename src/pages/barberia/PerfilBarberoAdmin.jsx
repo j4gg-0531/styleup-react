@@ -73,10 +73,11 @@ export default function PerfilBarberoAdmin() {
     '12:00–20:00', '13:00–20:00', '14:00–20:00',
   ];
 
-  const todasLasCitas = useMemo(
-    () => barbero ? citasService.getCitasByBarbero(nombreCompleto) : [],
-    [nombreCompleto, barbero]
-  );
+  const [todasLasCitas, setTodasLasCitas] = useState([]);
+  useEffect(() => {
+    if (!barbero) return;
+    citasService.getCitasByBarbero(nombreCompleto).then(setTodasLasCitas).catch(() => setTodasLasCitas([]));
+  }, [nombreCompleto, barbero]);
 
   useEffect(() => {
     if (!barbero) navigate('/barberia/barberos');
@@ -101,8 +102,8 @@ export default function PerfilBarberoAdmin() {
     .reduce((total, c) =>
       total + preciosService.getPrecioServicio(nombreCompleto, c.servicio?.id), 0);
 
-  const handleDespedir = () => {
-    notificacionesService.crear({
+  const handleDespedir = async () => {
+    await notificacionesService.crear({
       tipo: 'despedido',
       paraRol: 'barbero',
       paraNombre: nombreCompleto,
