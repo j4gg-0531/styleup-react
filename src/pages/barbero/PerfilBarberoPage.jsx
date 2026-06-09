@@ -103,7 +103,7 @@ export default function PerfilBarberoPage() {
     setPerfil({ ...formData });
     setEditMode(false);
     setFormData(null);
-    toast({ type: 'success', message: 'Perfil actualizado correctamente' });
+    toast.success('Perfil actualizado correctamente');
   };
 
   const actualizarCampo = (campo, valor) => {
@@ -130,10 +130,10 @@ export default function PerfilBarberoPage() {
       } else {
         await perfilService.guardarPerfil(user?.nombre, 'barbero', { avatar: base64 });
         setPerfil((prev) => ({ ...prev, avatar: base64 }));
-        toast({ type: 'success', message: 'Foto actualizada' });
+        toast.success('Foto actualizada');
       }
     } catch {
-      toast({ type: 'error', message: 'Error al procesar la imagen' });
+      toast.error('Error al procesar la imagen');
     } finally {
       setSubiendoAvatar(false);
     }
@@ -150,17 +150,15 @@ export default function PerfilBarberoPage() {
         setPwError('Las contraseñas no coinciden.');
         return;
       }
-      sessionStorage.setItem('styleup_password', password);
     }
     setPwOk(true);
     setTimeout(() => setPwOk(false), 3000);
     setPassword('');
     setPassword2('');
-    toast({ type: 'success', message: 'Contraseña actualizada' });
+    toast.success('Contraseña actualizada correctamente');
   };
 
   const handleEliminar = () => {
-    sessionStorage.removeItem('styleup_password');
     setEliminado(true);
     setTimeout(() => { logout(); navigate('/login'); }, 2000);
   };

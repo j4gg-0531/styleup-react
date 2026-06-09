@@ -1,12 +1,22 @@
-import { createContext, useState } from 'react';
+import { createContext, useState, useEffect } from 'react';
+import { api } from '../services/api.js';
 
-// Creamos el "contenedor" del estado de sesión
 export const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  // Intentamos recuperar la sesión guardada (igual que sessionStorage del original)
   const stored = sessionStorage.getItem('su_user');
   const [user, setUser] = useState(stored ? JSON.parse(stored) : null);
+
+  useEffect(() => {
+    const stored = sessionStorage.getItem('su_user');
+    if (!stored) return;
+    const parsed = JSON.parse(stored);
+    if (!parsed?.token) return;
+    api.get('/especialidades').catch(() => {
+      sessionStorage.removeItem('su_user');
+      setUser(null);
+    });
+  }, []);
 
   const login = (nombre, rol, extras = {}) => {
     const u = { nombre, rol, token: extras.token || null, barberiaId: extras.barberiaId || null };
@@ -25,5 +35,3 @@ export function AuthProvider({ children }) {
     </AuthContext.Provider>
   );
 }
-
-// Hook personalizado para usar la sesión desde cualquier componente
