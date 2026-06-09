@@ -174,9 +174,12 @@ export const horariosService = {
     const user = getUser();
     if (user.cedula) {
       api.post('/propuestas', {
-        cedula_barbero: user.cedula,
-        tipo: 'barbero',
-        estado: datos.estado || 'disponible',
+        origen: 'barbero',
+        cedulaBarbero: user.cedula,
+        barberiaId: datos.barberiaId || user.barberiaId || null,
+        dias: datos.dias || [],
+        horaInicio: datos.horaInicio,
+        horaFin: datos.horaFin,
       }).catch(() => {});
     }
     return nueva;
