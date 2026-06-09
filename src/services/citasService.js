@@ -1,7 +1,6 @@
 import { api } from './api.js';
 
 const STORAGE_KEY = 'styleup_citas';
-const SYNCED_KEY = 'styleup_citas_synced';
 
 function leer() {
   const d = sessionStorage.getItem(STORAGE_KEY);
@@ -40,30 +39,24 @@ function mapearCitaApi(c) {
   };
 }
 
-async function syncCitasFromApi() {
-  const user = getUser();
-  if (!user.cedula) return;
-  try {
-    const data = user.tipo === 'barbero'
-      ? await api.get(`/citas/barbero/${user.cedula}`)
-      : await api.get(`/citas/cliente/${user.cedula}`);
-    if (!data) return;
-    const mapped = data.map(mapearCitaApi);
-    const localIds = new Set(leer().map((c) => c.id));
-    const newCitas = mapped.filter((c) => !localIds.has(c.id));
-    if (newCitas.length) {
-      guardar([...leer(), ...newCitas]);
+export const citasService = {
+  async getCitasByCliente(clienteNombre) {
+    const user = getUser();
+    if (user.cedula && user.token) {
+      try {
+        const data = await api.get(`/citas/cliente/${user.cedula}`);
+        if (data) {
+          const mapped = data.map(mapearCitaApi);
+          guardar(mapped);
+          return mapped.filter((c) => c.clienteNombre === clienteNombre);
+        }
+      } catch {}
     }
-    const synced = JSON.parse(sessionStorage.getItem(SYNCED_KEY) || '{}');
-    synced[user.cedula] = Date.now();
-    sessionStorage.setItem(SYNCED_KEY, JSON.stringify(synced));
-  } catch { /* silent */ }
-}
+    return leer().filter((c) => c.clienteNombre === clienteNombre);
+  },
 
-async function syncCitaToApi(datosCita) {
-  const user = getUser();
-  if (!user.cedula) return;
-  try {
+  async agregarCita(datosCita) {
+    const user = getUser();
     const body = {
       cedula_cliente: user.cedula,
       cedula_barbero: datosCita.barberoCedula || datosCita.cedulaBarbero,
@@ -72,69 +65,60 @@ async function syncCitaToApi(datosCita) {
       hora_fin: datosCita.horaFin || datosCita.horaFin,
       id_especialidad: datosCita.servicio?.id,
     };
-    await api.post('/citas', body);
-  } catch { /* silent */ }
-}
-
-export const citasService = {
-
-  getCitasByCliente(clienteNombre) {
-    const synced = JSON.parse(sessionStorage.getItem(SYNCED_KEY) || '{}');
-    const user = getUser();
-    if (user.cedula && !synced[user.cedula]) {
-      syncCitasFromApi();
-    }
-    return leer().filter((c) => c.clienteNombre === clienteNombre);
-  },
-
-  agregarCita(datosCita) {
-    const { servicio, ...resto } = datosCita;
-    const nuevaCita = {
-      ...resto,
-      servicio: servicio
-        ? { id: servicio.id, name: servicio.name, dur: servicio.dur }
-        : servicio,
-      horaInicio: datosCita.horaInicio || datosCita.hora,
-      id: Date.now().toString(),
-      estado: 'pendiente',
-      fechaCreacion: new Date().toISOString(),
-    };
+    const response = await api.post('/citas', body);
+    const nuevaCita = response?.cita
+      ? mapearCitaApi(response.cita)
+      : {
+          ...datosCita,
+          servicio: datosCita.servicio
+            ? { id: datosCita.servicio.id, name: datosCita.servicio.name, dur: datosCita.servicio.dur }
+            : datosCita.servicio,
+          horaInicio: datosCita.horaInicio || datosCita.hora,
+          id: Date.now().toString(),
+          estado: 'pendiente',
+          fechaCreacion: new Date().toISOString(),
+        };
     guardar([...leer(), nuevaCita]);
-    syncCitaToApi(datosCita);
     return nuevaCita;
   },
 
-  cancelarCita(citaId) {
+  async cancelarCita(citaId) {
+    await api.patch(`/citas/${citaId}/cancelar`);
     const citas = leer();
     const actualizadas = citas.map((c) =>
       c.id === citaId ? { ...c, estado: 'cancelada' } : c
     );
     guardar(actualizadas);
-    api.patch(`/citas/${citaId}/cancelar`).catch(() => {});
     return actualizadas;
   },
 
-  completarCita(citaId) {
+  async completarCita(citaId) {
+    await api.patch(`/citas/${citaId}/estado`, { estado: 'Completada' });
     const citas = leer();
     const actualizadas = citas.map((c) =>
       c.id === citaId ? { ...c, estado: 'completada' } : c
     );
     guardar(actualizadas);
-    api.patch(`/citas/${citaId}/estado`, { estado: 'Completada' }).catch(() => {});
     return actualizadas;
   },
 
-  getCitasByBarbero(barberoNombre) {
-    const synced = JSON.parse(sessionStorage.getItem(SYNCED_KEY) || '{}');
+  async getCitasByBarbero(barberoNombre) {
     const user = getUser();
-    if (user.cedula && !synced[user.cedula]) {
-      syncCitasFromApi();
+    if (user.cedula && user.token) {
+      try {
+        const data = await api.get(`/citas/barbero/${user.cedula}`);
+        if (data) {
+          const mapped = data.map(mapearCitaApi);
+          guardar(mapped);
+          return mapped.filter((c) => c.barbero?.name === barberoNombre);
+        }
+      } catch {}
     }
     return leer().filter((c) => c.barbero?.name === barberoNombre);
   },
 
-  getCitasBarberoEnDia(barberoNombre, diaNum) {
-    const citas = citasService.getCitasByBarbero(barberoNombre);
+  async getCitasBarberoEnDia(barberoNombre, diaNum) {
+    const citas = await citasService.getCitasByBarbero(barberoNombre);
     return citas.filter(
       (c) =>
         c.fechaDia === diaNum &&

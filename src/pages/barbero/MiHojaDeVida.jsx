@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, Bell, FileText, Save, Printer, Plus, Trash2, X, GraduationCap, Award, Wrench, Check, Briefcase, Image as ImageIcon } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
@@ -65,20 +65,34 @@ function SeccionHeader({ num, titulo }) {
   );
 }
 
+const CV_DEFAULTS = {
+  presentacion: '', nivel: '', anosExperiencia: '', especialidades: [],
+  disponibilidad: '', modalidad: '', herramientasPropias: false,
+  experienciaLaboral: [], certificados: [], reconocimientos: [], mensaje: '',
+};
+
 export default function MiHojaDeVida() {
   const { user } = useAuth();
-  const [cv, setCv] = useState(() => cvService.getCV(user?.nombre));
+  const [cv, setCv] = useState({ ...CV_DEFAULTS });
   const [guardado, setGuardado] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [showPdfModal, setShowPdfModal] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await cvService.getCV(user?.nombre);
+      setCv(data);
+    };
+    fetchData();
+  }, [user?.nombre]);
 
   const setField = (campo, valor) => {
     setCv((prev) => ({ ...prev, [campo]: valor }));
     setIsDirty(true);
   };
 
-  const handleGuardar = () => {
-    cvService.guardarCV(user?.nombre, cv);
+  const handleGuardar = async () => {
+    await cvService.guardarCV(user?.nombre, cv);
     setGuardado(true);
     setIsDirty(false);
     setTimeout(() => setGuardado(false), 2000);
@@ -124,8 +138,8 @@ export default function MiHojaDeVida() {
   };
 
   // ── PDF ──
-  const handlePDF = () => {
-    cvService.guardarCV(user?.nombre, cv);
+  const handlePDF = async () => {
+    await cvService.guardarCV(user?.nombre, cv);
     setIsDirty(false);
     setShowPdfModal(true);
   };

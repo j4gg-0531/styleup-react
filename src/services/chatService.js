@@ -2,7 +2,6 @@ import { api } from './api.js';
 
 const MENSAJES_KEY = 'styleup_chat_mensajes';
 const CONVERSACIONES_KEY = 'styleup_chat_conversaciones';
-const SYNCED_KEY = 'styleup_chat_synced';
 
 const mapearMensaje = (m) => ({
   id: m.id,
@@ -41,40 +40,29 @@ function convKey(usuario1, usuario2) {
   return [usuario1, usuario2].sort().join('_');
 }
 
-async function syncMensajes(usuario1, usuario2) {
-  try {
-    const data = await api.get(`/chat/mensajes?usuario1=${encodeURIComponent(usuario1)}&usuario2=${encodeURIComponent(usuario2)}`);
-    if (data) {
-      const key = convKey(usuario1, usuario2);
-      const cache = leer(MENSAJES_KEY);
-      cache[key] = data;
-      guardar(MENSAJES_KEY, cache);
-    }
-  } catch { /* silent */ }
-}
-
-async function syncConversaciones(usuario) {
-  try {
-    const data = await api.get(`/chat/conversaciones?usuario=${encodeURIComponent(usuario)}`);
-    if (data) {
-      guardar(CONVERSACIONES_KEY, data);
-      const synced = JSON.parse(sessionStorage.getItem(SYNCED_KEY) || '{}');
-      synced[usuario] = Date.now();
-      sessionStorage.setItem(SYNCED_KEY, JSON.stringify(synced));
-    }
-  } catch { /* silent */ }
-}
-
 export const chatService = {
-
-  getMensajes(usuario1, usuario2) {
+  async getMensajes(usuario1, usuario2) {
     const key = convKey(usuario1, usuario2);
-    syncMensajes(usuario1, usuario2);
+    try {
+      const data = await api.get(`/chat/mensajes?usuario1=${encodeURIComponent(usuario1)}&usuario2=${encodeURIComponent(usuario2)}`);
+      if (data) {
+        const cache = leer(MENSAJES_KEY);
+        cache[key] = data;
+        guardar(MENSAJES_KEY, cache);
+        return data.map(mapearMensaje);
+      }
+    } catch {}
     const cache = leer(MENSAJES_KEY);
     return (cache[key] || []).map(mapearMensaje);
   },
 
-  enviarMensaje(de, para, texto, imagenBase64 = null) {
+  async enviarMensaje(de, para, texto, imagenBase64 = null) {
+    const response = await api.post('/chat/enviar', {
+      remitente: de,
+      destinatario: para,
+      texto,
+      imagenUrl: imagenBase64,
+    });
     const msg = {
       remitente: de,
       destinatario: para,
@@ -89,25 +77,26 @@ export const chatService = {
     const cache = leer(MENSAJES_KEY);
     cache[key] = [...(cache[key] || []), msg];
     guardar(MENSAJES_KEY, cache);
-
-    api.post('/chat/enviar', {
-      remitente: de, destinatario: para, texto, imagenUrl: imagenBase64,
-    }).catch(() => {});
-    return mapearMensaje(msg);
+    return mapearMensaje(response?.data || msg);
   },
 
-  getConversaciones(nombreUsuario) {
-    const synced = JSON.parse(sessionStorage.getItem(SYNCED_KEY) || '{}');
-    if (!synced[nombreUsuario]) syncConversaciones(nombreUsuario);
+  async getConversaciones(nombreUsuario) {
+    try {
+      const data = await api.get(`/chat/conversaciones?usuario=${encodeURIComponent(nombreUsuario)}`);
+      if (data) {
+        guardar(CONVERSACIONES_KEY, data);
+        return data.map(mapearConversacion);
+      }
+    } catch {}
     return leer(CONVERSACIONES_KEY).map(mapearConversacion);
   },
 
-  getMensajesNoLeidos(nombreUsuario) {
-    const convs = chatService.getConversaciones(nombreUsuario);
-    const total = convs.reduce((sum, c) => sum + (c.totalMensajes || 0), 0);
-    if (total > 0) return total;
-    const synced = JSON.parse(sessionStorage.getItem(SYNCED_KEY) || '{}');
-    if (!synced[nombreUsuario]) syncConversaciones(nombreUsuario);
-    return leer(CONVERSACIONES_KEY).length;
+  async getMensajesNoLeidos(nombreUsuario) {
+    try {
+      const data = await api.get(`/chat/no-leidos?usuario=${encodeURIComponent(nombreUsuario)}`);
+      if (data?.total != null) return data.total;
+    } catch {}
+    const convs = await chatService.getConversaciones(nombreUsuario);
+    return convs.reduce((sum, c) => sum + (c.totalMensajes || 0), 0);
   },
 };

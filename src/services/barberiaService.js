@@ -40,8 +40,6 @@ const mapearBarberia = (b) => ({
   })),
 });
 
-const SYNCED_KEY = 'styleup_barberias_synced';
-
 function leer() {
   const d = sessionStorage.getItem(STORAGE_KEY);
   return d ? JSON.parse(d) : [];
@@ -51,39 +49,26 @@ function guardar(data) {
   sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
-async function syncFromApi() {
-  try {
-    const data = await api.get('/barberias');
-    if (data) {
-      guardar(data);
-      const synced = JSON.parse(sessionStorage.getItem(SYNCED_KEY) || '{}');
-      synced.all = Date.now();
-      sessionStorage.setItem(SYNCED_KEY, JSON.stringify(synced));
-    }
-  } catch { /* silent */ }
-}
-
-function ensureSynced() {
-  const synced = JSON.parse(sessionStorage.getItem(SYNCED_KEY) || '{}');
-  if (!synced.all) {
-    syncFromApi();
-  }
-}
-
 export const barberiaService = {
-
-  getTodas() {
-    ensureSynced();
+  async getTodas() {
+    try {
+      const data = await api.get('/barberias');
+      if (data) {
+        const mapped = data.map(mapearBarberia);
+        guardar(data);
+        return mapped;
+      }
+    } catch {}
     const cache = leer();
-    if (cache.length) return cache.map(mapearBarberia);
-    return [];
+    return cache.length ? cache.map(mapearBarberia) : [];
   },
 
-  getParaMapa() {
-    return barberiaService.getTodas().filter((b) => b.lat != null && b.lng != null);
+  async getParaMapa() {
+    const todas = await barberiaService.getTodas();
+    return todas.filter((b) => b.lat != null && b.lng != null);
   },
 
-  registrar(datos) {
+  async registrar(datos) {
     const body = {
       nombre: datos.nombre,
       nombre_dueno: datos.nombreDueno || datos.nombre_dueno,
@@ -97,55 +82,48 @@ export const barberiaService = {
       lat: datos.lat,
       lng: datos.lng,
     };
-    api.post('/barberias', body).then((result) => {
-      const mapped = mapearBarberia(result?.barberia || result);
+    const response = await api.post('/barberias', body);
+    const result = response?.barberia || response;
+    if (result) {
       const cache = leer();
-      guardar([...cache, result?.barberia || result]);
-      return mapped;
-    }).catch(() => {});
-    return { ...body, id: Date.now() };
+      guardar([...cache, result]);
+    }
+    return mapearBarberia(result || body);
   },
 
-  getByNombre(nombreDueno) {
+  async getByNombre(nombreDueno) {
     if (!nombreDueno) return null;
-    ensureSynced();
+    try {
+      const data = await api.get(`/barberias/owner/${encodeURIComponent(nombreDueno)}`);
+      if (data) {
+        const cache = leer();
+        const idx = cache.findIndex((b) => b.id === data.id);
+        if (idx >= 0) cache[idx] = data;
+        else cache.push(data);
+        guardar(cache);
+        return mapearBarberia(data);
+      }
+    } catch {}
     const cache = leer();
     const found = cache.find((b) => b.nombre_dueno === nombreDueno);
-    if (found) return mapearBarberia(found);
-    api.get(`/barberias/owner/${encodeURIComponent(nombreDueno)}`).then((data) => {
-      if (data) {
-        const cache = leer();
-        const idx = cache.findIndex((b) => b.id === data.id);
-        if (idx >= 0) cache[idx] = data;
-        else cache.push(data);
-        guardar(cache);
-      }
-    }).catch(() => {});
-    return {
-      id: null, nombre: nombreDueno, nombreDueno,
-      direccion: '', ciudad: '', telefono: '', descripcion: '',
-      calificacion: 0, totalCalificaciones: 0,
-      lat: null, lng: null, logoUrl: null,
-      nit: '', correo: '', numTrabajadores: 0, fechaRegistro: null,
-      barberoIds: [], barberiaBarberos: [],
-    };
+    return found ? mapearBarberia(found) : null;
   },
 
-  getById(id) {
+  async getById(id) {
     if (!id) return null;
-    ensureSynced();
-    const cache = leer();
-    const found = cache.find((b) => b.id === parseInt(id) || b.id === id);
-    if (found) return mapearBarberia(found);
-    api.get(`/barberias/${id}`).then((data) => {
+    try {
+      const data = await api.get(`/barberias/${id}`);
       if (data) {
         const cache = leer();
         const idx = cache.findIndex((b) => b.id === data.id);
         if (idx >= 0) cache[idx] = data;
         else cache.push(data);
         guardar(cache);
+        return mapearBarberia(data);
       }
-    }).catch(() => {});
-    return null;
+    } catch {}
+    const cache = leer();
+    const found = cache.find((b) => b.id === parseInt(id) || b.id === id);
+    return found ? mapearBarberia(found) : null;
   },
 };

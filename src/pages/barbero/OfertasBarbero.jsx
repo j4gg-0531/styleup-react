@@ -1,5 +1,5 @@
 // src/pages/barbero/OfertasBarbero.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, BriefcaseBusiness, Wallet, Users, Target, Wrench, Calendar, Building2, X, Check, Sparkles, Frown, Hourglass, GraduationCap, Lightbulb, ArrowLeft, ArrowRight, Bell, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/layout/Sidebar';
@@ -384,25 +384,29 @@ function ModalOferta({ oferta, cvData, onCerrar, onAplicar, yaAplic, estadoApp }
 export default function OfertasBarbero() {
   const { user } = useAuth();
 
-  // ✅ FIX: inicialización lazy con función — evita el warning
-  // "setState synchronously within an effect". Como ofertasService
-  // usa sessionStorage (síncrono), podemos leer los datos directamente
-  // al crear el estado, sin necesidad de useEffect.
-  const [ofertas] = useState(() => ofertasService.getOfertasActivas());
+  const [ofertas, setOfertas] = useState([]);
+  const [aplicaciones, setAplicaciones] = useState([]);
+  const [cvData, setCvData] = useState(null);
 
-  const [aplicaciones, setAplicaciones] = useState(
-    () => user?.nombre
-      ? ofertasService.getAplicacionesByBarbero(user.nombre)
-      : []
-  );
-
-  const cvData = cvService.getCV(user?.nombre);
+  useEffect(() => {
+    const fetchData = async () => {
+      const [ofertasData, appsData, cv] = await Promise.all([
+        ofertasService.getOfertasActivas(),
+        user?.nombre ? ofertasService.getAplicacionesByBarbero(user.nombre) : Promise.resolve([]),
+        cvService.getCV(user?.nombre),
+      ]);
+      setOfertas(ofertasData);
+      setAplicaciones(appsData);
+      setCvData(cv);
+    };
+    fetchData();
+  }, [user?.nombre]);
   const [ofertaModal, setOfertaModal] = useState(null);
   const [filtro, setFiltro]           = useState('');
 
-  const handleAplicar = (ofertaId, hdv, mensaje) => {
+  const handleAplicar = async (ofertaId, hdv, mensaje) => {
     if (!user?.nombre) return;
-    const resultado = ofertasService.aplicar(ofertaId, user.nombre, {
+    const resultado = await ofertasService.aplicar(ofertaId, user.nombre, {
       ...hdv,
       nombreCompleto: user.nombre,
       mensaje,

@@ -2,7 +2,6 @@ import { api } from './api.js';
 
 const OFERTAS_KEY = 'styleup_ofertas_cache';
 const APLICACIONES_KEY = 'styleup_aplicaciones_cache';
-const SYNCED_KEY = 'styleup_ofertas_synced';
 
 function getUser() {
   try { return JSON.parse(sessionStorage.getItem('su_user') || '{}'); } catch { return {}; }
@@ -45,110 +44,101 @@ function guardar(key, data) {
   sessionStorage.setItem(key, JSON.stringify(data));
 }
 
-async function syncOfertas() {
-  try {
-    const data = await api.get('/ofertas?estado=activa');
-    if (data) guardar(OFERTAS_KEY, data);
-    const synced = JSON.parse(sessionStorage.getItem(SYNCED_KEY) || '{}');
-    synced.ofertas = Date.now();
-    sessionStorage.setItem(SYNCED_KEY, JSON.stringify(synced));
-  } catch { /* silent */ }
-}
-
-async function syncAplicaciones(cedula) {
-  try {
-    const data = await api.get(`/aplicaciones/barbero/${cedula}`);
-    if (data) guardar(APLICACIONES_KEY, data);
-    const synced = JSON.parse(sessionStorage.getItem(SYNCED_KEY) || '{}');
-    synced.aplicaciones = Date.now();
-    sessionStorage.setItem(SYNCED_KEY, JSON.stringify(synced));
-  } catch { /* silent */ }
-}
-
 export const ofertasService = {
-
-  getOfertasActivas() {
-    const synced = JSON.parse(sessionStorage.getItem(SYNCED_KEY) || '{}');
-    if (!synced.ofertas) syncOfertas();
+  async getOfertasActivas() {
+    try {
+      const data = await api.get('/ofertas?estado=activa');
+      if (data) {
+        guardar(OFERTAS_KEY, data);
+        return data.map(mapearOferta);
+      }
+    } catch {}
     return leer(OFERTAS_KEY).map(mapearOferta);
   },
 
-  getOfertasByBarberia(barberiaId) {
-    const todas = ofertasService.getOfertasActivas();
+  async getOfertasByBarberia(barberiaId) {
+    const todas = await ofertasService.getOfertasActivas();
     return todas.filter((o) => o.barberiaId === barberiaId);
   },
 
-  crearOferta(datos) {
+  async crearOferta(datos) {
     const body = {
-      barberiaId: datos.barberiaId, titulo: datos.titulo,
-      descripcion: datos.descripcion, tipoContratacion: datos.tipoContratacion,
-      condicionEconomica: datos.condicionEconomica, horario: datos.horario,
-      vacantes: datos.vacantes, especialidadesBuscadas: datos.especialidadesBuscadas,
+      barberiaId: datos.barberiaId,
+      titulo: datos.titulo,
+      descripcion: datos.descripcion,
+      tipoContratacion: datos.tipoContratacion,
+      condicionEconomica: datos.condicionEconomica,
+      horario: datos.horario,
+      vacantes: datos.vacantes,
+      especialidadesBuscadas: datos.especialidadesBuscadas,
       experienciaRequerida: datos.experienciaRequerida,
-      herramientasPropias: datos.herramientasPropias, fechaLimite: datos.fechaLimite,
+      herramientasPropias: datos.herramientasPropias,
+      fechaLimite: datos.fechaLimite,
     };
-    api.post('/ofertas', body).then((result) => {
-      const oferta = result?.oferta || result;
-      if (oferta) {
-        const cache = leer(OFERTAS_KEY);
-        guardar(OFERTAS_KEY, [...cache, oferta]);
-      }
-    }).catch(() => {});
-    const temp = { ...body, id: Date.now(), estado: 'activa' };
-    return mapearOferta(temp);
+    const response = await api.post('/ofertas', body);
+    const oferta = response?.oferta || response;
+    if (oferta) {
+      const cache = leer(OFERTAS_KEY);
+      guardar(OFERTAS_KEY, [...cache, oferta]);
+      return mapearOferta(oferta);
+    }
+    return mapearOferta(body);
   },
 
-  cerrarOferta(ofertaId) {
+  async cerrarOferta(ofertaId) {
     const id = ofertaId.replace(/^OF/, '');
+    await api.patch(`/ofertas/${id}/cerrar`);
     const cache = leer(OFERTAS_KEY);
     guardar(OFERTAS_KEY, cache.map((o) =>
       String(o.id) === id ? { ...o, estado: 'cerrada' } : o
     ));
-    api.patch(`/ofertas/${id}/cerrar`).catch(() => {});
   },
 
-  aplicar(ofertaId, barberoNombre, hojaDeVida) {
+  async aplicar(ofertaId, barberoNombre, hojaDeVida) {
     const id = ofertaId.replace(/^OF/, '');
     const user = getUser();
-    api.post('/aplicaciones', {
-      ofertaId: id, cedulaBarbero: user.cedula || '', hojaDeVida,
-    }).then((result) => {
-      if (result) {
-        const cache = leer(APLICACIONES_KEY);
-        guardar(APLICACIONES_KEY, [...cache, result?.aplicacion || result]);
+    const response = await api.post('/aplicaciones', {
+      ofertaId: id,
+      cedulaBarbero: user.cedula || '',
+      hojaDeVida,
+    });
+    if (response) {
+      const cache = leer(APLICACIONES_KEY);
+      const aplicacion = response?.aplicacion || response;
+      guardar(APLICACIONES_KEY, [...cache, aplicacion]);
+    }
+    return mapearAplicacion({ id: Date.now(), oferta_id: parseInt(id), cedula_barbero: user.cedula, hoja_de_vida: hojaDeVida, estado: 'pendiente' });
+  },
+
+  async getAplicacionesByBarbero(cedulaBarbero) {
+    try {
+      const data = await api.get(`/aplicaciones/barbero/${cedulaBarbero}`);
+      if (data) {
+        guardar(APLICACIONES_KEY, data);
+        return data.filter((a) => a.cedula_barbero === cedulaBarbero).map(mapearAplicacion);
       }
-    }).catch(() => {});
-    const temp = {
-      id: Date.now(), oferta_id: parseInt(id), cedula_barbero: user.cedula,
-      hoja_de_vida: hojaDeVida, estado: 'pendiente',
-    };
-    return mapearAplicacion(temp);
+    } catch {}
+    return leer(APLICACIONES_KEY).filter((a) => a.cedula_barbero === cedulaBarbero).map(mapearAplicacion);
   },
 
-  getAplicacionesByBarbero(cedulaBarbero) {
-    const synced = JSON.parse(sessionStorage.getItem(SYNCED_KEY) || '{}');
-    if (!synced.aplicaciones) syncAplicaciones(cedulaBarbero);
-    const todas = leer(APLICACIONES_KEY);
-    return todas
-      .filter((a) => a.cedula_barbero === cedulaBarbero)
-      .map(mapearAplicacion);
-  },
-
-  getAplicacionesByOferta(ofertaId) {
+  async getAplicacionesByOferta(ofertaId) {
     const id = ofertaId.replace(/^OF/, '');
-    const synced = JSON.parse(sessionStorage.getItem(SYNCED_KEY) || '{}');
-    if (!synced.aplicaciones) syncAplicaciones(getUser().cedula);
-    return leer(APLICACIONES_KEY)
-      .filter((a) => String(a.oferta_id) === id)
-      .map(mapearAplicacion);
+    try {
+      const data = await api.get(`/aplicaciones?ofertaId=${id}`);
+      if (data) {
+        guardar(APLICACIONES_KEY, data);
+        return data.filter((a) => String(a.oferta_id) === id).map(mapearAplicacion);
+      }
+    } catch {}
+    return leer(APLICACIONES_KEY).filter((a) => String(a.oferta_id) === id).map(mapearAplicacion);
   },
 
-  cambiarEstadoAplicacion(aplicacionId, nuevoEstado) {
+  async cambiarEstadoAplicacion(aplicacionId, nuevoEstado) {
     const id = aplicacionId.replace(/^AP/, '');
+    await api.patch(`/aplicaciones/${id}/estado`, { estado: nuevoEstado });
     const cache = leer(APLICACIONES_KEY);
     guardar(APLICACIONES_KEY, cache.map((a) =>
       String(a.id) === id ? { ...a, estado: nuevoEstado } : a
     ));
-    api.patch(`/aplicaciones/${id}/estado`, { estado: nuevoEstado }).catch(() => {});
   },
 };

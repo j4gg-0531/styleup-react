@@ -25,22 +25,43 @@ export default function PerfilBarberoAdmin() {
   const { user } = useAuth();
   const { abrirChatCon } = useChatFlotante();
 
-  const barberia = user?.nombre ? barberiaService.getByNombre(user.nombre) : null;
-  const barberiaNombre = barberia?.nombre || 'BarberShop Style';
-
-  const barbero = barberosService.getById(id);
-  const nombreCompleto = barbero ? `${barbero.nombre} ${barbero.apellido}` : '';
-
-  // ── Hooks siempre primero ────────────────────────────────────
-  const [activo, setActivo]                               = useState(barbero?.disponibleHoy ?? false);
+  const [barberia, setBarberia] = useState(null);
+  const [barbero, setBarbero] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [activo, setActivo] = useState(false);
   const [mostrarConfirmDespido, setMostrarConfirmDespido] = useState(false);
-  const [despedido, setDespedido]                         = useState(false);
-
+  const [despedido, setDespedido] = useState(false);
   const [editandoHorario, setEditandoHorario] = useState(false);
-  const [horarioEdit, setHorarioEdit] = useState(
-    () => horariosService.getHorarioAdmin(nombreCompleto)
-  );
+  const [horarioEdit, setHorarioEdit] = useState({});
   const [msgAdmin, setMsgAdmin] = useState(null);
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      let barb = null;
+      if (user?.nombre) {
+        barb = await barberiaService.getByNombre(user.nombre);
+        setBarberia(barb);
+      }
+      const b = await barberosService.getById(id);
+      if (!b) {
+        navigate('/barberia/barberos');
+        return;
+      }
+      setBarbero(b);
+      setActivo(b.disponibleHoy ?? false);
+      const nombreCompleto = `${b.nombre} ${b.apellido}`;
+      setHorarioEdit(horariosService.getHorarioAdmin(nombreCompleto));
+      setLoading(false);
+    };
+    load();
+  }, [id, user, navigate]);
+
+  if (loading) return null;
+  if (!barbero) return null;
+
+  const barberiaNombre = barberia?.nombre || 'BarberShop Style';
+  const nombreCompleto = `${barbero.nombre} ${barbero.apellido}`;
 
   const OPCIONES_TURNOS = [
     '—', 'Descanso',

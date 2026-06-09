@@ -1,5 +1,5 @@
 // src/pages/cliente/PerfilBarbero.jsx
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/useAuth.js';
 import { useCitas } from '../../context/useCitas.js';
@@ -36,8 +36,25 @@ export default function PerfilBarbero() {
   const { horarios, cargarHorarios } = useHorarios();
   const { abrirChatCon } = useChatFlotante();
 
-  const barbero = barberosService.getById(id);
-  if (!barbero) { navigate('/cliente/barberos'); return null; }
+  const [barbero, setBarbero] = useState(null);
+  const [barberia, setBarberia] = useState(null);
+
+  useEffect(() => {
+    const load = async () => {
+      const b = await barberosService.getById(id);
+      if (!b) {
+        navigate('/cliente/barberos');
+        return;
+      }
+      setBarbero(b);
+      const todas = await barberiaService.getTodas();
+      const barb = todas.find((bb) => bb.barberoIds?.includes(b.id)) ?? null;
+      setBarberia(barb);
+    };
+    load();
+  }, [id, navigate]);
+
+  if (!barbero) return null;
 
   const nombreCompleto = `${barbero.nombre} ${barbero.apellido}`;
 
@@ -55,12 +72,6 @@ export default function PerfilBarbero() {
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const precios = useMemo(
     () => preciosService.getPreciosByBarbero(nombreCompleto),
-    [nombreCompleto]
-  );
-
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const barberia = useMemo(
-    () => barberiaService.getTodas().find((b) => b.barberoIds?.includes(barbero.id)) ?? null,
     [nombreCompleto]
   );
 

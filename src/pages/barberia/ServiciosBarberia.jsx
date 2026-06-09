@@ -35,9 +35,21 @@ const fmtPrecio = (n) =>
 export default function ServiciosBarberia() {
   const { user } = useAuth();
   const barberiaId = user?.barberiaId;
-  const [servicios, setServicios] = useState(() =>
-    barberiaServiciosService.getServicios(barberiaId)
+  const [servicios, setServicios] = useState(
+    Object.keys(NOMBRES_SERVICIOS).reduce((acc, id) => {
+      acc[id] = { precio: PRECIOS_MINIMOS[id], duracion: DURACIONES_DEFAULT[id], activo: true };
+      return acc;
+    }, {})
   );
+
+  useEffect(() => {
+    if (!barberiaId) return;
+    const fetchData = async () => {
+      const data = await barberiaServiciosService.getServicios(barberiaId);
+      setServicios(data);
+    };
+    fetchData();
+  }, [barberiaId]);
   const [editando, setEditando]       = useState(null);
   const [guardadoOk, setGuardadoOk]     = useState(false);
   const [guardadoError, setGuardadoError] = useState('');
@@ -63,7 +75,7 @@ export default function ServiciosBarberia() {
     }));
   };
 
-  const handleGuardar = () => {
+  const handleGuardar = async () => {
     const invalidos = Object.entries(servicios).filter(
       ([id, s]) => s.activo && Number(s.precio) < PRECIOS_MINIMOS[id]
     );
@@ -73,7 +85,7 @@ export default function ServiciosBarberia() {
       return;
     }
 
-    barberiaServiciosService.guardarServicios(barberiaId, servicios);
+    await barberiaServiciosService.guardarServicios(barberiaId, servicios);
     setGuardadoError('');
     setEditando(null);
     setGuardadoOk(true);

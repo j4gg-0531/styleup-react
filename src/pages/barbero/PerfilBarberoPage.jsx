@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3,
@@ -38,9 +38,18 @@ export default function PerfilBarberoPage() {
   const toast = useToast();
   const fileInputRef = useRef(null);
 
-  const [perfil, setPerfil] = useState(() =>
-    perfilService.getPerfil(user?.nombre, 'barbero')
-  );
+  const [perfil, setPerfil] = useState({
+    nombre: '', apellidos: '', telefono: '', especialidades: [],
+    cedula: '', correo: '', ubicacion: null, instagram: '', tiktok: '', avatar: null,
+  });
+
+  useEffect(() => {
+    const fetchPerfil = async () => {
+      const data = await perfilService.getPerfil(user?.nombre, 'barbero');
+      setPerfil(data);
+    };
+    if (user?.nombre) fetchPerfil();
+  }, [user?.nombre]);
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState(null);
   const [tabActual, setTabActual] = useState('info');
@@ -58,22 +67,26 @@ export default function PerfilBarberoPage() {
 
   const [subiendoAvatar, setSubiendoAvatar] = useState(false);
 
-  const barberiaDelBarbero = () => {
-    if (!user?.nombre) return null;
-    const todas = barberiaService.getTodas();
-    for (const barb of todas) {
-      if (!barb.barberoIds?.length) continue;
-      for (const bid of barb.barberoIds) {
-        const b = barberosService.getById(bid);
-        if (b && b.nombre.toLowerCase() === user.nombre.toLowerCase()) {
-          return barb;
+  const [barberia, setBarberia] = useState(null);
+
+  useEffect(() => {
+    const fetchBarberia = async () => {
+      if (!user?.nombre) { setBarberia(null); return; }
+      const todas = await barberiaService.getTodas();
+      for (const barb of todas) {
+        if (!barb.barberoIds?.length) continue;
+        for (const bid of barb.barberoIds) {
+          const b = await barberosService.getById(bid);
+          if (b && b.nombre.toLowerCase() === user.nombre.toLowerCase()) {
+            setBarberia(barb);
+            return;
+          }
         }
       }
-    }
-    return null;
-  };
-
-  const barberia = barberiaDelBarbero();
+      setBarberia(null);
+    };
+    fetchBarberia();
+  }, [user]);
 
   const entrarEdicion = () => {
     setFormData({ ...perfil });
@@ -85,8 +98,8 @@ export default function PerfilBarberoPage() {
     setEditMode(false);
   };
 
-  const guardarCambios = () => {
-    perfilService.guardarPerfil(user?.nombre, 'barbero', formData);
+  const guardarCambios = async () => {
+    await perfilService.guardarPerfil(user?.nombre, 'barbero', formData);
     setPerfil({ ...formData });
     setEditMode(false);
     setFormData(null);
@@ -115,7 +128,7 @@ export default function PerfilBarberoPage() {
       if (editMode) {
         actualizarCampo('avatar', base64);
       } else {
-        perfilService.guardarPerfil(user?.nombre, 'barbero', { avatar: base64 });
+        await perfilService.guardarPerfil(user?.nombre, 'barbero', { avatar: base64 });
         setPerfil((prev) => ({ ...prev, avatar: base64 }));
         toast({ type: 'success', message: 'Foto actualizada' });
       }
@@ -721,9 +734,9 @@ export default function PerfilBarberoPage() {
               </button>
               <button className="btn btn-primary"
                 style={{ background: 'linear-gradient(135deg, var(--cobre), var(--cobre-light))' }}
-                onClick={() => {
+                onClick={async () => {
                   if (barberia) {
-                    notificacionesService.crear({
+                    await notificacionesService.crear({
                       tipo: 'renuncia_barbero',
                       paraRol: 'barberia',
                       paraNombre: barberia.nombreDueno,

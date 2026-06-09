@@ -11,21 +11,21 @@ export function CitasProvider({ children }) {
 
   // Carga las citas de un cliente desde el servicio
   // useCallback evita que la función se recree en cada render
-  const cargarCitas = useCallback((clienteNombre) => {
-    const data = citasService.getCitasByCliente(clienteNombre);
+  const cargarCitas = useCallback(async (clienteNombre) => {
+    const data = await citasService.getCitasByCliente(clienteNombre);
     setCitas(data);
   }, []);
 
   // Agrega una nueva cita y actualiza el estado local
-  const agregarCita = (datosCita) => {
-    const nueva = citasService.agregarCita(datosCita);
+  const agregarCita = async (datosCita) => {
+    const nueva = await citasService.agregarCita(datosCita);
     setCitas((prev) => [...prev, nueva]);
     return nueva;
   };
 
   // Cancela una cita y actualiza el estado local
-  const cancelarCita = (citaId) => {
-    citasService.cancelarCita(citaId);
+  const cancelarCita = async (citaId) => {
+    await citasService.cancelarCita(citaId);
     setCitas((prev) =>
       prev.map((c) =>
         c.id === citaId ? { ...c, estado: 'cancelada' } : c

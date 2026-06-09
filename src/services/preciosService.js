@@ -20,7 +20,6 @@ export const ICONOS_SERVICIOS = {
 
 const PRECIOS_KEY = 'styleup_precios';
 const CONFIG_KEY = 'styleup_servicios_config';
-const SYNCED_KEY = 'styleup_precios_synced';
 
 const ID_A_SERVICIO = { 1: 'E001', 2: 'E002', 3: 'E004', 4: 'E006', 5: 'E007', 6: 'E008', 7: 'E009' };
 const SERVICIO_A_ID = Object.fromEntries(Object.entries(ID_A_SERVICIO).map(([k, v]) => [v, Number(k)]));
@@ -38,67 +37,31 @@ function getUser() {
   try { return JSON.parse(sessionStorage.getItem('su_user') || '{}'); } catch { return {}; }
 }
 
-async function syncPreciosFromApi(cedula) {
-  try {
-    const data = await api.get(`/precios/${cedula}`);
-    if (!data || !data.length) return;
-    const result = {};
-    const configResult = {};
-    for (const p of data) {
-      const key = ID_A_SERVICIO[p.id_especialidad];
-      if (key) {
-        result[key] = Number(p.precio);
-        configResult[key] = {
-          duracion: p.duracion || DURACIONES_DEFAULT[key],
-          activo: p.activo !== false,
-        };
-      }
-    }
-    const todosPrecios = leer(PRECIOS_KEY);
-    todosPrecios[cedula] = result;
-    guardar(PRECIOS_KEY, todosPrecios);
-
-    const todasConfig = leer(CONFIG_KEY);
-    todasConfig[cedula] = configResult;
-    guardar(CONFIG_KEY, todasConfig);
-
-    const synced = leer(SYNCED_KEY);
-    synced[cedula] = Date.now();
-    guardar(SYNCED_KEY, synced);
-  } catch { /* silent */ }
-}
-
-function syncPreciosToApi(cedula, precios, config) {
-  api.put(`/precios/${cedula}/config`, {
-    servicios: Object.fromEntries(
-      Object.entries({ ...precios, ...config }).map(([sId, val]) => {
-        const id = SERVICIO_A_ID[sId];
-        if (!id) return [sId, {}];
-        const cfg = config[sId] || {};
-        const precio = typeof val === 'object' ? val.precio : (precios[sId] || PRECIOS_MINIMOS[sId]);
-        return [
-          id,
-          { precio, duracion: cfg.duracion || DURACIONES_DEFAULT[sId], activo: cfg.activo !== false },
-        ];
-      })
-    ),
-  }).catch(() => {});
-}
-
 export const preciosService = {
-
-  getPreciosByBarbero(barberoNombre) {
+  async getPreciosByBarbero(barberoNombre) {
     const user = getUser();
     const cedula = user.cedula || barberoNombre;
-    const synced = leer(SYNCED_KEY);
-    if (cedula && !synced[cedula]) {
-      syncPreciosFromApi(cedula);
+    if (cedula && user.token) {
+      try {
+        const data = await api.get(`/precios/${cedula}`);
+        if (data && data.length) {
+          const result = {};
+          for (const p of data) {
+            const key = ID_A_SERVICIO[p.id_especialidad];
+            if (key) result[key] = Number(p.precio);
+          }
+          const todosPrecios = leer(PRECIOS_KEY);
+          todosPrecios[cedula] = result;
+          guardar(PRECIOS_KEY, todosPrecios);
+          return result;
+        }
+      } catch {}
     }
     const todos = leer(PRECIOS_KEY);
     return todos[cedula] || todos[barberoNombre] || {};
   },
 
-  guardarPreciosBarbero(barberoNombre, precios) {
+  async guardarPreciosBarbero(barberoNombre, precios) {
     const user = getUser();
     const cedula = user.cedula || barberoNombre;
     const preciosValidados = {};
@@ -109,20 +72,55 @@ export const preciosService = {
     const todos = leer(PRECIOS_KEY);
     todos[cedula] = preciosValidados;
     guardar(PRECIOS_KEY, todos);
-
     const config = leer(CONFIG_KEY);
-    syncPreciosToApi(cedula, preciosValidados, config[cedula] || {});
+    await api.put(`/precios/${cedula}/config`, {
+      servicios: Object.fromEntries(
+        Object.entries({ ...preciosValidados, ...(config[cedula] || {}) }).map(([sId]) => {
+          const id = SERVICIO_A_ID[sId];
+          if (!id) return [sId, {}];
+          const cfg = (config[cedula] || {})[sId] || {};
+          return [
+            id,
+            { precio: preciosValidados[sId] || PRECIOS_MINIMOS[sId], duracion: cfg.duracion || DURACIONES_DEFAULT[sId], activo: cfg.activo !== false },
+          ];
+        })
+      ),
+    });
     return preciosValidados;
   },
 
   getPrecioServicio(barberoNombre, servicioId) {
-    const precios = preciosService.getPreciosByBarbero(barberoNombre);
-    return precios[servicioId] || PRECIOS_MINIMOS[servicioId] || 0;
-  },
-
-  getConfigServicios(barberoNombre) {
+    const precios = leer(PRECIOS_KEY);
     const user = getUser();
     const cedula = user.cedula || barberoNombre;
+    const p = precios[cedula] || precios[barberoNombre] || {};
+    return p[servicioId] || PRECIOS_MINIMOS[servicioId] || 0;
+  },
+
+  async getConfigServicios(barberoNombre) {
+    const user = getUser();
+    const cedula = user.cedula || barberoNombre;
+    if (cedula && user.token) {
+      try {
+        const data = await api.get(`/precios/${cedula}`);
+        if (data && data.length) {
+          const configResult = {};
+          for (const p of data) {
+            const key = ID_A_SERVICIO[p.id_especialidad];
+            if (key) {
+              configResult[key] = {
+                duracion: p.duracion || DURACIONES_DEFAULT[key],
+                activo: p.activo !== false,
+              };
+            }
+          }
+          const todasConfig = leer(CONFIG_KEY);
+          todasConfig[cedula] = configResult;
+          guardar(CONFIG_KEY, todasConfig);
+          return configResult;
+        }
+      } catch {}
+    }
     const config = leer(CONFIG_KEY);
     const result = config[cedula] || config[barberoNombre] || {};
     if (Object.keys(result).length === 0) {
@@ -134,32 +132,43 @@ export const preciosService = {
     return result;
   },
 
-  guardarConfigServicios(barberoNombre, configServicios) {
+  async guardarConfigServicios(barberoNombre, configServicios) {
     const user = getUser();
     const cedula = user.cedula || barberoNombre;
     const config = leer(CONFIG_KEY);
     config[cedula] = configServicios;
     guardar(CONFIG_KEY, config);
-
     const precios = leer(PRECIOS_KEY);
-    syncPreciosToApi(cedula, precios[cedula] || {}, configServicios);
+    await api.put(`/precios/${cedula}/config`, {
+      servicios: Object.fromEntries(
+        Object.entries(configServicios).map(([sId, s]) => [
+          SERVICIO_A_ID[sId],
+          { precio: Number((precios[cedula] || {})[sId] || PRECIOS_MINIMOS[sId]), duracion: Number(s.duracion), activo: s.activo },
+        ])
+      ),
+    });
     return configServicios;
   },
 
   getDuracionServicio(barberoNombre, servicioId) {
-    const config = preciosService.getConfigServicios(barberoNombre);
-    return config[servicioId]?.duracion ?? DURACIONES_DEFAULT[servicioId] ?? 30;
+    const config = leer(CONFIG_KEY);
+    const user = getUser();
+    const cedula = user.cedula || barberoNombre;
+    const cfg = (config[cedula] || config[barberoNombre] || {})[servicioId];
+    return cfg?.duracion ?? DURACIONES_DEFAULT[servicioId] ?? 30;
   },
 
   servicioActivo(barberoNombre, servicioId) {
-    const config = preciosService.getConfigServicios(barberoNombre);
-    if (!config[servicioId]) return true;
-    return config[servicioId].activo !== false;
+    const config = leer(CONFIG_KEY);
+    const user = getUser();
+    const cedula = user.cedula || barberoNombre;
+    const cfg = (config[cedula] || config[barberoNombre] || {})[servicioId];
+    if (!cfg) return true;
+    return cfg.activo !== false;
   },
 
-  getServiciosActivos(barberoNombre) {
-    return Object.keys(NOMBRES_SERVICIOS).filter(
-      (id) => preciosService.servicioActivo(barberoNombre, id)
-    );
+  async getServiciosActivos(barberoNombre) {
+    const config = await preciosService.getConfigServicios(barberoNombre);
+    return Object.keys(NOMBRES_SERVICIOS).filter((id) => config[id]?.activo !== false);
   },
 };

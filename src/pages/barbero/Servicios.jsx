@@ -45,34 +45,58 @@ const fmtPrecio = (n) =>
     style: 'currency', currency: 'COP', minimumFractionDigits: 0,
   }).format(n);
 
+const SERVICIOS_DEFAULTS = Object.keys(NOMBRES_SERVICIOS).reduce((acc, id) => {
+  acc[id] = { precio: PRECIOS_MINIMOS[id], duracion: DURACIONES_DEFAULT[id], activo: true };
+  return acc;
+}, {});
+
 export default function Servicios() {
   const { user } = useAuth();
 
   // ¿El barbero trabaja en una barbería? Si sí, modo solo lectura
-  const barberoActual = barberosService.getTodos().find(
-    (b) => b.nombre?.toLowerCase() === user?.nombre?.toLowerCase()
-  );
-  const barberia = barberiaService.getTodas().find(
-    (b) => b.barberoIds?.includes(barberoActual?.id)
-  ) ?? null;
-  const soloLectura = !!barberia;
+  const [soloLectura, setSoloLectura] = useState(false);
+  const [barberia, setBarberia] = useState(null);
+
+  useEffect(() => {
+    const fetchRelaciones = async () => {
+      const [todosBarberos, todasBarberias] = await Promise.all([
+        barberosService.getTodos(),
+        barberiaService.getTodas(),
+      ]);
+      const barberoActual = todosBarberos.find(
+        (b) => b.nombre?.toLowerCase() === user?.nombre?.toLowerCase()
+      );
+      const barb = todasBarberias.find(
+        (b) => b.barberoIds?.includes(barberoActual?.id)
+      ) ?? null;
+      setBarberia(barb);
+      setSoloLectura(!!barb);
+    };
+    fetchRelaciones();
+  }, [user?.nombre]);
 
   // ── Estado inicial ────────────────────────────────────────────────────
-  const initState = () => {
-    const preciosGuardados = preciosService.getPreciosByBarbero(user?.nombre || '');
-    const configGuardada   = preciosService.getConfigServicios(user?.nombre || '');
+  const [servicios, setServicios] = useState(SERVICIOS_DEFAULTS);
 
-    return Object.keys(NOMBRES_SERVICIOS).reduce((acc, id) => {
-      acc[id] = {
-        precio:   preciosGuardados[id]        || PRECIOS_MINIMOS[id],
-        duracion: configGuardada[id]?.duracion ?? DURACIONES_DEFAULT[id],
-        activo:   configGuardada[id]?.activo  !== false, // true por defecto
-      };
-      return acc;
-    }, {});
-  };
-
-  const [servicios, setServicios] = useState(initState);
+  useEffect(() => {
+    const fetchData = async () => {
+      const [preciosGuardados, configGuardada] = await Promise.all([
+        preciosService.getPreciosByBarbero(user?.nombre || ''),
+        preciosService.getConfigServicios(user?.nombre || ''),
+      ]);
+      setServicios(
+        Object.keys(NOMBRES_SERVICIOS).reduce((acc, id) => {
+          acc[id] = {
+            precio: preciosGuardados[id] || PRECIOS_MINIMOS[id],
+            duracion: configGuardada[id]?.duracion ?? DURACIONES_DEFAULT[id],
+            activo: configGuardada[id]?.activo !== false,
+          };
+          return acc;
+        }, {})
+      );
+    };
+    if (user?.nombre) fetchData();
+  }, [user?.nombre]);
   const [editando, setEditando]   = useState(null);
   const [guardadoOk, setGuardadoOk]     = useState(false);
   const [guardadoError, setGuardadoError] = useState('');
@@ -100,7 +124,7 @@ export default function Servicios() {
   };
 
   // ── Guardar ───────────────────────────────────────────────────────────
-  const handleGuardar = () => {
+  const handleGuardar = async () => {
     if (soloLectura) return;
 
     // Validar precios mínimos solo en servicios activos
@@ -118,14 +142,14 @@ export default function Servicios() {
     Object.entries(servicios).forEach(([id, s]) => {
       if (s.activo) preciosActivos[id] = s.precio;
     });
-    preciosService.guardarPreciosBarbero(user.nombre, preciosActivos);
+    await preciosService.guardarPreciosBarbero(user.nombre, preciosActivos);
 
     // Guardar config (duración + activo)
     const config = {};
     Object.entries(servicios).forEach(([id, s]) => {
       config[id] = { duracion: Number(s.duracion), activo: s.activo };
     });
-    preciosService.guardarConfigServicios(user.nombre, config);
+    await preciosService.guardarConfigServicios(user.nombre, config);
 
     setGuardadoError('');
     setEditando(null);

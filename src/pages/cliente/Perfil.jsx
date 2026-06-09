@@ -33,9 +33,18 @@ export default function Perfil() {
   const { citas, cargarCitas } = useCitas();
   const fileInputRef = useRef(null);
 
-  const [perfil, setPerfil] = useState(() =>
-    perfilService.getPerfil(user?.nombre, 'cliente')
-  );
+  const [perfil, setPerfil] = useState({
+    nombre: '', apellidos: '', telefono: '', cedula: '',
+    correo: '', serviciosFavoritos: [], avatar: null,
+  });
+
+  useEffect(() => {
+    const fetchPerfil = async () => {
+      const data = await perfilService.getPerfil(user?.nombre, 'cliente');
+      setPerfil(data);
+    };
+    if (user?.nombre) fetchPerfil();
+  }, [user?.nombre]);
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState(null);
   const [tabActual, setTabActual] = useState('info');
@@ -77,8 +86,8 @@ export default function Perfil() {
     setEditMode(false);
   };
 
-  const guardarCambios = () => {
-    perfilService.guardarPerfil(user?.nombre, 'cliente', formData);
+  const guardarCambios = async () => {
+    await perfilService.guardarPerfil(user?.nombre, 'cliente', formData);
     setPerfil({ ...formData });
     setEditMode(false);
     setFormData(null);
@@ -107,7 +116,7 @@ export default function Perfil() {
       if (editMode) {
         actualizarCampo('avatar', base64);
       } else {
-        const nuevo = perfilService.guardarPerfil(user?.nombre, 'cliente', { avatar: base64 });
+        await perfilService.guardarPerfil(user?.nombre, 'cliente', { avatar: base64 });
         setPerfil((prev) => ({ ...prev, avatar: base64 }));
         toast({ type: 'success', message: 'Foto actualizada' });
       }

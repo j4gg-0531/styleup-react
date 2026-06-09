@@ -2,7 +2,7 @@
 // Agendamiento rápido — fecha = HOY, barberos filtrados por servicio,
 // slots dinámicos según duración del servicio seleccionado.
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/useAuth.js';
 import { useCitas } from '../../context/useCitas.js';
@@ -54,9 +54,16 @@ export default function Agendar() {
   // Cargamos horarios la primera vez (sin useEffect en paso 1, lo hacemos lazy)
   // PerfilBarbero ya usa el mismo patrón
   const [horariosListos, setHorariosListos] = useState(false);
+  const [todosBarberos, setTodosBarberos] = useState([]);
 
   // ── Todos los barberos ──────────────────────────────────────────────────
-  const todosBarberos = useMemo(() => barberosService.getTodos(), []);
+  useEffect(() => {
+    const load = async () => {
+      const todos = await barberosService.getTodos();
+      setTodosBarberos(todos);
+    };
+    load();
+  }, []);
 
   // ── Barberos filtrados según el servicio elegido ────────────────────────
   const barberosFiltrados = useMemo(() => {
@@ -66,21 +73,26 @@ export default function Agendar() {
   }, [sel.servicio, todosBarberos]);
 
   // ── Slots para el barbero y servicio seleccionados (HOY) ───────────────
-  const slots = useMemo(() => {
-    if (!sel.barbero || !sel.servicio) return [];
+  const [slots, setSlots] = useState([]);
+
+  useEffect(() => {
+    if (!sel.barbero || !sel.servicio) {
+      setSlots([]);
+      return;
+    }
 
     const barberoNombre = `${sel.barbero.nombre} ${sel.barbero.apellido}`;
     const duracion      = sel.servicio.dur;
 
     // Citas que ya tiene el barbero HOY (para detectar conflictos)
-    const citasHoy = citasService.getCitasBarberoEnDia(barberoNombre, HOY_NUM);
-
-    return generarSlots({
-      barberoNombre,
-      diaNum:         HOY_NUM,
-      duracionMin:    duracion,
-      horarios,
-      citasExistentes: citasHoy,
+    citasService.getCitasBarberoEnDia(barberoNombre, HOY_NUM).then((citasHoy) => {
+      setSlots(generarSlots({
+        barberoNombre,
+        diaNum:         HOY_NUM,
+        duracionMin:    duracion,
+        horarios,
+        citasExistentes: citasHoy,
+      }));
     });
   }, [sel.barbero, sel.servicio, horarios]);
 
@@ -109,8 +121,8 @@ export default function Agendar() {
   };
 
   // ── Confirmación ───────────────────────────────────────────────────────
-  const confirmar = () => {
-    agregarCita({
+  const confirmar = async () => {
+    await agregarCita({
       clienteNombre: user.nombre,
       servicio: sel.servicio,
       barbero:  { id: sel.barbero.id, name: `${sel.barbero.nombre} ${sel.barbero.apellido}` },

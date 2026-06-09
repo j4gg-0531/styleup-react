@@ -21,12 +21,24 @@ const ESPECIALIDADES = [
 
 export default function Barberos() {
   const navigate = useNavigate();
-  const [barberos] = useState(() => barberosService.getTodos());
+  const [barberos, setBarberos] = useState([]);
   const [busqueda, setBusqueda]                     = useState('');
   const [especialidadFiltro, setEspecialidadFiltro] = useState('');
   // 'lista' | 'mapa' — controla qué vista se muestra
   const [vista, setVista]                           = useState('lista');
-  const [barberias] = useState(() => barberiaService.getParaMapa());
+  const [barberias, setBarberias] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const [todos, paraMapa] = await Promise.all([
+        barberosService.getTodos(),
+        barberiaService.getParaMapa(),
+      ]);
+      setBarberos(todos);
+      setBarberias(paraMapa);
+    };
+    fetchData();
+  }, []);
   const [barberiaModal, setBarberiaModal] = useState(null);
 
   const barberosDeBarberia = barberiaModal

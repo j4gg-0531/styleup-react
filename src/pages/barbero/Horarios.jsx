@@ -42,14 +42,29 @@ export default function Horarios() {
   const { user } = useAuth();
   const { horarios, cargarHorarios, agregarHorario, eliminarHorario } = useHorarios();
 
-  // ¿El barbero trabaja en una barbería? Si sí, modo solo lectura
-  const barberoActual = barberosService.getTodos().find(
-    (b) => b.nombre?.toLowerCase() === user?.nombre?.toLowerCase()
-  );
-  const barberia = barberiaService.getTodas().find(
-    (b) => b.barberoIds?.includes(barberoActual?.id)
-  ) ?? null;
-  const soloLectura = !!barberia;
+  const [barberoActual, setBarberoActual] = useState(null);
+  const [barberia, setBarberia] = useState(null);
+  const [soloLectura, setSoloLectura] = useState(false);
+
+  useEffect(() => {
+    const init = async () => {
+      if (!user?.nombre) return;
+      const todos = await barberosService.getTodos();
+      const found = todos.find(
+        (b) => b.nombre?.toLowerCase() === user?.nombre?.toLowerCase()
+      );
+      setBarberoActual(found || null);
+      if (found) {
+        const todas = await barberiaService.getTodas();
+        const barb = todas.find(
+          (b) => b.barberoIds?.includes(found.id)
+        ) ?? null;
+        setBarberia(barb);
+        setSoloLectura(!!barb);
+      }
+    };
+    init();
+  }, [user]);
 
   const [tab, setTab]               = useState('ver');
   const [semanaOffset, setSemanaOffset] = useState(0); // 0 = semana actual

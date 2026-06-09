@@ -14,13 +14,7 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
   const [vista, setVista] = useState(
     conversacionInicial ? 'chat' : 'lista'
   );
-  const [mensajes, setMensajes] = useState(() => {
-    if (conversacionInicial) {
-      onConversacionAbierta?.();
-      return chatService.getMensajes(usuarioActual, conversacionInicial);
-    }
-    return [];
-  });
+  const [mensajes, setMensajes] = useState([]);
 
   const [texto, setTexto] = useState('');
   const [imagenPreview, setImagenPreview] = useState(null);
@@ -29,22 +23,28 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
   const fileInputRef = useRef(null);
   const mensajesEndRef = useRef(null);
 
-  // Lista de barberos disponibles para chatear
-  // FUTURO: vendrá de /api/barberos o de los barberos con citas del cliente
-  const barberos = barberosService.getTodos().filter((b) => {
-    if (rolActual === 'barberia') {
-      // FUTURO: filtrar por barberiaId del usuario actual
-      // Por ahora usamos el mock — BAR001 tiene Juan y Carlos
-      const barberosDeMiBarberia = ['Juan Pérez', 'Carlos López'];
-      return barberosDeMiBarberia.includes(`${b.nombre} ${b.apellido}`);
-    }
-    // El cliente ve todos los barberos
-    return true;
-  });
+  const [barberos, setBarberos] = useState([]);
 
-  const [conversaciones, setConversaciones] = useState(
-    () => chatService.getConversaciones(usuarioActual)
-  );
+  useEffect(() => {
+    const load = async () => {
+      const todos = await barberosService.getTodos();
+      const filtrados = todos.filter((b) => {
+        if (rolActual === 'barberia') {
+          const barberosDeMiBarberia = ['Juan Pérez', 'Carlos López'];
+          return barberosDeMiBarberia.includes(`${b.nombre} ${b.apellido}`);
+        }
+        return true;
+      });
+      setBarberos(filtrados);
+    };
+    load();
+  }, [rolActual]);
+
+  const [conversaciones, setConversaciones] = useState([]);
+
+  useEffect(() => {
+    chatService.getConversaciones(usuarioActual).then(setConversaciones);
+  }, [usuarioActual]);
 
   // Auto scroll al último mensaje
   useEffect(() => {
@@ -64,12 +64,12 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
     setImagenParaEnviar(null);
   };
 
-  const handleEnviar = () => {
+  const handleEnviar = async () => {
     if ((!texto.trim() && !imagenParaEnviar) || !conversacionActiva) return;
-    chatService.enviarMensaje(usuarioActual, conversacionActiva, texto.trim(), imagenParaEnviar);
-    const msgs = chatService.getMensajes(usuarioActual, conversacionActiva);
+    await chatService.enviarMensaje(usuarioActual, conversacionActiva, texto.trim(), imagenParaEnviar);
+    const msgs = await chatService.getMensajes(usuarioActual, conversacionActiva);
     setMensajes(msgs);
-    const convs = chatService.getConversaciones(usuarioActual);
+    const convs = await chatService.getConversaciones(usuarioActual);
     setConversaciones(convs);
     setTexto('');
     limpiarImagen();
@@ -90,10 +90,10 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
     }
   };
 
-  const abrirConversacion = (otroUsuario) => {
+  const abrirConversacion = async (otroUsuario) => {
     setConversacionActiva(otroUsuario);
     setVista('chat');
-    const msgs = chatService.getMensajes(usuarioActual, otroUsuario);
+    const msgs = await chatService.getMensajes(usuarioActual, otroUsuario);
     setMensajes(msgs);
   };
 

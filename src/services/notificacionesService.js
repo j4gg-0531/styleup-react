@@ -1,7 +1,6 @@
 import { api } from './api.js';
 
 const STORAGE_KEY = 'styleup_notificaciones';
-const SYNCED_KEY = 'styleup_not_synced';
 
 const mapearNotif = (n) => ({
   id: `notif_${n.id}`,
@@ -25,64 +24,61 @@ function guardar(data) {
   sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
-async function syncFromApi(rol, nombre) {
-  try {
-    const data = await api.get(`/notificaciones?rol=${encodeURIComponent(rol)}&nombre=${encodeURIComponent(nombre)}`);
-    if (data) {
-      guardar(data);
-      const synced = JSON.parse(sessionStorage.getItem(SYNCED_KEY) || '{}');
-      synced[`${rol}_${nombre}`] = Date.now();
-      sessionStorage.setItem(SYNCED_KEY, JSON.stringify(synced));
-    }
-  } catch { /* silent */ }
-}
-
 export const notificacionesService = {
-
-  crear(datos) {
-    api.post('/notificaciones', {
-      tipo: datos.tipo, paraRol: datos.paraRol,
-      paraNombre: datos.paraNombre, deRol: datos.deRol,
-      deNombre: datos.deNombre, mensaje: datos.mensaje,
+  async crear(datos) {
+    const response = await api.post('/notificaciones', {
+      tipo: datos.tipo,
+      paraRol: datos.paraRol,
+      paraNombre: datos.paraNombre,
+      deRol: datos.deRol,
+      deNombre: datos.deNombre,
+      mensaje: datos.mensaje,
       metadata: datos.metadata,
-    }).then((result) => {
-      const notif = result?.notificacion || result;
-      if (notif) {
-        const cache = leer();
-        guardar([...cache, notif]);
-      }
-    }).catch(() => {});
+    });
+    const notif = response?.notificacion || response;
+    if (notif) {
+      const cache = leer();
+      guardar([...cache, notif]);
+      return mapearNotif(notif);
+    }
     return mapearNotif({ ...datos, id: Date.now(), leida: false, fecha_creacion: new Date().toISOString() });
   },
 
-  getByUsuario(rol, nombre) {
-    const synced = JSON.parse(sessionStorage.getItem(SYNCED_KEY) || '{}');
-    if (!synced[`${rol}_${nombre}`]) syncFromApi(rol, nombre);
+  async getByUsuario(rol, nombre) {
+    try {
+      const data = await api.get(`/notificaciones?rol=${encodeURIComponent(rol)}&nombre=${encodeURIComponent(nombre)}`);
+      if (data) {
+        guardar(data);
+        return data.filter((n) => n.para_rol === rol && n.para_nombre === nombre).map(mapearNotif);
+      }
+    } catch {}
     return leer().filter((n) => n.para_rol === rol && n.para_nombre === nombre).map(mapearNotif);
   },
 
-  getNoLeidas(rol, nombre) {
-    return notificacionesService.getByUsuario(rol, nombre).filter((n) => !n.leida);
+  async getNoLeidas(rol, nombre) {
+    const todas = await notificacionesService.getByUsuario(rol, nombre);
+    return todas.filter((n) => !n.leida);
   },
 
-  getCountNoLeidas(rol, nombre) {
-    return notificacionesService.getNoLeidas(rol, nombre).length;
+  async getCountNoLeidas(rol, nombre) {
+    const noLeidas = await notificacionesService.getNoLeidas(rol, nombre);
+    return noLeidas.length;
   },
 
-  marcarLeida(id) {
+  async marcarLeida(id) {
     const numId = id.replace(/^notif_/, '');
+    await api.patch(`/notificaciones/${numId}/leer`);
     const cache = leer();
     guardar(cache.map((n) =>
       String(n.id) === numId ? { ...n, leida: true } : n
     ));
-    api.patch(`/notificaciones/${numId}/leer`).catch(() => {});
   },
 
-  marcarTodasLeidas(rol, nombre) {
+  async marcarTodasLeidas(rol, nombre) {
+    await api.post('/notificaciones/leer-todas', { rol, nombre });
     const cache = leer();
     guardar(cache.map((n) =>
       n.para_rol === rol && n.para_nombre === nombre ? { ...n, leida: true } : n
     ));
-    api.post('/notificaciones/leer-todas', { rol, nombre }).catch(() => {});
   },
 };

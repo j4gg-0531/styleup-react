@@ -1,7 +1,6 @@
 import { api } from './api.js';
 
 const STORAGE_KEY = 'styleup_cv';
-const SYNCED_KEY = 'styleup_cv_synced';
 
 const mapearCV = (c) => ({
   presentacion: c.presentacion || '',
@@ -26,18 +25,6 @@ function guardar(data) {
   sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
-async function syncFromApi(cedula) {
-  try {
-    const data = await api.get(`/cv/${cedula}`);
-    if (data) {
-      guardar({ [cedula]: data });
-      const synced = JSON.parse(sessionStorage.getItem(SYNCED_KEY) || '{}');
-      synced[cedula] = Date.now();
-      sessionStorage.setItem(SYNCED_KEY, JSON.stringify(synced));
-    }
-  } catch { /* silent */ }
-}
-
 function defaults() {
   return {
     presentacion: '', nivel: '', anosExperiencia: '', especialidades: [],
@@ -47,32 +34,38 @@ function defaults() {
 }
 
 export const cvService = {
-
-  getCV(cedulaBarbero) {
+  async getCV(cedulaBarbero) {
     if (!cedulaBarbero) return defaults();
-    const synced = JSON.parse(sessionStorage.getItem(SYNCED_KEY) || '{}');
-    if (!synced[cedulaBarbero]) syncFromApi(cedulaBarbero);
+    try {
+      const data = await api.get(`/cv/${cedulaBarbero}`);
+      if (data) {
+        guardar({ [cedulaBarbero]: data });
+        return mapearCV(data);
+      }
+    } catch {}
     const cache = leer();
     return cache[cedulaBarbero] ? mapearCV(cache[cedulaBarbero]) : defaults();
   },
 
-  guardarCV(cedulaBarbero, datos) {
+  async guardarCV(cedulaBarbero, datos) {
     if (!cedulaBarbero) return null;
     const body = {
-      presentacion: datos.presentacion, nivel: datos.nivel,
-      anosExperiencia: datos.anosExperiencia, especialidades: datos.especialidades,
-      disponibilidad: datos.disponibilidad, modalidad: datos.modalidad,
+      presentacion: datos.presentacion,
+      nivel: datos.nivel,
+      anosExperiencia: datos.anosExperiencia,
+      especialidades: datos.especialidades,
+      disponibilidad: datos.disponibilidad,
+      modalidad: datos.modalidad,
       herramientasPropias: datos.herramientasPropias ?? false,
       experienciaLaboral: datos.experienciaLaboral || [],
       certificados: datos.certificados || [],
       reconocimientos: datos.reconocimientos || [],
       mensaje: datos.mensaje,
     };
+    await api.put(`/cv/${cedulaBarbero}`, body);
     const cache = leer();
     cache[cedulaBarbero] = body;
     guardar(cache);
-
-    api.put(`/cv/${cedulaBarbero}`, body).catch(() => {});
     return mapearCV(body);
   },
 
@@ -86,9 +79,11 @@ export const cvService = {
           let { width, height } = img;
           if (width > maxDim || height > maxDim) {
             const ratio = Math.min(maxDim / width, maxDim / height);
-            width *= ratio; height *= ratio;
+            width *= ratio;
+            height *= ratio;
           }
-          canvas.width = width; canvas.height = height;
+          canvas.width = width;
+          canvas.height = height;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
           resolve(canvas.toDataURL('image/jpeg', quality));

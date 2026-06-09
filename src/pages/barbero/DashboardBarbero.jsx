@@ -34,8 +34,8 @@ export default function DashboardBarbero() {
   const formatPrecio = (n) =>
     new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(n);
 
-  const handleCompletarCita = (citaId) => {
-    citasService.completarCita(citaId);
+  const handleCompletarCita = async (citaId) => {
+    await citasService.completarCita(citaId);
     cargarCitas(user.nombre);
   };
 

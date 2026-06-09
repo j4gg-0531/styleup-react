@@ -1,5 +1,5 @@
 // src/components/chat/ChatFlotante.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MessageCircle, X } from 'lucide-react';
 import { useAuth } from '../../context/useAuth.js';
 import { useChatFlotante } from '../../context/useChatFlotante.js';
@@ -11,9 +11,16 @@ export default function ChatFlotante() {
   const { user } = useAuth();
   const { chatPendiente, limpiarChat } = useChatFlotante();
   const [abierto, setAbierto] = useState(false);
+  const [noLeidos, setNoLeidos] = useState(0);
   const location = useLocation();
 
-  const noLeidos = user ? chatService.getMensajesNoLeidos(user.nombre) : 0;
+  useEffect(() => {
+    if (user) {
+      chatService.getMensajesNoLeidos(user.nombre).then(setNoLeidos);
+    } else {
+      setNoLeidos(0);
+    }
+  }, [user]);
 
   const debeAbrirse = chatPendiente && user && !abierto;
   if (debeAbrirse) setAbierto(true);

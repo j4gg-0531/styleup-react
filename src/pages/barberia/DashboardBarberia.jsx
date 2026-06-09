@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2, Bell } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
@@ -8,8 +8,17 @@ import { ofertasService } from '../../services/ofertasService.js';
 export default function DashboardBarberia() {
   const { user } = useAuth();
   const barberiaId = user?.barberiaId;
-  const ofertas = ofertasService.getOfertasByBarberia(barberiaId);
+  const [ofertas, setOfertas] = useState([]);
   const ofertasActivas = ofertas.filter((o) => o.estado === 'activa').length;
+
+  useEffect(() => {
+    if (!barberiaId) return;
+    const fetchData = async () => {
+      const data = await ofertasService.getOfertasByBarberia(barberiaId);
+      setOfertas(data);
+    };
+    fetchData();
+  }, [barberiaId]);
 
   const navItems = [
     { icon: <Home size={18} />, label: 'Dashboard',  href: '/barberia' },

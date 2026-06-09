@@ -1,5 +1,5 @@
 // src/pages/barberia/Ofertas.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2, BriefcaseBusiness, Wallet, Users, Target, Wrench, Calendar, X, Check, FileText, GraduationCap, Trophy, ArrowLeft, Circle, ChevronDown, ArrowRight, CheckCircle, Bell, Printer } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
@@ -219,8 +219,8 @@ function TablaAplicaciones({ aplicaciones }) {
     aplicaciones.reduce((acc, a) => ({ ...acc, [a.id]: a.estado }), {})
   );
 
-  const cambiarEstado = (aplicacionId, nuevoEstado) => {
-    ofertasService.cambiarEstadoAplicacion(aplicacionId, nuevoEstado);
+  const cambiarEstado = async (aplicacionId, nuevoEstado) => {
+    await ofertasService.cambiarEstadoAplicacion(aplicacionId, nuevoEstado);
     setEstados((prev) => ({ ...prev, [aplicacionId]: nuevoEstado }));
   };
 
@@ -536,13 +536,22 @@ function VistaHojaDeVida({ hdv }) {
 export default function Ofertas() {
   const { user } = useAuth();
   const barberiaId = user?.barberiaId;
-  const [ofertas, setOfertas] = useState(() =>
-    ofertasService.getOfertasByBarberia(barberiaId)
-  );
+  const [ofertas, setOfertas] = useState([]);
+  const [aplicaciones, setAplicaciones] = useState([]);
 
-  const [aplicaciones] = useState(() =>
-    ofertas.flatMap((o) => ofertasService.getAplicacionesByOferta(o.id))
-  );
+  useEffect(() => {
+    if (!barberiaId) return;
+    const fetchData = async () => {
+      const ofertasData = await ofertasService.getOfertasByBarberia(barberiaId);
+      setOfertas(ofertasData);
+      const appsPromises = ofertasData.map((o) =>
+        ofertasService.getAplicacionesByOferta(o.id)
+      );
+      const appsArrays = await Promise.all(appsPromises);
+      setAplicaciones(appsArrays.flat());
+    };
+    fetchData();
+  }, [barberiaId]);
 
   // Wizard de nueva oferta
   const [modoNueva, setModoNueva] = useState(false);
@@ -582,7 +591,7 @@ export default function Ofertas() {
     setPaso((p) => p + 1);
   };
 
-  const handlePublicar = () => {
+  const handlePublicar = async () => {
     const horarioTexto = (form.diasLaborales || [])
       .map((dia) => {
         const h = form.horasPorDia?.[dia] || { entrada: '09:00', salida: '18:00' };
@@ -590,7 +599,7 @@ export default function Ofertas() {
       })
       .join(', ');
 
-    const nueva = ofertasService.crearOferta({
+    const nueva = await ofertasService.crearOferta({
       ...form,
       horario: horarioTexto,
       barberiaId: barberiaId,
@@ -606,8 +615,8 @@ export default function Ofertas() {
     }, 1500);
   };
 
-  const handleCerrar = (id) => {
-    ofertasService.cerrarOferta(id);
+  const handleCerrar = async (id) => {
+    await ofertasService.cerrarOferta(id);
     setOfertas((prev) =>
       prev.map((o) => (o.id === id ? { ...o, estado: 'cerrada' } : o))
     );

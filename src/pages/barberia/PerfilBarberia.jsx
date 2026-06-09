@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Home, Scissors, ClipboardList, Clock, BarChart3,
@@ -34,26 +34,34 @@ export default function PerfilBarberia() {
   const toast = useToast();
   const fileInputRef = useRef(null);
 
-  const barberia = useMemo(() =>
-    barberiaService.getByNombre(user?.nombre), [user]
-  );
+  const [barberia, setBarberia] = useState(null);
+  const [perfil, setPerfil] = useState(null);
 
-  const [perfil, setPerfil] = useState(() => {
-    const saved = perfilService.getPerfil(user?.nombre, 'barberia');
-    if (barberia && !saved.nombreBarberia) {
-      return {
-        ...saved,
-        nombreBarberia: barberia.nombre || saved.nombreBarberia,
-        telefono: barberia.telefono || saved.telefono,
-        direccion: barberia.direccion || saved.direccion,
-        ciudad: barberia.ciudad || saved.ciudad,
-        descripcion: barberia.descripcion || saved.descripcion,
-        lat: barberia.lat ?? saved.lat,
-        lng: barberia.lng ?? saved.lng,
-      };
-    }
-    return saved;
-  });
+  useEffect(() => {
+    if (!user?.nombre) return;
+    const fetchData = async () => {
+      const [barberiaData, perfilData] = await Promise.all([
+        barberiaService.getByNombre(user.nombre),
+        perfilService.getPerfil(user.nombre, 'barberia'),
+      ]);
+      setBarberia(barberiaData);
+      if (barberiaData && !perfilData.nombreBarberia) {
+        setPerfil({
+          ...perfilData,
+          nombreBarberia: barberiaData.nombre || perfilData.nombreBarberia,
+          telefono: barberiaData.telefono || perfilData.telefono,
+          direccion: barberiaData.direccion || perfilData.direccion,
+          ciudad: barberiaData.ciudad || perfilData.ciudad,
+          descripcion: barberiaData.descripcion || perfilData.descripcion,
+          lat: barberiaData.lat ?? perfilData.lat,
+          lng: barberiaData.lng ?? perfilData.lng,
+        });
+      } else {
+        setPerfil(perfilData);
+      }
+    };
+    fetchData();
+  }, [user]);
 
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState(null);
@@ -71,10 +79,15 @@ export default function PerfilBarberia() {
   const [subiendoLogo, setSubiendoLogo] = useState(false);
 
   const barberosActivos = barberia?.barberoIds?.length || 0;
-  const ofertasActivas = useMemo(() => {
-    if (!barberia) return 0;
-    return ofertasService.getOfertasByBarberia(barberia.id)
-      .filter((o) => o.estado === 'activa').length;
+  const [ofertasActivas, setOfertasActivas] = useState(0);
+
+  useEffect(() => {
+    if (!barberia) return;
+    const fetchOfertas = async () => {
+      const ofs = await ofertasService.getOfertasByBarberia(barberia.id);
+      setOfertasActivas(ofs.filter((o) => o.estado === 'activa').length);
+    };
+    fetchOfertas();
   }, [barberia]);
 
   const entrarEdicion = () => {
@@ -87,8 +100,8 @@ export default function PerfilBarberia() {
     setEditMode(false);
   };
 
-  const guardarCambios = () => {
-    perfilService.guardarPerfil(user?.nombre, 'barberia', formData);
+  const guardarCambios = async () => {
+    await perfilService.guardarPerfil(user?.nombre, 'barberia', formData);
     setPerfil({ ...formData });
     setEditMode(false);
     setFormData(null);
@@ -108,7 +121,7 @@ export default function PerfilBarberia() {
       if (editMode) {
         actualizarCampo('logo', base64);
       } else {
-        perfilService.guardarPerfil(user?.nombre, 'barberia', { logo: base64 });
+        await perfilService.guardarPerfil(user?.nombre, 'barberia', { logo: base64 });
         setPerfil((prev) => ({ ...prev, logo: base64 }));
         toast({ type: 'success', message: 'Logo actualizado' });
       }
@@ -144,6 +157,15 @@ export default function PerfilBarberia() {
     setEliminado(true);
     setTimeout(() => { logout(); navigate('/login'); }, 2000);
   };
+
+  if (!perfil) {
+    return (
+      <div className="app-layout">
+        <Sidebar avatar={<Building2 size={20} />} badge="Barbería" badgeClass="badge-gold" navItems={navItems} />
+        <main className="main-content"><p style={{ padding: 32, color: 'var(--muted)' }}>Cargando perfil...</p></main>
+      </div>
+    );
+  }
 
   const logoSrc = editMode ? formData?.logo : perfil.logo;
   const data = editMode ? formData : perfil;
