@@ -24,8 +24,8 @@ router.post('/login/barbero', async (req, res) => {
 
 router.post('/registro/cliente', async (req, res) => {
   try {
-    const cliente = await authService.registrarCliente(req.body)
-    res.status(201).json({ mensaje: 'Cliente registrado', cedula: cliente.cedula_cliente })
+    const result = await authService.registrarCliente(req.body)
+    res.status(201).json(result)
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -33,8 +33,8 @@ router.post('/registro/cliente', async (req, res) => {
 
 router.post('/registro/barbero', async (req, res) => {
   try {
-    const barbero = await authService.registrarBarbero(req.body)
-    res.status(201).json({ mensaje: 'Barbero registrado', cedula: barbero.cedula_barbero })
+    const result = await authService.registrarBarbero(req.body)
+    res.status(201).json(result)
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -51,8 +51,8 @@ router.post('/login/barberia', async (req, res) => {
 
 router.post('/registro/barberia', async (req, res) => {
   try {
-    const barberia = await authService.registrarBarberia(req.body)
-    res.status(201).json({ mensaje: 'Barbería registrada', id: barberia.id })
+    const result = await authService.registrarBarberia(req.body)
+    res.status(201).json(result)
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
