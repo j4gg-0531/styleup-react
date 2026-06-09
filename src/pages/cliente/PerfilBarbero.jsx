@@ -45,52 +45,40 @@ export default function PerfilBarbero() {
     load();
   }, [id, navigate]);
 
-  if (!barbero) return null;
-
-  const nombreCompleto = `${barbero.nombre} ${barbero.apellido}`;
-
-  // Carga de horarios una sola vez (patrón lazy sin useEffect)
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const [horariosListos, setHorariosListos] = useState(false);
+  // ── Hooks moved above early return ──────────────────────────────
   const [mostrarQueja, setMostrarQueja] = useState(false);
   const [quejaTexto, setQuejaTexto] = useState('');
   const [quejaEnviada, setQuejaEnviada] = useState(false);
-  if (!horariosListos) {
-    cargarHorarios(barbero.id);
-    setHorariosListos(true);
-  }
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const precios = useMemo(
-    () => preciosService.getPreciosByBarbero(nombreCompleto),
-    [nombreCompleto]
-  );
+  useEffect(() => {
+    if (barbero) cargarHorarios(barbero.id);
+  }, [barbero]);
 
-  // ── Navegación de semanas ──────────────────────────────────────────────
-  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [precios, setPrecios] = useState([]);
+  useEffect(() => {
+    if (!barbero) return;
+    const nc = `${barbero.nombre} ${barbero.apellido}`;
+    preciosService.getPreciosByBarbero(nc).then(setPrecios).catch(() => setPrecios([]));
+  }, [barbero]);
+
   const [semanaOffset, setSemanaOffset] = useState(0);
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const diasSemana = useMemo(() => getDiasSemana(semanaOffset), [semanaOffset]);
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const hoyMidnight = useMemo(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
     return d;
   }, []);
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const [diaSeleccionado, setDiaSeleccionado] = useState(
     () => {
       const hoyNum = String(new Date().getDate());
       const dias = getDiasSemana(0);
       const hoyMid = new Date();
       hoyMid.setHours(0, 0, 0, 0);
-      // Si hoy está en la semana y no es pasado → seleccionar hoy
       for (const d of dias) {
         if (d.num === hoyNum && d.fecha >= hoyMid) return hoyNum;
       }
-      // Si no, el primer día futuro disponible
       for (const d of dias) {
         if (d.fecha >= hoyMid) return d.num;
       }
@@ -98,35 +86,35 @@ export default function PerfilBarbero() {
     }
   );
 
-  // ── Booking ────────────────────────────────────────────────────────────
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const [slotSel, setSlotSel]         = useState(null);   // { horaInicio, horaFin }
-  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [slotSel, setSlotSel]         = useState(null);
   const [servicioSel, setServicioSel] = useState(null);
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const [confirmado, setConfirmado]   = useState(false);
 
-  // ── Slots dinámicos según servicio y día seleccionado ─────────────────
-  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [citasExistentes, setCitasExistentes] = useState([]);
+  useEffect(() => {
+    if (!barbero || !diaSeleccionado) return;
+    const nc = `${barbero.nombre} ${barbero.apellido}`;
+    citasService.getCitasBarberoEnDia(nc, diaSeleccionado)
+      .then(setCitasExistentes)
+      .catch(() => setCitasExistentes([]));
+  }, [barbero, diaSeleccionado]);
+
   const slots = useMemo(() => {
-    if (!servicioSel || !diaSeleccionado) return [];
-
+    if (!servicioSel || !diaSeleccionado || !barbero) return [];
     const duracion = serviciosService.getDuracion(servicioSel.id);
-
-    // Citas existentes del barbero en ese día (para detectar conflictos)
-    const citasExistentes = citasService.getCitasBarberoEnDia(
-      nombreCompleto,
-      diaSeleccionado
-    );
-
+    const nc = `${barbero.nombre} ${barbero.apellido}`;
     return generarSlots({
-      barberoNombre:   nombreCompleto,
+      barberoNombre:   nc,
       diaNum:          diaSeleccionado,
       duracionMin:     duracion,
       horarios,
       citasExistentes,
     });
-  }, [servicioSel, diaSeleccionado, horarios, nombreCompleto]);
+  }, [servicioSel, diaSeleccionado, horarios, citasExistentes, barbero]);
+
+  if (!barbero) return null;
+
+  const nombreCompleto = `${barbero.nombre} ${barbero.apellido}`;
 
   const formatPrecio = (n) =>
     new Intl.NumberFormat('es-CO', {
@@ -301,10 +289,10 @@ export default function PerfilBarbero() {
                   >
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                       <div style={{ fontSize: '0.88rem', fontWeight: 600, color: esSel ? 'var(--gold)' : 'var(--text)' }}>
-                        {nombre}
+                        {svc.nombre}
                       </div>
                       <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>
-                        <Clock size={12} /> {info.dur} min
+                        <Clock size={12} /> {duracion} min
                       </div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
