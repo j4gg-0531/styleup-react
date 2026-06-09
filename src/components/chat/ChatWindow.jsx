@@ -52,6 +52,16 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
     chatService.getConversaciones(usuarioActual).then(setConversaciones);
   }, [usuarioActual]);
 
+  // Polling de mensajes nuevos
+  useEffect(() => {
+    if (!conversacionActiva || vista !== 'chat') return;
+    const interval = setInterval(async () => {
+      const msgs = await chatService.getMensajes(usuarioActual, conversacionActiva);
+      setMensajes(msgs);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [conversacionActiva, vista, usuarioActual]);
+
   // Auto scroll al último mensaje
   useEffect(() => {
     mensajesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
