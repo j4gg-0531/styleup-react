@@ -4,21 +4,41 @@ import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2, Bell } from
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../context/useAuth.js';
 import { ofertasService } from '../../services/ofertasService.js';
+import { barberiaService } from '../../services/barberiaService.js';
+import { citasService } from '../../services/citasService.js';
+
+const fmtPrecio = (n) =>
+  new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(n);
 
 export default function DashboardBarberia() {
   const { user } = useAuth();
   const barberiaId = user?.barberiaId;
   const [ofertas, setOfertas] = useState([]);
+  const [barberia, setBarberia] = useState(null);
+  const [citas, setCitas] = useState([]);
   const ofertasActivas = ofertas.filter((o) => o.estado === 'activa').length;
+  const hoy = new Date();
+  const hoyStr = hoy.toISOString().split('T')[0];
 
   useEffect(() => {
     if (!barberiaId) return;
     const fetchData = async () => {
-      const data = await ofertasService.getOfertasByBarberia(barberiaId);
-      setOfertas(data);
+      const [ofertasData, barberiaData, citasData] = await Promise.all([
+        ofertasService.getOfertasByBarberia(barberiaId),
+        barberiaService.getById(barberiaId),
+        citasService.getCitasByBarberia(barberiaId, hoy.getMonth() + 1, hoy.getFullYear()),
+      ]);
+      setOfertas(ofertasData);
+      setBarberia(barberiaData);
+      setCitas(citasData);
     };
     fetchData();
   }, [barberiaId]);
+
+  const barberos = barberia?.barberiaBarberos || [];
+  const barberosActivos = barberos.filter((b) => b.activo).length;
+  const citasEsteMes = citas.length;
+  const pendientesHoy = citas.filter((c) => c.estado === 'pendiente' && c.fecha === hoyStr).length;
 
   const navItems = [
     { icon: <Home size={18} />, label: 'Dashboard',  href: '/barberia' },
@@ -49,10 +69,10 @@ export default function DashboardBarberia() {
 
         <div className="stats-grid">
           {[
-            ['3',  'Barberos activos',  'var(--gold)'],
-            [String(ofertasActivas), 'Ofertas activas', 'var(--cobre-light)'],
-            ['24', 'Citas este mes',    '#2ecc71'],
-            ['0',  'Pendientes hoy',    'var(--muted)'],
+            [String(barberosActivos), 'Barberos activos',  'var(--gold)'],
+            [String(ofertasActivas),  'Ofertas activas',   'var(--cobre-light)'],
+            [String(citasEsteMes),    'Citas este mes',     '#2ecc71'],
+            [String(pendientesHoy),   'Pendientes hoy',     'var(--muted)'],
           ].map(([v, l, c]) => (
             <div key={l} className="stat-card">
               <div className="stat-value" style={{ color: c }}>{v}</div>
@@ -64,22 +84,21 @@ export default function DashboardBarberia() {
         <div className="grid-2" style={{ gap: 20 }}>
           <div className="card">
             <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Scissors size={18} /> Barberos empleados</div>
-            {[
-              { nombre: 'Juan Pérez',    especialidad: 'Corte a tijera', estado: 'Disponible' },
-              { nombre: 'Carlos López',  especialidad: 'Fade / Degradado', estado: 'En cita' },
-              { nombre: 'Miguel Torres', especialidad: 'Diseño / Undercut', estado: 'Disponible' },
-            ].map((b) => (
-              <div key={b.nombre} className="cita-row">
+            {barberos.slice(0, 5).map((b) => (
+              <div key={b.id} className="cita-row">
                 <div style={{ fontSize: '1.5rem' }}><Scissors size={24} /></div>
                 <div className="cita-detail">
-                  <div className="cita-client">{b.nombre}</div>
-                  <div className="cita-service-label">{b.especialidad}</div>
+                  <div className="cita-client">{b.barbero?.nombre} {b.barbero?.apellido}</div>
+                  <div className="cita-service-label">{b.barbero?.especialidad || 'Sin especialidad'}</div>
                 </div>
-                <span className={`badge ${b.estado === 'Disponible' ? 'badge-green' : 'badge-gold'}`}>
-                  {b.estado}
+                <span className={`badge ${b.activo ? 'badge-green' : 'badge-muted'}`}>
+                  {b.activo ? 'Activo' : 'Inactivo'}
                 </span>
               </div>
             ))}
+            {barberos.length === 0 && (
+              <p style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>No hay barberos registrados</p>
+            )}
             <Link to="/barberia/barberos" className="btn btn-outline btn-sm" style={{ marginTop: 12 }}>
               Ver todos →
             </Link>
@@ -96,6 +115,9 @@ export default function DashboardBarberia() {
                 </span>
               </div>
             ))}
+            {ofertas.length === 0 && (
+              <p style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>No hay ofertas aún</p>
+            )}
             <Link to="/barberia/ofertas" className="btn btn-outline btn-sm" style={{ marginTop: 12 }}>
               Ver todas →
             </Link>

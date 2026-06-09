@@ -1,16 +1,26 @@
-// src/pages/barberia/Barberos.jsx
-import { useNavigate } from 'react-router-dom';  // ← agregar este import
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2, Circle, ChevronRight, Bell } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
-
-const BARBEROS_EMPLEADOS = [
-  { id: 'B001', nombre: 'Juan Pérez',    especialidad: 'Corte a tijera',   estado: 'activo',   citasHoy: 3 },
-  { id: 'B002', nombre: 'Carlos López',  especialidad: 'Fade / Degradado', estado: 'activo',   citasHoy: 2 },
-  { id: 'B003', nombre: 'Miguel Torres', especialidad: 'Diseño / Undercut', estado: 'inactivo', citasHoy: 0 },
-];
+import { useAuth } from '../../context/useAuth.js';
+import { barberiaService } from '../../services/barberiaService.js';
 
 export default function BarberosBarberia() {
-  const navigate = useNavigate();  // ← agregar esto
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const barberiaId = user?.barberiaId;
+  const [barberia, setBarberia] = useState(null);
+
+  useEffect(() => {
+    if (!barberiaId) return;
+    const fetchData = async () => {
+      const data = await barberiaService.getById(barberiaId);
+      setBarberia(data);
+    };
+    fetchData();
+  }, [barberiaId]);
+
+  const barberos = barberia?.barberiaBarberos || [];
 
   const navItems = [
     { icon: <Home size={18} />, label: 'Dashboard',  href: '/barberia' },
@@ -32,44 +42,52 @@ export default function BarberosBarberia() {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {BARBEROS_EMPLEADOS.map((b) => (
-            <div
-              key={b.id}
-              className="card"
-              style={{ padding: 20, cursor: 'pointer' }}
-              onClick={() => navigate(`/barberia/barberos/${b.id}`)}  // ← navegar al perfil
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                <div className="barbero-avatar" style={{ fontSize: '1.5rem', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
-                  <Scissors size={24} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: 4 }}>
-                    {b.nombre}
+          {barberos.length === 0 && (
+            <p style={{ color: 'var(--muted)', fontSize: '0.9rem', padding: 20 }}>No hay barberos empleados</p>
+          )}
+          {barberos.map((b) => {
+            const bb = b.barbero || {};
+            const nombreCompleto = `${bb.nombre || ''} ${bb.apellido || ''}`.trim();
+            return (
+              <div
+                key={b.id}
+                className="card"
+                style={{ padding: 20, cursor: 'pointer' }}
+                onClick={() => navigate(`/barberia/barberos/${bb.cedula || b.id}`)}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <div className="barbero-avatar" style={{ fontSize: '1.5rem', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+                    <Scissors size={24} />
                   </div>
-                  <div style={{ color: 'var(--gold)', fontSize: '0.82rem' }}>
-                    <Scissors size={14} /> {b.especialidad}
-                  </div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{
-                      fontFamily: "'Playfair Display',serif",
-                      fontSize: '1.3rem', color: 'var(--gold)',
-                    }}>
-                      {b.citasHoy}
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: 4 }}>
+                      {nombreCompleto || 'Sin nombre'}
                     </div>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>citas hoy</div>
+                    <div style={{ color: 'var(--gold)', fontSize: '0.82rem' }}>
+                      <Scissors size={14} /> {bb.especialidad || 'Sin especialidad'}
+                    </div>
                   </div>
-                  <span className={`badge ${b.estado === 'activo' ? 'badge-green' : 'badge-muted'}`}>
-                    {b.estado === 'activo' ? <><Circle size={8} fill="#3fb950" color="#3fb950" /> Activo</> : <><Circle size={8} color="var(--muted)" /> Inactivo</>}
-                  </span>
-                  {/* Quitamos el botón "Ver horarios" — ahora toda la card es clickeable */}
-                  <ChevronRight size={18} color="var(--muted)" />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{
+                        fontFamily: "'Playfair Display',serif",
+                        fontSize: '1.3rem', color: 'var(--gold)',
+                      }}>
+                        {bb.calificacion ? bb.calificacion.toFixed(1) : '—'}
+                      </div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>estrellas</div>
+                    </div>
+                    <span className={`badge ${b.activo ? 'badge-green' : 'badge-muted'}`}>
+                      {b.activo
+                        ? <><Circle size={8} fill="#3fb950" color="#3fb950" /> Activo</>
+                        : <><Circle size={8} color="var(--muted)" /> Inactivo</>}
+                    </span>
+                    <ChevronRight size={18} color="var(--muted)" />
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </main>
     </div>

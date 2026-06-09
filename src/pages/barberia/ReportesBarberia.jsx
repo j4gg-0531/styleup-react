@@ -1,29 +1,48 @@
-// src/pages/barberia/ReportesBarberia.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Home, Scissors, ClipboardList, Clock, BarChart3, Building2, Bell } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
+import { useAuth } from '../../context/useAuth.js';
+import { citasService } from '../../services/citasService.js';
+import { preciosService } from '../../services/preciosService.js';
 
 export default function ReportesBarberia() {
+  const { user } = useAuth();
+  const barberiaId = user?.barberiaId;
+
   const mesesNombres = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
                         'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   const [mesFiltro, setMesFiltro]   = useState(new Date().getMonth() + 1);
   const [anioFiltro, setAnioFiltro] = useState(new Date().getFullYear());
+  const [citas, setCitas] = useState([]);
+
+  useEffect(() => {
+    if (!barberiaId) return;
+    const fetchData = async () => {
+      const data = await citasService.getCitasByBarberia(barberiaId, mesFiltro, anioFiltro);
+      setCitas(data);
+    };
+    fetchData();
+  }, [barberiaId, mesFiltro, anioFiltro]);
 
   const formatPrecio = (n) =>
     new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(n);
 
-  // FUTURO: estos datos vendrán de /api/barberias/:id/reportes?mes=X&anio=Y
-  const datosSimulados = {
-    gananciasTotal: 1250000,
-    citasCompletadas: 42,
-    citasCanceladas: 5,
-    barberoTop: 'Juan Pérez',
-    gananciasPorBarbero: [
-      { nombre: 'Juan Pérez',    ganancias: 580000, citas: 18 },
-      { nombre: 'Carlos López',  ganancias: 420000, citas: 14 },
-      { nombre: 'Miguel Torres', ganancias: 250000, citas: 10 },
-    ],
-  };
+  const completadas = citas.filter((c) => c.estado === 'completada');
+  const canceladas  = citas.filter((c) => c.estado === 'cancelada');
+  const gananciasTotal = completadas.reduce((sum, c) => {
+    const precio = preciosService.getPrecioServicio(c.barbero?.name, c.servicio?.id);
+    return sum + (precio || 0);
+  }, 0);
+
+  const gananciasPorBarbero = {};
+  completadas.forEach((c) => {
+    const nombre = c.barbero?.name || 'Desconocido';
+    if (!gananciasPorBarbero[nombre]) gananciasPorBarbero[nombre] = { nombre, ganancias: 0, citas: 0 };
+    gananciasPorBarbero[nombre].citas++;
+    gananciasPorBarbero[nombre].ganancias += preciosService.getPrecioServicio(c.barbero?.name, c.servicio?.id) || 0;
+  });
+  const gananciasArray = Object.values(gananciasPorBarbero).sort((a, b) => b.ganancias - a.ganancias);
+  const barberoTop = gananciasArray.length > 0 ? gananciasArray[0].nombre : '—';
 
   const navItems = [
     { icon: <Home size={18} />, label: 'Dashboard',  href: '/barberia' },
@@ -44,7 +63,6 @@ export default function ReportesBarberia() {
           <p className="page-subtitle">Ganancias consolidadas de tu barbería</p>
         </div>
 
-        {/* Filtro */}
         <div className="card" style={{ marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <span style={{ fontSize: '0.85rem', color: 'var(--muted)', fontWeight: 600 }}>
@@ -65,13 +83,12 @@ export default function ReportesBarberia() {
           </div>
         </div>
 
-        {/* Stats generales */}
         <div className="stats-grid" style={{ marginBottom: 24 }}>
           {[
-            [formatPrecio(datosSimulados.gananciasTotal), 'Ganancias totales', 'var(--gold)'],
-            [String(datosSimulados.citasCompletadas), 'Citas completadas', '#2ecc71'],
-            [String(datosSimulados.citasCanceladas), 'Canceladas', 'var(--muted)'],
-            [datosSimulados.barberoTop, 'Barbero top', 'var(--cobre-light)'],
+            [formatPrecio(gananciasTotal), 'Ganancias totales', 'var(--gold)'],
+            [String(completadas.length), 'Citas completadas', '#2ecc71'],
+            [String(canceladas.length), 'Canceladas', 'var(--muted)'],
+            [barberoTop, 'Barbero top', 'var(--cobre-light)'],
           ].map(([v, l, c]) => (
             <div key={l} className="stat-card">
               <div className="stat-value" style={{ color: c, fontSize: '1.3rem' }}>{v}</div>
@@ -80,38 +97,41 @@ export default function ReportesBarberia() {
           ))}
         </div>
 
-        {/* Ganancias por barbero */}
         <div className="card">
           <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><BarChart3 size={18} /> Ganancias por barbero</div>
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr><th>Barbero</th><th>Citas</th><th>Ganancias</th><th>%</th></tr>
-              </thead>
-              <tbody>
-                {datosSimulados.gananciasPorBarbero.map((b) => (
-                  <tr key={b.nombre}>
-                    <td><strong>{b.nombre}</strong></td>
-                    <td>{b.citas}</td>
-                    <td style={{ color: 'var(--gold)' }}>{formatPrecio(b.ganancias)}</td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{ flex: 1, height: 6, background: 'var(--border)', borderRadius: 3 }}>
-                          <div style={{
-                            height: '100%', borderRadius: 3, background: 'var(--cobre)',
-                            width: `${Math.round((b.ganancias / datosSimulados.gananciasTotal) * 100)}%`
-                          }} />
+          {gananciasArray.length === 0 ? (
+            <p style={{ color: 'var(--muted)', fontSize: '0.9rem', padding: 16 }}>No hay datos para este período</p>
+          ) : (
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Barbero</th><th>Citas</th><th>Ganancias</th><th>%</th></tr>
+                </thead>
+                <tbody>
+                  {gananciasArray.map((b) => (
+                    <tr key={b.nombre}>
+                      <td><strong>{b.nombre}</strong></td>
+                      <td>{b.citas}</td>
+                      <td style={{ color: 'var(--gold)' }}>{formatPrecio(b.ganancias)}</td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <div style={{ flex: 1, height: 6, background: 'var(--border)', borderRadius: 3 }}>
+                            <div style={{
+                              height: '100%', borderRadius: 3, background: 'var(--cobre)',
+                              width: `${gananciasTotal > 0 ? Math.round((b.ganancias / gananciasTotal) * 100) : 0}%`
+                            }} />
+                          </div>
+                          <span style={{ fontSize: '0.78rem', color: 'var(--muted)', minWidth: 32 }}>
+                            {gananciasTotal > 0 ? Math.round((b.ganancias / gananciasTotal) * 100) : 0}%
+                          </span>
                         </div>
-                        <span style={{ fontSize: '0.78rem', color: 'var(--muted)', minWidth: 32 }}>
-                          {Math.round((b.ganancias / datosSimulados.gananciasTotal) * 100)}%
-                        </span>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </main>
     </div>
