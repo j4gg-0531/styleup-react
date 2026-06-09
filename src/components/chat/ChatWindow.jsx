@@ -27,6 +27,12 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
   const [barberos, setBarberos] = useState([]);
 
   useEffect(() => {
+    if (conversacionInicial) {
+      onConversacionAbierta?.();
+    }
+  }, []);
+
+  useEffect(() => {
     const load = async () => {
       const todos = await barberosService.getTodos();
       let filtrados = todos;
@@ -45,6 +51,16 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
   useEffect(() => {
     chatService.getConversaciones(usuarioActual).then(setConversaciones);
   }, [usuarioActual]);
+
+  // Polling de mensajes nuevos
+  useEffect(() => {
+    if (!conversacionActiva || vista !== 'chat') return;
+    const interval = setInterval(async () => {
+      const msgs = await chatService.getMensajes(usuarioActual, conversacionActiva);
+      setMensajes(msgs);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [conversacionActiva, vista, usuarioActual]);
 
   // Auto scroll al último mensaje
   useEffect(() => {
@@ -97,8 +113,10 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
   const abrirConversacion = async (otroUsuario) => {
     setConversacionActiva(otroUsuario);
     setVista('chat');
+    onConversacionAbierta?.();
     const msgs = await chatService.getMensajes(usuarioActual, otroUsuario);
     setMensajes(msgs);
+    chatService.marcarLeidos(usuarioActual, otroUsuario);
   };
 
   return (

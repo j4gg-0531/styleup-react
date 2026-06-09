@@ -51,18 +51,25 @@ export const chatService = {
         guardar(MENSAJES_KEY, cache);
         return data.map(mapearMensaje);
       }
-    } catch {}
+    } catch (e) {
+      console.warn('chatService.getMensajes: fallback a cache', e);
+    }
     const cache = leer(MENSAJES_KEY);
     return (cache[key] || []).map(mapearMensaje);
   },
 
   async enviarMensaje(de, para, texto, imagenBase64 = null) {
-    const response = await api.post('/chat/enviar', {
-      remitente: de,
-      destinatario: para,
-      texto,
-      imagenUrl: imagenBase64,
-    });
+    let response;
+    try {
+      response = await api.post('/chat/enviar', {
+        remitente: de,
+        destinatario: para,
+        texto,
+        imagenUrl: imagenBase64,
+      });
+    } catch (e) {
+      console.warn('chatService.enviarMensaje: API fallo, guardando local', e);
+    }
     const msg = {
       remitente: de,
       destinatario: para,
@@ -87,7 +94,9 @@ export const chatService = {
         guardar(CONVERSACIONES_KEY, data);
         return data.map(mapearConversacion);
       }
-    } catch {}
+    } catch (e) {
+      console.warn('chatService.getConversaciones: fallback a cache', e);
+    }
     return leer(CONVERSACIONES_KEY).map(mapearConversacion);
   },
 
@@ -95,8 +104,18 @@ export const chatService = {
     try {
       const data = await api.get(`/chat/no-leidos?usuario=${encodeURIComponent(nombreUsuario)}`);
       if (data?.total != null) return data.total;
-    } catch {}
+    } catch (e) {
+      console.warn('chatService.getMensajesNoLeidos: fallback a cache', e);
+    }
     const convs = await chatService.getConversaciones(nombreUsuario);
     return convs.reduce((sum, c) => sum + (c.totalMensajes || 0), 0);
+  },
+
+  async marcarLeidos(usuario1, usuario2) {
+    try {
+      await api.post('/chat/marcar-leidos', { usuario1, usuario2 });
+    } catch (e) {
+      console.warn('chatService.marcarLeidos: fallo', e);
+    }
   },
 };
