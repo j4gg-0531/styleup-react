@@ -1,4 +1,5 @@
 require('dotenv').config()
+const path = require('path')
 const express = require('express')
 const cors = require('cors')
 const { PrismaClient } = require('@prisma/client')
@@ -9,6 +10,8 @@ const PORT = process.env.PORT || 3000
 
 app.use(cors())
 app.use(express.json())
+
+app.use(express.static(path.join(__dirname, '../../dist')))
 
 app.get('/', (req, res) => {
   res.json({ message: 'Servidor StyleUp funcionando ✅' })
@@ -61,6 +64,10 @@ app.use('/api/propuestas', propuestasRoutes)
 
 const calificacionesRoutes = require('./routes/calificaciones')
 app.use('/api/calificaciones', calificacionesRoutes)
+
+app.get('/{*splat}', (req, res) => {
+  res.sendFile(path.join(__dirname, '../../dist/index.html'))
+})
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`)
