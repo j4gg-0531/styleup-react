@@ -25,6 +25,7 @@ const mapearConversacion = (c) => ({
     timestamp: new Date(c.ultimoMensaje.timestamp || c.ultimoMensaje.fecha_creacion).getTime(),
   } : null,
   totalMensajes: c.totalMensajes,
+  noLeidos: c.noLeidos || 0,
 });
 
 function leer(key) {
