@@ -49,9 +49,14 @@ const obtenerConversaciones = async (nombreUsuario) => {
         otroUsuario,
         ultimoMensaje: msg,
         totalMensajes: 0,
+        noLeidos: 0,
       })
     }
-    conversacionesMap.get(convId).totalMensajes++
+    const entry = conversacionesMap.get(convId)
+    entry.totalMensajes++
+    if (msg.destinatario === nombreUsuario && !msg.leido) {
+      entry.noLeidos++
+    }
   }
 
   return Array.from(conversacionesMap.values())

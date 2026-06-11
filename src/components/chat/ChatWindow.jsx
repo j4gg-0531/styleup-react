@@ -83,17 +83,28 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
 
   const handleEnviar = async () => {
     if ((!texto.trim() && !imagenParaEnviar) || !conversacionActiva) return;
-    try {
-      await chatService.enviarMensaje(usuarioActual, conversacionActiva, texto.trim(), imagenParaEnviar);
-      const msgs = await chatService.getMensajes(usuarioActual, conversacionActiva);
-      setMensajes(msgs);
-      const convs = await chatService.getConversaciones(usuarioActual);
-      setConversaciones(convs);
-      setTexto('');
-      limpiarImagen();
-    } catch (err) {
-      console.error('Error al enviar mensaje:', err);
-    }
+    const msgText = texto.trim();
+    const msgImg = imagenParaEnviar;
+    setTexto('');
+    limpiarImagen();
+    const msgLocal = {
+      id: 'temp_' + Date.now(),
+      de: usuarioActual,
+      para: conversacionActiva,
+      texto: msgText,
+      imagen: msgImg,
+      leido: false,
+      hora: new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }),
+      timestamp: Date.now(),
+    };
+    setMensajes((prev) => [...prev, msgLocal]);
+    chatService.enviarMensaje(usuarioActual, conversacionActiva, msgText, msgImg);
+    const [msgs, convs] = await Promise.all([
+      chatService.getMensajes(usuarioActual, conversacionActiva),
+      chatService.getConversaciones(usuarioActual),
+    ]);
+    setMensajes(msgs);
+    setConversaciones(convs);
   };
 
   const handleImageSelect = async (e) => {
@@ -143,7 +154,7 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {vista === 'chat' && (
             <button
-              onClick={() => setVista('lista')}
+              onClick={() => { setVista('lista'); chatService.getConversaciones(usuarioActual).then(setConversaciones); }}
               style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '1rem', padding: 0 }}
             >
               <ArrowLeft size={16} />
@@ -223,7 +234,9 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
                     {rolActual === 'barbero' ? <User size={18} /> : <Scissors size={18} />}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>{conv.otroUsuario}</div>
+                    <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>
+                      {conv.otroUsuario}
+                    </div>
                     <div style={{
                       fontSize: '0.78rem', color: 'var(--muted)',
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -236,25 +249,15 @@ export default function ChatWindow({ usuarioActual, rolActual, onClose, conversa
                     <div style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>
                       {conv.ultimoMensaje.hora}
                     </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (confirm('¿Eliminar toda la conversación con ' + conv.otroUsuario + '?')) {
-                          chatService.eliminarConversacion(usuarioActual, conv.otroUsuario).then(() => {
-                            chatService.getConversaciones(usuarioActual).then(setConversaciones);
-                          });
-                        }
-                      }}
-                      style={{
-                        background: 'none', border: 'none', color: 'var(--muted)',
-                        cursor: 'pointer', padding: 4, display: 'flex', opacity: 0.5,
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-                      onMouseLeave={(e) => e.currentTarget.style.opacity = '0.5'}
-                      title="Eliminar conversación"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                    {conv.noLeidos > 0 && (
+                      <span style={{
+                        background: 'var(--gold)', color: '#000',
+                        borderRadius: 10, fontSize: '0.65rem',
+                        padding: '1px 6px', fontWeight: 700, lineHeight: '16px',
+                      }}>
+                        {conv.noLeidos}
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
