@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS mensajes (
   remitente       VARCHAR(100) NOT NULL,
   destinatario    VARCHAR(100) NOT NULL,
   texto           TEXT,
-  imagen_url      VARCHAR(500),
+  imagen_url      TEXT,
   leido           BOOLEAN DEFAULT false,
   timestamp       TIMESTAMP DEFAULT NOW()
 );

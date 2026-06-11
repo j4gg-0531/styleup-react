@@ -227,7 +227,7 @@ model mensajes {
   remitente       String    @db.VarChar(100)
   destinatario    String    @db.VarChar(100)
   texto           String?   @db.Text
-  imagen_url      String?   @db.VarChar(500)
+  imagen_url      String?   @db.Text
   leido           Boolean?  @default(false)
   timestamp       DateTime? @default(now()) @db.Timestamp(6)
 
