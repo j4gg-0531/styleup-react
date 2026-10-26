@@ -1,0 +1,150 @@
+import { api } from './api.js';
+
+const MENSAJES_KEY = 'styleup_chat_mensajes';
+const CONVERSACIONES_KEY = 'styleup_chat_conversaciones';
+
+const mapearMensaje = (m) => ({
+  id: m.id,
+  de: m.remitente,
+  para: m.destinatario,
+  texto: m.texto,
+  imagen: m.imagen_url,
+  leido: m.leido || false,
+  hora: new Date(m.timestamp || m.fecha_creacion).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }),
+  timestamp: new Date(m.timestamp || m.fecha_creacion).getTime(),
+});
+
+const mapearConversacion = (c) => ({
+  id: c.id,
+  otroUsuario: c.otroUsuario,
+  ultimoMensaje: c.ultimoMensaje ? {
+    de: c.ultimoMensaje.remitente,
+    para: c.ultimoMensaje.destinatario,
+    texto: c.ultimoMensaje.texto,
+    hora: new Date(c.ultimoMensaje.timestamp || c.ultimoMensaje.fecha_creacion).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }),
+    timestamp: new Date(c.ultimoMensaje.timestamp || c.ultimoMensaje.fecha_creacion).getTime(),
+  } : null,
+  totalMensajes: c.totalMensajes,
+  noLeidos: c.noLeidos || 0,
+});
+
+function leer(key) {
+  const d = sessionStorage.getItem(key);
+  return d ? JSON.parse(d) : [];
+}
+
+function guardar(key, data) {
+  sessionStorage.setItem(key, JSON.stringify(data));
+}
+
+function convKey(usuario1, usuario2) {
+  return [usuario1, usuario2].sort().join('_');
+}
+
+export const chatService = {
+  async getMensajes(usuario1, usuario2) {
+    const key = convKey(usuario1, usuario2);
+    try {
+      const data = await api.get(`/chat/mensajes?usuario1=${encodeURIComponent(usuario1)}&usuario2=${encodeURIComponent(usuario2)}`);
+      if (data) {
+        const cache = leer(MENSAJES_KEY);
+        cache[key] = data;
+        guardar(MENSAJES_KEY, cache);
+        return data.map(mapearMensaje);
+      }
+    } catch (e) {
+      console.warn('chatService.getMensajes: fallback a cache', e);
+    }
+    const cache = leer(MENSAJES_KEY);
+    return (cache[key] || []).map(mapearMensaje);
+  },
+
+  async enviarMensaje(de, para, texto, imagenBase64 = null) {
+    let response;
+    try {
+      response = await api.post('/chat/enviar', {
+        remitente: de,
+        destinatario: para,
+        texto,
+        imagenUrl: imagenBase64,
+      });
+    } catch (e) {
+      console.warn('chatService.enviarMensaje: API fallo, guardando local', e);
+    }
+    const msg = {
+      remitente: de,
+      destinatario: para,
+      texto,
+      imagen_url: imagenBase64,
+      id: Date.now(),
+      leido: false,
+      timestamp: new Date().toISOString(),
+      fecha_creacion: new Date().toISOString(),
+    };
+    const key = convKey(de, para);
+    const cache = leer(MENSAJES_KEY);
+    cache[key] = [...(cache[key] || []), msg];
+    guardar(MENSAJES_KEY, cache);
+    return mapearMensaje(response?.data || msg);
+  },
+
+  async getConversaciones(nombreUsuario) {
+    try {
+      const data = await api.get(`/chat/conversaciones?usuario=${encodeURIComponent(nombreUsuario)}`);
+      if (data) {
+        guardar(CONVERSACIONES_KEY, data);
+        return data.map(mapearConversacion);
+      }
+    } catch (e) {
+      console.warn('chatService.getConversaciones: fallback a cache', e);
+    }
+    return leer(CONVERSACIONES_KEY).map(mapearConversacion);
+  },
+
+  async getMensajesNoLeidos(nombreUsuario) {
+    try {
+      const data = await api.get(`/chat/no-leidos?usuario=${encodeURIComponent(nombreUsuario)}`);
+      if (data?.total != null) return data.total;
+    } catch (e) {
+      console.warn('chatService.getMensajesNoLeidos: fallback a cache', e);
+    }
+    const convs = await chatService.getConversaciones(nombreUsuario);
+    return convs.reduce((sum, c) => sum + (c.totalMensajes || 0), 0);
+  },
+
+  async marcarLeidos(usuario1, usuario2) {
+    try {
+      await api.post('/chat/marcar-leidos', { usuario1, usuario2 });
+    } catch (e) {
+      console.warn('chatService.marcarLeidos: fallo', e);
+    }
+  },
+
+  async eliminarMensaje(id, remitente) {
+    try {
+      await api.delete(`/chat/mensajes/${id}?remitente=${encodeURIComponent(remitente)}`);
+      const cache = leer(MENSAJES_KEY);
+      for (const key of Object.keys(cache)) {
+        cache[key] = cache[key].filter((m) => m.id !== id);
+      }
+      guardar(MENSAJES_KEY, cache);
+    } catch (e) {
+      console.warn('chatService.eliminarMensaje: fallo', e);
+    }
+  },
+
+  async eliminarConversacion(usuario1, usuario2) {
+    try {
+      await api.delete(`/chat/conversacion?usuario1=${encodeURIComponent(usuario1)}&usuario2=${encodeURIComponent(usuario2)}`);
+      const key = convKey(usuario1, usuario2);
+      const cache = leer(MENSAJES_KEY);
+      delete cache[key];
+      guardar(MENSAJES_KEY, cache);
+      const convsCache = leer(CONVERSACIONES_KEY);
+      const filtradas = convsCache.filter((c) => c.otroUsuario !== usuario2 && c.otroUsuario !== usuario1);
+      guardar(CONVERSACIONES_KEY, filtradas);
+    } catch (e) {
+      console.warn('chatService.eliminarConversacion: fallo', e);
+    }
+  },
+};

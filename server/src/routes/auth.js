@@ -1,0 +1,70 @@
+require('dotenv').config()
+const express = require('express')
+const router = express.Router()
+const authService = require('../services/auth.service')
+const authMiddleware = require('../middleware/auth')
+
+router.post('/login/cliente', async (req, res) => {
+  try {
+    const result = await authService.loginCliente(req.body.correo, req.body.contrasena)
+    res.json({ ...result, cedula: result.cedula || null })
+  } catch (error) {
+    res.status(401).json({ error: error.message })
+  }
+})
+
+router.post('/login/barbero', async (req, res) => {
+  try {
+    const result = await authService.loginBarbero(req.body.correo, req.body.contrasena)
+    res.json({ ...result, cedula: result.cedula || null })
+  } catch (error) {
+    res.status(401).json({ error: error.message })
+  }
+})
+
+router.post('/registro/cliente', async (req, res) => {
+  try {
+    const result = await authService.registrarCliente(req.body)
+    res.status(201).json(result)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+router.post('/registro/barbero', async (req, res) => {
+  try {
+    const result = await authService.registrarBarbero(req.body)
+    res.status(201).json(result)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+router.post('/login/barberia', async (req, res) => {
+  try {
+    const result = await authService.loginBarberia(req.body.correo, req.body.contrasena)
+    res.json(result)
+  } catch (error) {
+    res.status(401).json({ error: error.message })
+  }
+})
+
+router.post('/registro/barberia', async (req, res) => {
+  try {
+    const result = await authService.registrarBarberia(req.body)
+    res.status(201).json(result)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+router.put('/password', authMiddleware, async (req, res) => {
+  try {
+    await authService.cambiarPassword(req.usuario, req.body.passwordActual, req.body.passwordNueva)
+    res.json({ mensaje: 'Contraseña actualizada' })
+  } catch (error) {
+    res.status(400).json({ error: error.message })
+  }
+})
+
+module.exports = router

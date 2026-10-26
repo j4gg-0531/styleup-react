@@ -1,0 +1,125 @@
+const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
+const prisma = require('../lib/prisma')
+
+const loginCliente = async (correo, contrasena) => {
+  const cliente = await prisma.clientes.findUnique({ where: { correo } })
+  if (!cliente) throw new Error('Cliente no encontrado')
+
+  const valid = await bcrypt.compare(contrasena, cliente.contrasena)
+  if (!valid) throw new Error('Contraseña incorrecta')
+
+  const token = jwt.sign(
+    { cedula: cliente.cedula_cliente, tipo: 'cliente' },
+    process.env.JWT_SECRET,
+    { expiresIn: '8h' }
+  )
+  return { token, nombre: `${cliente.nombre} ${cliente.apellido}`.trim(), tipo: 'cliente', cedula: cliente.cedula_cliente }
+}
+
+const loginBarbero = async (correo, contrasena) => {
+  const barbero = await prisma.barberos.findUnique({ where: { correo } })
+  if (!barbero) throw new Error('Barbero no encontrado')
+
+  const valid = await bcrypt.compare(contrasena, barbero.contrasena)
+  if (!valid) throw new Error('Contraseña incorrecta')
+
+  const token = jwt.sign(
+    { cedula: barbero.cedula_barbero, tipo: 'barbero' },
+    process.env.JWT_SECRET,
+    { expiresIn: '8h' }
+  )
+  return { token, nombre: `${barbero.nombre} ${barbero.apellido}`.trim(), tipo: 'barbero', cedula: barbero.cedula_barbero }
+}
+
+const registrarCliente = async (data) => {
+  const hash = await bcrypt.hash(data.contrasena, 10)
+  const cliente = await prisma.clientes.create({
+    data: { ...data, contrasena: hash }
+  })
+  const token = jwt.sign(
+    { cedula: cliente.cedula_cliente, tipo: 'cliente' },
+    process.env.JWT_SECRET,
+    { expiresIn: '8h' }
+  )
+  return { token, nombre: `${cliente.nombre} ${cliente.apellido}`.trim(), tipo: 'cliente', cedula: cliente.cedula_cliente }
+}
+
+const registrarBarbero = async (data) => {
+  const hash = await bcrypt.hash(data.contrasena, 10)
+  const barbero = await prisma.barberos.create({
+    data: { ...data, contrasena: hash }
+  })
+  const token = jwt.sign(
+    { cedula: barbero.cedula_barbero, tipo: 'barbero' },
+    process.env.JWT_SECRET,
+    { expiresIn: '8h' }
+  )
+  return { token, nombre: `${barbero.nombre} ${barbero.apellido}`.trim(), tipo: 'barbero', cedula: barbero.cedula_barbero }
+}
+
+const loginBarberia = async (correo, contrasena) => {
+  const barberia = await prisma.barberias.findUnique({ where: { correo } })
+  if (!barberia) throw new Error('Barbería no encontrada')
+
+  const valid = await bcrypt.compare(contrasena, barberia.contrasena)
+  if (!valid) throw new Error('Contraseña incorrecta')
+
+  const token = jwt.sign(
+    { id: barberia.id, tipo: 'barberia', nombre: barberia.nombre_dueno },
+    process.env.JWT_SECRET,
+    { expiresIn: '8h' }
+  )
+  return { token, nombre: barberia.nombre_dueno, tipo: 'barberia', barberiaId: barberia.id }
+}
+
+const registrarBarberia = async (data) => {
+  const hash = await bcrypt.hash(data.contrasena, 10)
+  const barberia = await prisma.barberias.create({
+    data: {
+      nombre: data.nombre,
+      nombre_dueno: data.nombre_dueno,
+      direccion: data.direccion,
+      ciudad: data.ciudad,
+      telefono: data.telefono,
+      descripcion: data.descripcion,
+      correo: data.correo,
+      nit: data.nit,
+      num_trabajadores: data.num_trabajadores || 1,
+      contrasena: hash,
+    }
+  })
+  const token = jwt.sign(
+    { id: barberia.id, tipo: 'barberia', nombre: barberia.nombre_dueno },
+    process.env.JWT_SECRET,
+    { expiresIn: '8h' }
+  )
+  return { token, nombre: barberia.nombre_dueno, tipo: 'barberia', barberiaId: barberia.id }
+}
+
+const cambiarPassword = async (usuario, passwordActual, passwordNueva) => {
+  let record
+  if (usuario.tipo === 'cliente') {
+    record = await prisma.clientes.findUnique({ where: { cedula_cliente: usuario.cedula } })
+  } else if (usuario.tipo === 'barbero') {
+    record = await prisma.barberos.findUnique({ where: { cedula_barbero: usuario.cedula } })
+  } else if (usuario.tipo === 'barberia') {
+    record = await prisma.barberias.findUnique({ where: { id: usuario.id } })
+  }
+  if (!record) throw new Error('Usuario no encontrado')
+
+  const valid = await bcrypt.compare(passwordActual, record.contrasena)
+  if (!valid) throw new Error('Contraseña actual incorrecta')
+
+  const hash = await bcrypt.hash(passwordNueva, 10)
+
+  if (usuario.tipo === 'cliente') {
+    await prisma.clientes.update({ where: { cedula_cliente: usuario.cedula }, data: { contrasena: hash } })
+  } else if (usuario.tipo === 'barbero') {
+    await prisma.barberos.update({ where: { cedula_barbero: usuario.cedula }, data: { contrasena: hash } })
+  } else if (usuario.tipo === 'barberia') {
+    await prisma.barberias.update({ where: { id: usuario.id }, data: { contrasena: hash } })
+  }
+}
+
+module.exports = { loginCliente, loginBarbero, loginBarberia, registrarCliente, registrarBarbero, registrarBarberia, cambiarPassword }

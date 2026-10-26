@@ -1,0 +1,88 @@
+// src/components/chat/ChatFlotante.jsx
+import { useState, useEffect, useCallback } from 'react';
+import { MessageCircle, X } from 'lucide-react';
+import { useAuth } from '../../context/useAuth.js';
+import { useChatFlotante } from '../../context/useChatFlotante.js';
+import { chatService } from '../../services/chatService.js';
+import ChatWindow from './ChatWindow.jsx';
+import { useLocation } from 'react-router-dom';
+
+export default function ChatFlotante() {
+  const { user } = useAuth();
+  const { chatPendiente, limpiarChat } = useChatFlotante();
+  const [abierto, setAbierto] = useState(false);
+  const [noLeidos, setNoLeidos] = useState(0);
+  const location = useLocation();
+
+  const refrescarNoLeidos = useCallback(() => {
+    if (user) {
+      chatService.getMensajesNoLeidos(user.nombre).then(setNoLeidos);
+    } else {
+      setNoLeidos(0);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    refrescarNoLeidos();
+  }, [refrescarNoLeidos]);
+
+  // Polling del badge cuando el chat está cerrado
+  useEffect(() => {
+    if (abierto) return;
+    const interval = setInterval(refrescarNoLeidos, 10000);
+    return () => clearInterval(interval);
+  }, [abierto, refrescarNoLeidos]);
+
+  useEffect(() => {
+    if (chatPendiente && user && !abierto) {
+      setAbierto(true);
+    }
+  }, [chatPendiente, user, abierto]);
+
+  // Rutas donde el chat nunca aparece
+  const rutasPublicas = ['/', '/login', '/registro'];
+  if (!user || rutasPublicas.includes(location.pathname)) return null;
+
+  return (
+    <>
+      {abierto && (
+        <ChatWindow
+          usuarioActual={user.nombre}
+          rolActual={user.rol}
+          conversacionInicial={chatPendiente}
+          onConversacionAbierta={limpiarChat}
+          onClose={() => { setAbierto(false); refrescarNoLeidos(); }}
+        />
+      )}
+
+      <button
+        onClick={() => setAbierto(!abierto)}
+        style={{
+          position: 'fixed', bottom: 24, right: 24, zIndex: 1001,
+          width: 56, height: 56, borderRadius: '50%', border: 'none',
+          background: abierto
+            ? 'var(--surface2)'
+            : 'linear-gradient(135deg, var(--cobre), var(--cobre-light))',
+          color: abierto ? 'var(--text)' : '#fff', fontSize: '1.4rem',
+          cursor: 'pointer', boxShadow: 'var(--shadow-lg)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transition: 'all 0.3s ease',
+          transform: abierto ? 'rotate(45deg)' : 'rotate(0deg)',
+        }}
+      >
+        {abierto ? <X size={24} /> : <MessageCircle size={24} />}
+        {!abierto && noLeidos > 0 && (
+          <span style={{
+            position: 'absolute', top: -4, right: -4,
+            background: 'var(--gold)', color: '#000',
+            borderRadius: '50%', width: 20, height: 20,
+            fontSize: '0.7rem', fontWeight: 700,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            {noLeidos}
+          </span>
+        )}
+      </button>
+    </>
+  );
+}

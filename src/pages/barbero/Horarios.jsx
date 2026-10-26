@@ -1,0 +1,513 @@
+import { useState, useEffect, useMemo } from 'react';
+import { Home, Clock, Scissors, ClipboardList, BookOpen, BarChart3, Building2, X, Save, ArrowLeft, ArrowRight, Bell, Check, FileText, X as XIcon } from 'lucide-react';
+import Sidebar from '../../components/layout/Sidebar';
+import { useAuth } from '../../context/useAuth.js';
+import { useHorarios } from '../../context/useHorarios.js';
+import { barberiaService } from '../../services/barberiaService.js';
+import { barberosService } from '../../services/barberosService.js';
+import { horariosService } from '../../services/horariosService.js';
+import { useToast } from '../../context/useToast.js';
+
+const getDiasSemana = (offset = 0) => {
+  const hoy = new Date();
+  const diaSemana = hoy.getDay();
+  const lunes = new Date(hoy);
+  lunes.setDate(hoy.getDate() - (diaSemana === 0 ? 6 : diaSemana - 1) + offset * 7);
+
+  return Array.from({ length: 6 }, (_, i) => {
+    const dia = new Date(lunes);
+    dia.setDate(lunes.getDate() + i);
+    return {
+      name: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][i],
+      num: String(dia.getDate()),
+      fecha: dia,
+    };
+  });
+};
+
+const fmtFecha = (d) =>
+  d.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' });
+
+const fmtMesAnio = (d) =>
+  d.toLocaleDateString('es-CO', { month: 'long', year: 'numeric' });
+
+export default function Horarios() {
+  const { user } = useAuth();
+  const { horarios, cargarHorarios, agregarHorario, eliminarHorario } = useHorarios();
+
+  const [barberia, setBarberia] = useState(null);
+  const [soloLectura, setSoloLectura] = useState(false);
+
+  useEffect(() => {
+    const init = async () => {
+      if (!user?.nombre) return;
+      const todos = await barberosService.getTodos();
+      const found = todos.find(
+        (b) => b.nombre?.toLowerCase() === user?.nombre?.toLowerCase()
+      );
+      if (found) {
+        const todas = await barberiaService.getTodas();
+        const barb = todas.find(
+          (b) => b.barberoIds?.includes(found.id)
+        ) ?? null;
+        setBarberia(barb);
+        setSoloLectura(!!barb);
+      }
+    };
+    init();
+  }, [user]);
+
+  const [tab, setTab]               = useState('ver');
+  const [semanaOffset, setSemanaOffset] = useState(0);
+  const [diasSel, setDiasSel]       = useState([]);
+  const [estadoSel, setEstadoSel]   = useState('disponible');
+  const [horaInicio, setHoraInicio] = useState('09:00');
+  const [horaFin, setHoraFin]       = useState('13:00');
+  const [propuestas, setPropuestas] = useState([]);
+  const [propuestasAdmin, setPropuestasAdmin] = useState([]);
+  const toast = useToast();
+
+  const DIAS_SEMANA = useMemo(() => getDiasSemana(semanaOffset), [semanaOffset]);
+
+  useEffect(() => {
+    if (user?.cedula) cargarHorarios(user.cedula);
+  }, [user, cargarHorarios]);
+
+  useEffect(() => {
+    if (!user?.cedula) return;
+    const load = async () => {
+      try {
+        const [props, admin] = await Promise.all([
+          horariosService.getPropuestasByBarbero(user.cedula),
+          Promise.resolve(horariosService.getPropuestasAdminByBarbero(user.nombre)),
+        ]);
+        setPropuestas(props);
+        setPropuestasAdmin(admin);
+      } catch { /* silent */ }
+    };
+    load();
+  }, [user]);
+
+  const navItems = [
+    { icon: <Home size={18} />, label: 'Dashboard',     href: '/barbero' },
+    { icon: <Clock size={18} />, label: 'Mis horarios',  href: '/barbero/horarios' },
+    { icon: <Scissors size={18} />, label: 'Mis servicios', href: '/barbero/precios' },
+    { icon: <FileText size={18} />, label: 'Mi Hoja de Vida', href: '/barbero/hoja-de-vida' },
+    { icon: <ClipboardList size={18} />, label: 'Ofertas',       href: '/barbero/ofertas' },
+    { icon: <BookOpen size={18} />, label: 'Historial',     href: '/barbero/historial' },
+    { icon: <BarChart3 size={18} />, label: 'Reportes',      href: '/barbero/reportes' },
+    { icon: <Bell size={18} />, label: 'Notificaciones', href: '/barbero/notificaciones', notificacionesBadge: true },
+  ];
+
+  const toggleDia = (num) =>
+    setDiasSel((prev) =>
+      prev.includes(num) ? prev.filter((d) => d !== num) : [...prev, num]
+    );
+
+  const handleEliminar = async (h) => {
+    if (soloLectura || !user?.cedula) return;
+    await eliminarHorario(user.cedula, h.dia);
+    toast.info('Horario eliminado.');
+  };
+
+  const handleGuardar = async () => {
+    if (diasSel.length === 0) {
+      toast.error('Selecciona al menos un día.');
+      return;
+    }
+    if (horaInicio >= horaFin) {
+      toast.error('La hora de fin debe ser mayor a la de inicio.');
+      return;
+    }
+
+    if (soloLectura) {
+      if (!user?.cedula) return;
+      await horariosService.crearPropuesta({
+        dias: diasSel,
+        horaInicio,
+        horaFin,
+      }, user.cedula);
+      toast.success('Propuesta enviada a la barbería. Espera su aprobación.');
+      const props = await horariosService.getPropuestasByBarbero(user.cedula);
+      setPropuestas(props);
+    } else {
+      if (!user?.cedula) return;
+      for (const diaNum of diasSel) {
+        await agregarHorario({
+          dia: diaNum,
+          horaInicio,
+          horaFin,
+          estado: estadoSel,
+        }, user.cedula);
+      }
+      toast.success('Horario guardado correctamente.');
+    }
+    setTab('ver');
+    setDiasSel([]);
+  };
+
+  const handleAceptarAdmin = (id) => {
+    const result = horariosService.aceptarPropuestaAdmin(id);
+    if (result) {
+      setPropuestasAdmin(horariosService.getPropuestasAdminByBarbero(user.nombre));
+      toast.success('Propuesta aceptada. Tu horario ha sido actualizado.');
+    }
+  };
+
+  const handleRechazarAdmin = (id) => {
+    const result = horariosService.rechazarPropuestaAdmin(id);
+    if (result) {
+      setPropuestasAdmin(horariosService.getPropuestasAdminByBarbero(user.nombre));
+      toast.info('Propuesta rechazada.');
+    }
+  };
+
+  const badgeClase = { disponible: 'badge-green', descanso: 'badge-muted' };
+  const badgeTxt   = { disponible: 'Disponible', descanso: 'Descanso' };
+  const colorBorde = { disponible: '#2ecc71', descanso: 'var(--muted)' };
+
+  const diasEnSemana = useMemo(() => new Set(DIAS_SEMANA.map((d) => d.num)), [DIAS_SEMANA]);
+  const horariosDeEstaSemana = horarios.filter((h) => diasEnSemana.has(h.dia));
+
+  const horariosPorDia = DIAS_SEMANA.reduce((acc, dia) => {
+    const bloques = horariosDeEstaSemana.filter((h) => h.dia === dia.num);
+    if (bloques.length > 0) acc.push({ dia, bloques });
+    return acc;
+  }, []);
+
+  const primerDia = DIAS_SEMANA[0].fecha;
+  const ultimoDia = DIAS_SEMANA[5].fecha;
+  const etiquetaSemana = `${fmtFecha(primerDia)} – ${fmtFecha(ultimoDia)}`;
+  const etiquetaMes    = fmtMesAnio(primerDia);
+  const esHoy          = semanaOffset === 0;
+
+  const extra = <div className="spec-badge" style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}><Scissors size={14} /> Corte a tijera</div>;
+
+  return (
+    <div className="app-layout">
+      <Sidebar avatar={<Scissors size={20} />} badge="Barbero" navItems={navItems} extra={extra} />
+
+      <main className="main-content">
+        <div className="page-header">
+          <h2 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Clock size={22} /> Mis horarios</h2>
+          <p className="page-subtitle">
+            {soloLectura
+              ? `Tus horarios los gestiona ${barberia?.nombre}. Contacta a tu barbería para cambios.`
+              : 'Configura tu disponibilidad semanal'}
+          </p>
+        </div>
+
+          {soloLectura && (
+            <div className="alert alert-info" style={{ marginBottom: 20 }}>
+              <Building2 size={16} /> Trabajas en <strong>{barberia?.nombre}</strong>. Puedes enviar propuestas
+              de horario para que la barbería las apruebe.
+            </div>
+          )}
+
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          background: 'var(--surface)', border: '1px solid var(--border)',
+          borderRadius: 12, padding: '14px 20px', marginBottom: 24,
+          flexWrap: 'wrap', gap: 12,
+        }}>
+          <button
+            className="btn btn-outline btn-sm"
+            onClick={() => { setSemanaOffset((o) => o - 1);
+              setDiasSel([]);
+            }}
+          >
+            <ArrowLeft size={16} /> Semana anterior
+          </button>
+
+          <div style={{ textAlign: 'center' }}>
+            <div style={{
+              fontFamily: "'Playfair Display', serif",
+              fontSize: '1.1rem', fontWeight: 700,
+            }}>
+              {etiquetaSemana}
+            </div>
+            <div style={{ fontSize: '0.78rem', color: 'var(--muted)', marginTop: 2 }}>
+              {etiquetaMes}
+              {esHoy && (
+                <span className="badge badge-gold" style={{ marginLeft: 8, fontSize: '0.7rem' }}>
+                  Semana actual
+                </span>
+              )}
+            </div>
+          </div>
+
+          <button
+            className="btn btn-outline btn-sm"
+            onClick={() => {
+              setSemanaOffset((o) => o + 1);
+              setDiasSel([]);
+            }}
+          >
+            Semana siguiente <ArrowRight size={16} />
+          </button>
+        </div>
+
+        <div className="hor-tabs">
+          <div className={`hor-tab ${tab === 'ver' ? 'active' : ''}`} onClick={() => setTab('ver')}>
+            Ver horarios
+          </div>
+          <div className={`hor-tab ${tab === 'nuevo' ? 'active' : ''}`} onClick={() => setTab('nuevo')}
+            title={soloLectura ? 'Envía una propuesta de horario a tu barbería' : 'Agregar nuevo bloque'}>
+            {soloLectura ? '+ Proponer horario' : '+ Agregar horario'}
+          </div>
+        </div>
+
+        {tab === 'ver' && (
+          <div>
+            <div style={{
+              display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)',
+              gap: 8, marginBottom: 20,
+            }}>
+              {DIAS_SEMANA.map((d) => {
+                const tieneHorario = horariosDeEstaSemana.some((h) => h.dia === d.num);
+                const esHoyDia = new Date().getDate() === Number(d.num)
+                              && semanaOffset === 0;
+                return (
+                  <div
+                    key={d.num}
+                    style={{
+                      padding: '10px 4px', textAlign: 'center',
+                      borderRadius: 8, border: '1.5px solid',
+                      borderColor: esHoyDia
+                        ? 'var(--gold)'
+                        : tieneHorario ? '#2ecc71' : 'var(--border)',
+                      background: esHoyDia
+                        ? 'rgba(230,184,106,0.08)'
+                        : tieneHorario ? 'rgba(63,185,80,0.06)' : 'var(--surface)',
+                    }}
+                  >
+                    <div style={{ fontSize: '0.68rem', color: 'var(--muted)', textTransform: 'uppercase' }}>
+                      {d.name}
+                    </div>
+                    <div style={{
+                      fontFamily: "'Playfair Display', serif",
+                      fontSize: '1.1rem', fontWeight: 700, marginTop: 2,
+                      color: esHoyDia ? 'var(--gold)' : 'var(--text)',
+                    }}>
+                      {d.num}
+                    </div>
+                    <div style={{
+                      width: 6, height: 6, borderRadius: '50%', margin: '4px auto 0',
+                      background: tieneHorario ? '#2ecc71' : 'transparent',
+                    }} />
+                  </div>
+                );
+              })}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>
+                {horariosDeEstaSemana.length} bloques registrados esta semana
+              </div>
+              <div style={{ display: 'flex', gap: 8, fontSize: '0.78rem' }}>
+                {[['#2ecc71', 'Disponible'], ['var(--muted)', 'Descanso']].map(([c, l]) => (
+                  <span key={l} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span style={{ width: 10, height: 10, background: c, borderRadius: '50%', display: 'inline-block' }} />
+                    {l}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {horariosPorDia.length === 0 ? (
+              <div className="alert alert-info">
+                No tienes horarios para esta semana.{' '}
+                <span
+                  style={{ color: 'var(--gold)', cursor: 'pointer', fontWeight: 600 }}
+                  onClick={() => setTab('nuevo')}
+                >
+                  ¡Agrega uno!
+                </span>
+              </div>
+            ) : (
+              horariosPorDia.map(({ dia, bloques }) => (
+                <div key={dia.num}>
+                  <div style={{
+                    fontSize: '0.72rem', fontWeight: 600, color: 'var(--muted)',
+                    textTransform: 'uppercase', letterSpacing: '0.06em',
+                    margin: '16px 0 8px',
+                  }}>
+                    {dia.name} {dia.num}
+                  </div>
+                  {bloques.map((h) => (
+                    <div
+                      key={h.id}
+                      className="horario-card"
+                      style={{ borderLeft: `3px solid ${colorBorde[h.estado]}` }}
+                    >
+                      <div className="horario-fecha">
+                        <div className="h-day">{h.dia}</div>
+                        <div className="h-month">{h.mes}</div>
+                      </div>
+                      <div className="horario-info">
+                        <div className="horario-rango">{h.rango}</div>
+                        <div className="horario-meta">
+                          Estado: <span style={{ color: colorBorde[h.estado] }}>{badgeTxt[h.estado]}</span>
+                        </div>
+                      </div>
+                      <div className="horario-actions">
+                        <span className={`badge ${badgeClase[h.estado]}`}>{badgeTxt[h.estado]}</span>
+                        {!soloLectura && <button className="btn btn-outline btn-sm" onClick={() => handleEliminar(h)}><X size={12} /></button>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ))
+            )}
+            {propuestasAdmin.filter((p) => p.estadoPropuesta === 'pendiente').length > 0 && (
+              <div style={{ marginTop: 32, borderLeft: '3px solid #9b59b6', paddingLeft: 16 }}>
+                <h3 style={{ fontFamily: "'Playfair Display',serif", fontSize: '1rem', marginBottom: 12, color: '#9b59b6' }}>
+                  Propuestas de la barbería
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {propuestasAdmin.filter((p) => p.estadoPropuesta === 'pendiente').map((p) => (
+                    <div
+                      key={p.id}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 12,
+                        padding: '10px 14px', borderRadius: 8,
+                        border: '1px solid var(--border)',
+                        background: 'rgba(155,89,182,0.04)',
+                      }}
+                    >
+                      <div style={{ flex: 1, fontSize: '0.85rem' }}>
+                        <strong>{p.barberiaNombre}</strong> te ha enviado una propuesta de horario.
+                      </div>
+                      <button className="btn btn-primary btn-sm" onClick={() => handleAceptarAdmin(p.id)} style={{ background: '#2ecc71' }}>
+                        <Check size={14} /> Aceptar
+                      </button>
+                      <button className="btn btn-outline btn-sm" onClick={() => handleRechazarAdmin(p.id)} style={{ borderColor: '#e74c3c', color: '#e74c3c' }}>
+                        <XIcon size={14} /> Rechazar
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {propuestas.length > 0 && (
+              <div style={{ marginTop: 32 }}>
+                <h3 style={{ fontFamily: "'Playfair Display',serif", fontSize: '1rem', marginBottom: 12 }}>
+                  Mis propuestas
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {propuestas.slice().reverse().map((p) => (
+                    <div
+                      key={p.id}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 12,
+                        padding: '10px 14px', borderRadius: 8,
+                        border: '1px solid var(--border)',
+                        background: p.estadoPropuesta === 'pendiente' ? 'rgba(241,196,15,0.06)' :
+                                    p.estadoPropuesta === 'aceptada' ? 'rgba(46,204,113,0.06)' :
+                                    'rgba(231,76,60,0.06)',
+                      }}
+                    >
+                      <div style={{
+                        width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
+                        background: p.estadoPropuesta === 'pendiente' ? '#f1c40f' :
+                                    p.estadoPropuesta === 'aceptada' ? '#2ecc71' : '#e74c3c',
+                      }} />
+                      <div style={{ flex: 1, fontSize: '0.85rem' }}>
+                        <span style={{ fontWeight: 600 }}>{p.rango}</span>
+                        <span style={{ color: 'var(--muted)', marginLeft: 8 }}>
+                          ({p.dias.length} día{p.dias.length > 1 ? 's' : ''})
+                        </span>
+                      </div>
+                      <span className={`badge ${
+                        p.estadoPropuesta === 'pendiente' ? 'badge-warning' :
+                        p.estadoPropuesta === 'aceptada' ? 'badge-green' : 'badge-muted'
+                      }`}>
+                        {p.estadoPropuesta === 'pendiente' ? 'Pendiente' :
+                         p.estadoPropuesta === 'aceptada' ? 'Aceptada' : 'Rechazada'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {tab === 'nuevo' && (
+          <div className="nuevo-card">
+            <h3 style={{ fontFamily: "'Playfair Display',serif", fontSize: '1.1rem', marginBottom: 4 }}>
+              Nuevo bloque — semana del {etiquetaSemana}
+            </h3>
+            <p className="text-muted mb-3" style={{ fontSize: '0.85rem' }}>
+              Selecciona los días, el rango horario y el estado.
+            </p>
+
+            <div className="form-label">Días de la semana</div>
+            <div className="week-grid" style={{ marginBottom: 20 }}>
+              {DIAS_SEMANA.map((d) => (
+                <div
+                  key={d.num}
+                  className={`week-day ${diasSel.includes(d.num) ? 'selected' : ''}`}
+                  onClick={() => toggleDia(d.num)}
+                >
+                  <div className="wday-name">{d.name}</div>
+                  <div className="wday-num">{d.num}</div>
+                </div>
+              ))}
+              <div className="week-day" style={{ opacity: 0.3, cursor: 'not-allowed' }}>
+                <div className="wday-name">Dom</div>
+                <div className="wday-num">
+                  {(() => {
+                    const dom = new Date(DIAS_SEMANA[5].fecha);
+                    dom.setDate(dom.getDate() + 1);
+                    return dom.getDate();
+                  })()}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid-2">
+              <div className="form-group">
+                <label className="form-label">Hora de inicio</label>
+                <select className="form-control" value={horaInicio} onChange={(e) => setHoraInicio(e.target.value)}>
+                  {['07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00'].map((h) => (
+                    <option key={h}>{h}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Hora de fin</label>
+                <select className="form-control" value={horaFin} onChange={(e) => setHoraFin(e.target.value)}>
+                  {['09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00'].map((h) => (
+                    <option key={h}>{h}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="form-label">Estado</div>
+            <div className="estado-options">
+              {[
+                { val: 'disponible', dot: 'dot-disponible', label: 'Disponible' },
+                { val: 'descanso',   dot: 'dot-descanso',   label: 'Descanso' },
+              ].map((o) => (
+                <div
+                  key={o.val}
+                  className={`estado-opt ${estadoSel === o.val ? 'selected' : ''}`}
+                  onClick={() => setEstadoSel(o.val)}
+                >
+                  <span className={`dot ${o.dot}`} /> {o.label}
+                </div>
+              ))}
+            </div>
+
+            <button className="btn btn-primary" onClick={handleGuardar}>
+              <Save size={16} /> {soloLectura ? 'Enviar propuesta' : 'Guardar horario'}
+            </button>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
